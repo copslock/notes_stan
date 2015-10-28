@@ -1,0 +1,49 @@
+解决冲突
+git checkout test(需要被合并的分支) 
+git fetch origin 
+git rebase origin/developer(rebase到远程分支) 
+修改......vim test 
+git add test(解决冲突后的文件重新加入) 
+git rebase --continue 
+git push origin HEAD:refs/for/developer 
+
+提交后发现错误，需要修改（仅限于最近一次提交的修改） 
+1）修改 
+2）git add 
+3）git commmit --amend 
+4）git push origin HEAD:refs/for/branchname 
+这样会在同一个变更下，生成新的patch set。否则，你的分支就乱掉啦！！ 
+
+修改以前的提交，或者以前提交的log
+1）使用rebase：git rebase -i HEAD~3（最近3次提交） 
+pick b9fc21d modify the DBF
+pick f7de3a8 fix mirror bug
+edit 6456aa8 fix mirror bug 
+将需要修改的这次提交改为edit，保存、退出 
+2）rebase到6456aa8这个提交时会中断， 
+3）修改提交：修改代码 -> git add XX -> git commit --amend 
+   修改log： 直接执行git commit --amend ，修改commit信息，根据情况是否删除Change-Id...，  :wq保存、退出 
+3）继续执行：git rebase --continue，直到完成 
+
+repo:
+代码下载： 
+1.建立工程目录：mkdir msm8916 && cd msm8916
+2.初始化： repo init -u git://10.120.10.101/msm8916/platform/manifest --repo-url=git://10.120.10.101/msm8916/tools/repo -b branchname -m a_manifest.xml
+3.下载代码/更新代码：repo sync
+单独下载某一个project: repo sync [project-list] ( [project-list] 通过repo list 显示)
+ 
+创建分支：
+repo start private_branch 
+
+代码提交：
+git add / repo stage -i (相当于git add -i) 
+git commit 
+repo upload   
+
+删除分支:
+repo prune [project-list]：删除已经merge 的 project (相当于git branch -d) 
+repo abandon：忽略未提交修改，强制删除(相当于git branch -D) 
+
+repo forall -c:遍历所有git仓库 并在每一个仓库执行-c的命令
+遍历所有的git仓库，并在每个仓库执行-c所指定的命令 
+eg: repo forall -c git log --since="2014-04-19" --until="2014-04-21" 

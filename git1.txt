@@ -1,0 +1,167 @@
+$cat filename.txt 查看filname这个TXT
+
+init:git init
+添加:git add filename1.txt filename2.txt...(此处无输出->stage暂存区)/git commit -m "blablablabla"（暂存区->全部执行）
+git status 了解仓库的变动点
+被添加过的文件修改会显示修改的点 而新文件还未被添加的会显示untracked commit后会显示working dir clean
+
+git diff filename 查看仓库的变化并对比
+git log /git log --pretty=online查看修改的历史纪录
+
+head表示当前版本 git reset --hard HEAD^ 返回上一个记录
+git reset --hard HEAD^^ 返回上两个版本
+gir reset --hard HEAD~(N) 返回第N个版本
+git reset --hard commit_id
+git reflog 每一次历史命令的引起的HEAD指针变化历史 用于找到commit的id 回到过去或者未来
+
+git是一个“管理修改”过程的分布式版本控制系统
+git checkout -- filename.txt 丢弃本文件在工作区的修改
+一种是readme.txt自修改后还没有被放到暂存区，现在，撤销修改就回到和版本库一模一样的状态；
+一种是readme.txt已经添加到暂存区后，又作了修改，现在，撤销修改就回到添加到暂存区后的状态。
+git reset HEAD filename.txt 把暂存区的修改撤销unstage 暂存区->工作区
+如果已经commit过 参考版本回退部分
+如果已经推送到远程版本库->等死
+
+文件删除：
+rm filename.txt -> git rm -> git commit -m "blablabla"
+rm filename.txt 误删 -> git checkout -- filename.txt
+git checkout其实是用版本库里的版本替换工作区的版本，无论工作区是修改还是删除，都可以“一键还原”工作区
+
+本地库和远程库链接
+SSH
+1.$ ssh-keygen -t rsa -C "youremail@example.com"
+用户主目录里找到.ssh目录，里面有id_rsa和id_rsa.pub两个文件，这两个就是SSH Key的秘钥对，id_rsa是私钥，不能泄露出去，id_rsa.pub是公钥，可以放心地告诉任何人
+2.github -> settings -> ssh keys :title随意 key里填写id_rsa.pub的内容 -> add key
+
+远程库创建github
+create a new repo -> create repository -> 
+git remote add 远程库名 git@server_name:github_name/库名.git
+git remote add origin git@github.com:michaelliao/learngit.git
+
+git push -u 远程库名(origin) 要推送的分支名(master)
+git push xxxx master
+git push origin HEAD:refs/for/branchname
+
+
+从远程库clone到本地 clone确保自己已经在本地的工作区path内（好像)
+git clone git@github.com:github_name/库名.git
+git clone ssh://yourname@10.120.10.101:29418/XXX -b BranchName workspace
+cd 库名
+ls
+ git也支持http协议 但速度比较慢 
+
+git的分支管理
+git branch dev 分支创建(dev)
+git checkout dev 从master分支切换到dev分支  == 以上两条命令等同于git checkout -b dev
+git branch 查看当前分支 星号代表目前所在处
+git merge dev 将dev分支内容合并到master分支上(合并指定分支到当前分支) merge自带优先会执行的fast forward模式
+合并以后的dev分支可以删除掉 git branch -d dev
+
+解决冲突：修改当前master和feature的不同
+git log --graph --pretty=oneline --abbrev-commit 简略合并分支图
+git merge --no-ff -m "blablabla" dev 禁用fast forward模式 删除dev分支后但不删除merge后dev分支的commit记录
+master -> dev -> mick,bob,jason
+
+bug分支：
+git stash 进入隐藏环境
+git checkout xxx 切换到要讲bug合并的分支xxx上
+git checkout -b bug_1 创建bug1分支
+git checkout xxx
+git merge --no-ff -m "fixed bug_1" bug_1
+git branch -d bug_1 删除bug1分支
+此时git status是看不到刚才的工作现场的 利用如下
+git stash list
+会得到	stash@{0}:xxxxxxxx
+git stash apply stash@{0} 恢复后stash内容不删除 git stash drop stash@{0} 删除内容
+git stash pop stash@{0} 恢复同时stash内容也被删除
+
+feature分支：
+未合并的分支强行删除 git branch -D feature1
+
+git remote 查看远程库信息 git remote -v
+git push origin xxxx
+****git checkout -b dev origin/dev
+若push失败，即远程分支比本地更新，你所推送有冲突
+git pull 抓取远程新的提交/ 若pull失败 则git branch --set-upstream branch-name origin/branch-name 本地分支于远程分支建立链接关系
+可能还要解决push的冲突(手动处理)
+
+版本库的标签管理
+标签作为版本的快照存在 即指向某个commit的指针 
+
+切换到要标签的分支上:git checkout dev
+git tag tag-name 对切换的分支搭上标签
+标签是打在提交的commit上的 默认是最新的commit 若要对以往的commit标签 即：
+git log 查看commit-id
+git tag tag-name commit-id
+(git tag v1.0 6224937)
+git tag -a tag-name -m "blablabla" commit-id 可以对tag添加一些说明 -a表示指定标签名
+git tag -s v1.1 -m "blablabla" fa23432  (-s)表示用私钥签名 PGP签名需要首先安装gpg(GnuPG) 
+git tag查看已有的标签 标签不是按照时间顺序排列的
+git show tag-name 详细显示该标签信息
+标签删除 git tag -d tag-name
+标签的远程推送 git push origin tag-name
+一次性推送全部本地标签到远程 git push origin --tags
+删除已推送的远程标签 git tag -d tag-name -> git push origin :ref/tags/tag-name
+
+官方的github/项目名.git  ---folk(<---pull request---)--->  my/项目名.git 
+								 ^ |
+							     push| |clone
+								 | |
+								 | V
+							  local/项目名.git
+
+git自定义
+git config --global alias.co commit
+git config --global color.ui true 文件颜色高亮
+git工作区 .gitignore 填入本文件的文件名会在检测git status被忽略掉(一些系统自动生存的文件例如缩略图，编译的中间文件，配置文件)
+
+.gitignore实例：
+# Windows:
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Python:
+*.py[cod]
+*.so
+*.egg
+*.egg-info
+dist
+build
+
+# My configurations:
+db.ini
+deploy_key_rsa
+
+useful thing!
+git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+
+
+.git/config 这一个库的配置文件 
+$home: /gitconfig  这一个本地用户的全局配置文件
+之前的配置别名都可以直接在这里修改或者删除掉对应行
+
+sudo apt-get install git
+sudo adduser git
+
+git gerrit configrition:
+ssh-keygen -t rsa
+cat ~/.ssh/id_rsa.pub
+
+cd workspace
+git config  user.name “Your Name” （Gerrit登录名） 
+git config  user.email "you@example.com"     （Gerrit注册的邮箱地址）
+curl http://10.120.10.101:9999/tools/hooks/commit-msg > .git/hooks/commit-msg
+chmod +x .git/hooks/commit-msg
+
+上传代码到服务器
+
+1.更新代码库：git fetch
+2.将新代码合并到私有分支：git rebase remotes/origin/branchname
+3.解决冲突
+4.推送到服务器，待审核：git push origin HEAD:refs/for/branchname
+5.直接推送分支到服务器(需要push分支的权限，一般仅限项目负责人操作)：git push origin branchname
+
+
+
+

@@ -1,0 +1,5 @@
+Q:Could not apply the stored configuration for monitors:
+
+Solution:
+cd home/.config/monitors.xml
+rm -f monitors.xml
