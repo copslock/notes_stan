@@ -1,0 +1,2 @@
+http://developer.android.com/tools/device.html
+ubuntu usb-driver something
