@@ -1,0 +1,59 @@
+个人理解：makefile是一种作为脚本来运行的存在 设定一些编译的规则和方法？
+
+preprocessing预编译：
+1.头文件的包含
+2.扩展宏定义
+3.条件编译的选择
+gcc -E 
+cpp
+
+Compilation编译：
+1.词法分析语法分析
+2.代码优化 存储分配 代码生成
+.c/.h ---> .s汇编语言
+gcc -S
+cc -S
+
+Assembly汇编：
+1.代码段code存放程序指令
+2.数据段data存放程序要用的各种全局变量和静态数据
+.s ---> .o机器指令
+gcc -c
+as
+
+Linking链接：
+将相关文件相连形成一个可执行的统一整体
+.o ---> .exe
+gcc gcc
+ld
+
+ONE_SHOT_MAKEFILE=$M make -C $T all_modules $@，
+ONE_SHOT_MAKEFILE="$MAKEFILE" make -C $T $DASH_ARGS all_modules $ARGS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
