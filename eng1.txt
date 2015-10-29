@@ -1,0 +1,8 @@
+convert 
+operands 
+stdin
+
+stdout
+suffixed
+sync
+

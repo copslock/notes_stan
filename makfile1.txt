@@ -4,31 +4,138 @@ preprocessing预编译：
 1.头文件的包含
 2.扩展宏定义
 3.条件编译的选择
-gcc -E 
+gcc -E name.c -o name.i/gcc -E name.c
 cpp
 
 Compilation编译：
 1.词法分析语法分析
 2.代码优化 存储分配 代码生成
 .c/.h ---> .s汇编语言
-gcc -S
+gcc -S name.i -o name.s
 cc -S
 
 Assembly汇编：
 1.代码段code存放程序指令
 2.数据段data存放程序要用的各种全局变量和静态数据
 .s ---> .o机器指令
-gcc -c
+gcc -c name.s -o name.o
 as
 
 Linking链接：
 将相关文件相连形成一个可执行的统一整体
 .o ---> .exe
-gcc gcc
+gcc name.o -o name
 ld
 
 ONE_SHOT_MAKEFILE=$M make -C $T all_modules $@，
 ONE_SHOT_MAKEFILE="$MAKEFILE" make -C $T $DASH_ARGS all_modules $ARGS
+
+makefile规则：
+TARGET...:Prerequisites...
+	command
+	...
+	...
+target:object file/.exe/label
+prerequisites:生成target所需的文件或目标
+command：make要执行的命令/shell指令
+
+e.g.
+obj = main.o kdb.o ... utils.o
+edit: $(obj)             
+	cc -o edit $(obj)     
+main.o: main.c defs.h             
+	cc -c main.c     
+…
+…   
+utils.o: utils.c defs.h           
+	cc -c utils.c    
+clean:            #clean目标被定义为伪目标 当make clean时 执行rm edit $(obj)的操作
+	rm edit $(obj) 
+
+
+变量：
+1.递归展开变量：obj=main.o kbd.o ... utils.o
+引用：edit:$(obj)
+2.直接展开变量：obj:=..... 被定义时即直接使用
+3.条件赋值：x?= bar 若x为空则x=bar 否则x值不变
+4.追加赋值：x+= goo 根据x的定义来确定是递归展开还是直接展开
+自动化的变量：$< 规则中的第一个依赖文件, $@ 规则中的target名, $? 比目标文件新的依赖文件列表,
+$* 在模式规则和静态模式规则中代表‘茎’, $^ 规则依赖文件列表不含重复文件, $+ 规则依赖文件列表包含重复的,
+$% 目标是一个静态库文件时,代表静态库的一个成员名
+($引用makefile内变量 $$引用shell内变量) 
+
+条件判断：
+ifeq用于判断两值是否相等，ifdef判断变量是否定义
+if()    第一种
+	~
+endif
+
+if()	  第二种
+	~
+else
+	~
+endif
+
+e.g.
+~
+foo:$(obj)
+ifeq($(hx),gcc) 判断变量$(hx)是否是gcc   eq代表后面条件判断是两个数值是否相等 eq==equal
+	$(hx) -o foo $(obj) $(libs)
+else
+	$(hx) -o foo $(obj) $(other_libs)
+endif
+
+函数：
+定义：
+define <func_name>
+...
+endef
+调用：
+$(function_name arg1,arg2...)
+$(subst from,to,text) 把字符串test中的‘from’字符换成‘to’字符
+$(subst  ,*,my name is stan) ---> output: my*name*is*stan
+常见的内置函数：
+
+
+make的自动推导
+例如找到一个.o文件会自动把.c文件添加到依赖关系中，相应的编译命令也会被推导出来
+make规则的e.g.可以改为如下:标记的部分因为make可以自动推导的方式所以可以删掉
+e.g.
+obj = main.o kdb.o ... utils.o
+edit: $(obj)             
+	cc -o edit $(obj)     
+main.o: main.c defs.h             
+	cc -c main.c     
+…
+…   
+utils.o: utils.c defs.h           
+	cc -c utils.c    
+clean:            
+	rm edit $(obj)
+
+引用其他的makefile
+include<filename>
+filename可以使当前系统shell的文件模式或者包含路径和通配符
+
+makefile常见的为目标定义：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

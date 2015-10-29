@@ -1,0 +1,38 @@
+linux脚本基础语法
+
+1.变量：
+var = value
+local var = value	//局部变量
+
+2.条件判断
+if xxxx				//
+then
+	TODO
+fi
+
+3.循环
+while xxxx
+do 
+	TODO
+done
+
+for i in $var
+do 
+	TODO
+done
+$var里保存的是以空格分开的‘值’
+
+4.test条件语句
+e.g.
+int1 -eq int2  判断int1是否等于int2 等同于int1==int2
+-d file1  判断file1存在并且是是一个directory
+
+5.函数
+func_name()
+{
+TODO
+}
+函数()里是没有参数列表的 函数中变量默认都是全局变量
+参数()：
+$#参数的个数,$*全部参数以空格分开,$0命令本身,
+$1第一个参数,$2第二个参数,$3 ...

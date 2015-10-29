@@ -1,0 +1,75 @@
+cd ~ 主目录一般为/home/user_name  .表示当前目录  ..上一级  /根目录
+cp file1 file2
+mv file1 file2
+rm [-f强制删除][-r文件夹] filename
+ls -a显示隐藏目录 -l显示时间大小权限等
+file 查看文件类型
+echo string_or_$var 能显示环境变量的值
+find [-H] [-L] [-P] [-Olevel] [-D help|tree] [path...]
+grep string 过滤str的内容再输出
+mount/umount -t type dev dir 挂载
+source file 当前bash环境下读取并执行file里的命令
+history 查看输入命令的历史
+sudo/su root
+man command 帮助命令 按q退出
+
+ps -l 查看进程
+********* simple selection *********  ********* selection by list *********
+-A all processes                      -C by command name
+-N negate selection                   -G by real group ID (supports names)
+-a all w/ tty except session leaders  -U by real user ID (supports names)
+-d all except session leaders         -g by session OR by effective group name
+-e all processes                      -p by process ID
+T  all processes on this terminal     -s processes in the sessions given
+a  all w/ tty, including other users  -t by tty
+g  OBSOLETE -- DO NOT USE             -u by effective user ID (supports names)
+r  only running processes             U  processes for specified users
+x  processes w/o controlling ttys     t  by tty
+*********** output format **********  *********** long options ***********
+-o,o user-defined  -f full            --Group --User --pid --cols --ppid
+-j,j job control   s  signal          --group --user --sid --rows --info
+-O,O preloaded -o  v  virtual memory  --cumulative --format --deselect
+-l,l long          u  user-oriented   --sort --tty --forest --version
+-F   extra full    X  registers       --heading --no-heading --context
+                    ********* misc options *********
+-V,V  show version      L  list format codes  f  ASCII art forest
+-m,m,-L,-T,H  threads   S  children in sum    -y change -l format
+-M,Z  security data     c  true command name  -c scheduling class
+-w,w  wide output       n  numeric WCHAN,UID  -H process hierarchy
+
+dd
+dd if=/dev/sda1 of=/home/ckt/10_M count=1 bs=10MB
+if为源，of为输出，count为块个数，bs为写入读出一个块的大小 1M=1024*1024 1MB=1000*1000
+dd可以用于复制一个sd的镜像 也可以执行格式化和挂载等等操作
+
+echo命令：
+echo <option> <字符串>
+option：
+-n  不会输出附加的新行    
+-e  能输出转义字符    
+-E  使转义字符不能输出（系统预设）    
+--help 显示帮助和推出    
+--version 输出版本信息和退出      
+
+如果-e是有效的,下列信息会被识别出：    
+\\  反斜杠    \a  警报声（BEL）    \b  退格    
+\c  不产生进一步的输出    \e  escape    
+\f  换页符    \n  新一行    \r  回车    
+\t  水平制表符    \v  竖直制表符    
+\0NNN 八进制数NNN    \xHH  十六进制数HH
+
+文字色：
+echo -e "\e[1;31mThis is red text\e[0m"
+\e[1;31m 将颜色设置为红色并加粗
+\e[0m 将颜色重新置回
+颜色码：重置=0，黑色=30，红色=31，绿色=32，黄色=33，蓝色=34，洋红=35，青色=36，白色=37
+30-37是文字颜色
+
+背景色：
+echo -e "\e[1;42mGreed Background\e[0m"
+颜色码：重置=0，黑色=40，红色=41，绿色=42，黄色=43，蓝色=44，洋红=45，青色=46，白色=47
+40-47是文字的背景颜色
+
+?文字闪动：
+echo -e "\033[37;31;5mMySQL Server Stop...\033[39;49;0m"
+红色数字处还有其他数字参数：0 关闭所有属性,1 设置高亮度(加粗),4 下划线,5 闪烁,7 反显,8 消隐
