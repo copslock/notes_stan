@@ -1,0 +1,26 @@
+cd ~/cd $home
+vim .bashrc
+vim .profile
+
+解压缩文件
+sudo tar -zxvg jdk-7u9-linux-x64.tar.gz
+
+如果系统有openjdk你想改为oracle的jdk 则还需要加上以下的部分
+$ sudo update-alternatives --install /usr/bin/java java /usr/lib/jdk/jdk1.7.0_09/bin/java 300
+$ sudo update-alternatives --install /usr/bin/javac javac /usr/lib/jdk/jdk1.7.0_09/bin/javac 300
+$ sudo update-alternatives --config java
+$ sudo update-alternatives --config javac
+
+#jdk 以实际安装方式和安装路径会有不同 自己确定
+export JAVA_HOME=/usr/lib/jdk/jdk1.7.0_09
+export JRE_HOME=/usr/lib/jdk/jdk1.7.0_09/jre
+export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
+export CLASSPATH=$CLASSPATH:.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
+
+检测jdk版本
+java -version
+
+#sdk
+PATH = PATH: /~/platform-tools
+PATH = PATH: /~/tools
+
