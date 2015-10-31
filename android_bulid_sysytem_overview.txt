@@ -1,0 +1,276 @@
+1.build categories:	
+	1.core build framework:
+	build/core/*
+
+	build system的框架定义
+	makefiles的基础
+	定义bulid的进程模板
+	build/core里的main.mk
+
+		main.mk:
+		包含在root目录中，作为mk的主文件(像主函数一样的存在)，对其他的mk files包含介绍，定义一些主要的make目标，比如droid，SDK等等
+		definitions.mk:
+		在build-system里的函数定义，例如my-dir,all-subdir-makefiles,fina-subdir-files,sign-package
+		pdk_config.mk:
+		PDK的配置信息管理文件
+		dex_preopt.mk:
+		根据之前的优化开启？jar包?
+		Makefile：
+		被main.mk所包括，还有一些额外的内容由main.mk协助提供？/还是协助提供给main.mk
+		$(ONE_SHOT_MAKEFILE):
+		能使用mm和mmm这样的命令去指示出在一些特定路径下的makefile的文件所在路径/位置
+		$(subdir_makefiels):
+		包含了android.mk的众多模块/模板，通过python的脚本程序扫描获得
+		help.mk：
+		列出常见的make目标和他们对应的描述定义
+		config.mk：
+		整个build-system的配置文件，包含定义不同类型模块的常量，定义编译参数和常用/常见文件的后缀，例如.ZIP,.JAR,.APK
+		路径设置通常的工具(环境变量设置?)，例如flex,e2fsck,dx,根据BoardConfig.mk来配置文件，产品和参数的关联
+		
+			Config.mk：
+			pathmap.mk
+			定义一些常量和函数去获取对应的头文件，例如“$(call include-path-for,frameworks-native)” 获取关于framework-native代码相关的头文件的path
+			envsetup.mk
+			配置build-system的环境变量，包括目标机器和本机，例如“TARGET_PRODUCT,HOST_OS,HOST_ARCH,TARGET_BUILD_VARIANT”
+			combo/select.mk
+			根据当前的编译平台选择makefile去关联此平台
+			dumpvar.mk
+			在build开始之前展示出build的配置信息
+			
+			Define build types：
+			BUILD_STATIC_LIBRARY
+			BUILD_SHARED_LIBRARY
+			BUILD_EXECUTABLE
+			BUILD_PACKAGE
+			BUILD_PREBUILT
+			BUILD_MULTI_PREBUILT
+			BUILD_JAVA_LIBRARY
+			BUILD_STATIC_JAVA_LIBRARY
+			BUILD_HOST_STATIC_LIBRARY
+			BUILD_HOST_SHARED_LIBRARY
+		
+	2.product make files:
+	device/qcom/<product_name>/
+	vendor/qcom/proprietary/common/config
+
+	overlay：用于覆盖对应APP中的配置，例如字符串
+
+	device/qcom/common/vendorsetup.sh
+	vendor/qcom/proprietary/common/config/device-vendor.mk
+	build/target/product/
+	build/target/board/
+
+		Android.mk:
+		PRODUCT_MAKEFILES :=$(LOCAL_DIR)/mobeeplus01a_xxx.mk
+		mobeeplus01a_xxx.mk:
+		包含一个关于产品 特殊/具体的？版本的定义，可能存在不止一个相同产品拥有多个版本信息
+		PRODUCT_LOCALES 产品支持区，为lattices预设空间？en_GB语言包？;PRODUCT_PACKAGE 包含apk应用产品的各种不同版本，例如日历/联系人etc.;
+		PRODUCT_COPY_FILES 去copy相应的文件去完成产品的编译 “the source path: path”
+		BoardConfig.mk:
+		用于去配置硬件板？，其定义了硬件部分的特性，例如母板与相关信息，bootloader，内核的链接
+		vendorsetup.sh:
+		通过 add_lunch_combo 来加入菜单选项在lunch函数里，这个参数是$(product_name)-$(compile type)，例如"add_lunch_combo msm8909_LMT-userdebug"
+		
+			
+		
+	3.modules:
+	apk
+	share/static library
+	executable
+	java library/package/apps/*
+	framework/*
+
+		package app  		app程序 .apk
+		java library		java库 .jar
+		shared library 		c/c++库 .so
+		executable			二进制可执行文件
+		static library 		c/c++静态库 .a
+		static java library java静态库，编译到jar中
+		prebuilt 			预编译库
+		multi prebuilt		
+		host executable 	本机执行文件
+		host java library 	本机java库
+		host shared library 本机共享库
+
+2.template 
+	package:
+	LOCAL_PATH := $(call my-dir)
+	include $(CLEAR_VARS)
+	# Access to Java files in all subdirectories
+	LOCAL_SRC_FILES := $(call all-subdir-java-files)
+	# The current module dependent Java static library, if there are multiple
+	separated by spaces
+	LOCAL_STATIC_JAVA_LIBRARIES := static-library
+	# Name of the current module
+	LOCAL_PACKAGE_NAME := Email
+	# Compile the APK file
+	include $(BUILD_PACKAGE)
+
+	executable：
+	LOCAL_PATH:= $(call my-dir)
+	# call function my-dir will return the path of Android.mk
+	include $(CLEAR_VARS)
+	# clean all variables mainly started with LOCAL_
+	LOCAL_SRC_FILES:= foo.c # Source file list
+	LOCAL_MODULE:= foo # The name of executable binary
+	include $(BUILD_EXECUTABLE) # Start to build executable binary
+	
+	shared library：
+	LOCAL_PATH:= $(call my-dir)
+	# call function my-dir will return the path of Android.mk
+	include $(CLEAR_VARS)
+	# clean all variables mainly started with LOCAL_
+	LOCAL_SRC_FILES:= foo.c bar.c # Source file list
+	LOCAL_MODULE:= libfoo # The name of shared library
+	LOCAL_PRELINK_MODULE := false # Prevent from prelink error
+	include $(BUILD_SHARED_LIBRARY) # Start to build shared library
+	
+	static library：
+	LOCAL_PATH:= $(call my-dir)
+	# call function my-dir will return the path of Android.mk
+	include $(CLEAR_VARS)
+	# clean all variables mainly started with LOCAL_
+	# Source file list
+	LOCAL_SRC_FILES:= $(call all-subdir-c-files)
+	# The name of static library
+	LOCAL_MODULE:= libbar
+	# Prevent from prelink error
+	LOCAL_PRELINK_MODULE := false
+	include $(BUILD_STATIC_LIBRARY) # Start to build static library
+
+	prebuiltlibrary：
+	include $(CLEAR_VARS)
+	LOCAL_MODULE := foo-prebuilt
+	LOCAL_SRC_FILES := libfoo.so
+	LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)/include
+	#definition here ensures that any module that depends on the prebuilt one will
+	# have its # LOCAL_C_INCLUDES automatically prepended with the path
+	# to the prebuilt library header directory
+	include $(PREBUILT_SHARED_LIBRARY)
+	
+3.compile system编译系统
+	$hmm：
+	m,从tree的顶端make所有mk文件
+	mm,从当前目录作为顶端开始make所有mk文件，不包括他们依赖的文件
+	mmm,make指定目录mk文件，e.g: “mmm dir/：target1，target2”
+	mma,和mm相比加上依赖文件的make
+	mmma;和mma相比加上依赖文件的make
+	
+	$source build/envsetup.sh:
+	including device/samsung/manta/vendorsetup.sh
+	including device/qcom/common/vendorsetup.sh
+	including device/generic/mini-emulator-x86_64/vendorsetup.sh
+	including device/generic/mini-emulator-mips/vendorsetup.sh
+	including device/generic/mini-emulator-armv7-a-neon/vendorsetup.sh
+	including device/generic/mini-emulator-arm64/vendorsetup.sh
+	including device/generic/mini-emulator-x86/vendorsetup.sh
+	including device/htc/flounder/vendorsetup.sh
+	including device/lge/mako/vendorsetup.sh
+	including device/asus/tilapia/vendorsetup.sh
+	including vendor/goldsand/vendorsetup.sh
+	including vendor/qcom/proprietary/common/vendorsetup.sh
+	including vendor/third-party/vendorsetup.sh
+	including sdk/bash_completion/adb.bash
+	
+	$make help:
+	通常的make目标：
+	droid,默认的目标名
+	clean,等同于rm -rf
+	snod,从built-package里获取系统快照来快速rebuild
+	offline-sdk-docs,生成html网页来展示开发者的SDK文档
+	doc-comment-check-docs,不生成html网页来验证html文件文档链接的有效性
+	libandroid_runtime,所有的JNI(java native interface，java本地接口)框架内容
+	framework,所有的java框架内容
+	services,系统服务(java)
+	help,帮助文件
+	
+	apps_only：
+	The target will compile the current configuration does not contain user, userdebug, eng tags (on the
+	label, please refer to the "add new module") applications.
+	
+	droidcore：The goal is only the combination of several target dependent, it does not do more processing.
+	
+	dist_files：The object used to copy a file to the /out/dist directory.
+	
+	files：The goal is only the combination of several target dependent, it does not do more processing.
+	
+	prebuilt：The target depends on the $(ALL_PREBUILT), $(ALL_PREBUILT)'s role is to handle all the compiled
+	files.
+	
+	$(modules_to_install)：
+	Modules_to_install variable contains the module all will be installed under the current configuration
+	(whether a module can be installed to depend on the product configuration file, the module tab and
+	other information), the target will cause all will be installed modules compiled.
+	
+	$(modules_to_check)：The target is used to ensure that we define the building blocks are not redundant.
+	
+	$(INSTALLED_ANDROID_INFO_TXT_TARGET)：
+	The target generates a current Build configuration of equipment information file, the file is generated
+	path: out/target/product/<product_name>/android-info.txt
+	
+	systemimage：Generate system.img.
+	
+	$(INSTALLED_BOOTIMAGE_TARGET):Generate boot.img.
+	
+	$(INSTALLED_RECOVERYIMAGE_TARGET)：Generate recovery.img.
+	
+	$(INSTALLED_USERDATAIMAGE_TARGET)：Generate userdata.img.
+	
+	$(INSTALLED_CACHEIMAGE_TARGET)：Generate cache.img.
+	
+	$(INSTALLED_FILES_FILE)：The target will generate out/target/product/<product_name> / installed-files.txt file, the file is already
+	installed in the system image list file.
+	
+	make clean：To perform cleanup, equivalent to the: rm -rf out/.
+	
+	make sdk：Compile Android SDK.
+	
+	make clean-sdk：Compile product clean SDK.
+	
+	make update-api：
+	Update API. After the framework API changes, we first need to execute this command to
+	update the API, public API records in the frameworks/base/api directory.
+	
+	make dist：Implementation of Build, and copy the output file MAKECMDGOALS variable to the /out/dist
+	directory.
+	
+	make all：Compile all of the content, whether defined for the current product will contain.
+	
+	make help：Help information, display the main make target.
+	
+	make snod：Fast reconstruction system image from the already compiled package.
+	
+	make libandroid_runtime：Compile all of the JNI framework content.
+	
+	make framework：Compile all of the Java framework content.
+	
+	make services：The compiler system services and related content.
+	
+	make <local_target>：The compilation of a specified module, local_target module name.
+	
+	make clean-<local_target>：Compile results to clear a specified module.
+	
+	make dump-products：
+	Display the compiler configuration information, all products such as: product name, product
+	support regional languages, will contain the product of module information.
+	
+	make PRODUCT-xxx-yyy：编译一个特殊/特别的产品
+	
+	make bootimage：生成boot.img(boot快照)
+	
+	make recoveryimage：生成recovery快照
+	
+	make userdataimage：生成userdata快照
+	
+	make cacheimage：生成cache快照
+
+
+
+
+
+
+
+
+
+
+
