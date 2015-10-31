@@ -1,0 +1,8 @@
+常见的协议类型：
+SPI buletooth I2C bigzee
+
+telecom:CDMA,CDMA2000,CDMA3000,CDMA2000.X,TD-LTE
+mobile:GSM,TD-SCDMA,TD-LTE(Long Term Evolution)
+unicom:GSM,(FDD)WCDMA,FDD-LTE
+OTHERS:Wimax
+OFDM(Orthogonal Frequency Division Multiplexing)正交频分复用技术

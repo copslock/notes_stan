@@ -1,8 +1,43 @@
-convert 
-operands 
-stdin
-
-stdout
+convert 转换
+operands 操作数
 suffixed
-sync
+sync 更新？
+usage 惯例
+scenario 场景/方案/情节
+diagram 图示
+Application Program Interface 应用程序接口/界面
+CLF--contactless frontend 非接触式前段，nfc手机支付中的概念
+archiechure 体系风格/建筑风格
+modules 模块/版块
+models 模型
+categories 类别/种类/分类
+template 模版
+framworks 架构
+vendor 供应(商)
+optimized 优化
+content 目录/内容/使...满足
+indicated 显示/表明/指出
+obtained 或许
+constants 常量
+parameters 参数/元素/
+suffix 后缀
+current 当前的/最近的
+lattices 格子/格/点阵
+characteristics 角色/特点
+valid 有效的
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
