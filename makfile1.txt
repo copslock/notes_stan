@@ -117,7 +117,7 @@ clean:            
 include<filename>
 filename可以使当前系统shell的文件模式或者包含路径和通配符
 
-makefile常见的为目标定义：
+makefile常见的伪目标定义：
 
 
 

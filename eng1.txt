@@ -25,6 +25,9 @@ current 当前的/最近的
 lattices 格子/格/点阵
 characteristics 角色/特点
 valid 有效的
+emulator 模拟器
+aligned 对齐/结盟/一致
+
 
 
 

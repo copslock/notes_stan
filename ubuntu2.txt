@@ -12,7 +12,9 @@ source file 当前bash环境下读取并执行file里的命令
 history 查看输入命令的历史
 sudo/su root
 man command 帮助命令 按q退出
+
 tree 显示从该目录开始到每一个文件最终的目录的“tree”
+	tree -L X 从顶端开始往下观察X层，例如X为1代表只看根目录的文件，2代表根目录和下一级的子目录
 
 ps -l 查看进程
 	********* simple selection *********  ********* selection by list *********
