@@ -1,0 +1,93 @@
+1.source structure
+	源/根目录的结构组成
+	AndroidManifest.xml 程序配置
+	Android.mk 			编译配置
+	assets				不压缩的资源
+	CleanSpec.mk
+	extensions_src
+	libs 				程序需要的库
+	MODULE_LICENSE_APACHE2
+	NOTICE
+	proguard.flags
+	project.properties
+	res 				文本、图片等等
+	src 				源代码文件
+
+2.build overview
+	andorid project ---> 编译和打包 ---> apk文件 ---> signing ---> 通过ADB进入实际设备或者模拟器
+	apk包里包括的：.dex, resource.arsc, androidmainfest.xml，可能会有一些未编译的resources
+	
+3.build tools
+	aapt：
+	android asset packaging tool, take resources and Androidmanifest.xml and compile them, provide
+	R.java.
+	
+	aidl：converts any .aidl interfaces that you have into Java interfaces, output .java
+	
+	javac：compile java code, output .class
+	
+	dx：converts the .class files to Dalvik byte code
+	
+	apkbuilder：package non-compiled resources (images), compiled resources, and the .dex files into an .apk file
+	
+	jarsigner：sign the apk with a debug or release key
+	
+	zipalign：Aligning the final .apk decreases memory usage
+	
+	proguard：
+	optimizes, and obfuscates your code by removing unused code and renaming classes, fields, and
+	methods with semantically obscure names
+	
+	dex-preopt：input the .jar or .apk, output .odex
+	
+	dexopt：optimize dex with byte-swapped and struct-aligned
+	
+	zip/unzip：compress and uncompress tool
+	
+	jar：java package tool
+	
+4.build flow
+	简单介绍一下一个apk从配置编译到组合建立生成的过程
+	以calender这个apk为例：
+	
+	packages/apps/Calendar/Android.mk：
+		修改calendar目录下的android.mk文件
+		
+	$ mmm packages/apps/Calendar：
+		编译android.mk
+		if条件判断加上的 -f 判断该目录下是否存在该文件
+		
+		notice_file.mk	clear_vars.mk
+			|
+		base_rules.mk	droiddoc.mk
+			|
+		java.mk  <-------
+						|  	
+		package.mk --->	package_internal.mk
+			^
+			|
+		(inlcude$(build_xxx))
+		Andorid.mk: source files/binary files
+	
+	build/core/config.mk
+		build_package:=$(build_system)/package.mk
+		
+	
+	build/core/package_internal.mk
+		LOCAL_MODULE := $(LOCAL_PACKAGE_NAME)
+	LOCAL_PACKAGE_NAME:=Calendar
+	
+4.build dependence
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
