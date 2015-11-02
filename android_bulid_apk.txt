@@ -1,0 +1,15 @@
+5.build
+	base_rules.mk
+	
+	build/core/package_internal.mk
+	
+	$(built_dex)build/core/java.mk
+	
+	$(full_classes_proguard_jar) build/core/java.mk
+	
+	all_assets
+	
+	# build/core/android_manifest.mk
+	
+*6.summary
+	
