@@ -30,6 +30,47 @@ layout 布局/设计/安排
 compress 压缩/打包
 symbolic 象征意义的
 syntax 语法/句法规则
+threaded 线程
+RTOS  实时操作系统
+declare 宣布/表明
+probe 探查/探针/指针
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
