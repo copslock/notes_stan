@@ -2,4 +2,44 @@
 
 2.和管道命令相似的 << 在c++里包含iostream头文件后，常作为输入输出赋值命令，例如cout<<"a"<<a<<endl 输出a，cin>>a 输入的值存入a中
 
-3.void *
+3.void *：/强制转换 ---> (类型名 *)要转换的变量
+	void作用不在于定义，虽然void *它可以定义任意类型的指针变量，但是它的主要功能在于对函数返回的限定和对函数参数的限定
+	void定义的东西通常是没有返回值的，而其参数又可以是任意类型，当void *定义的指针和其他例如float，int *有值得交换时，
+	void所定义的可以接受任何类型的值，不过其他类型的变量就必须在void类型进行强制转换后再能进行赋值操作了。
+
+	1.函数没有返回值
+	一般来说c/c++里是不允许出现函数类型未定义这种不安全的语法，即使编译器也不会报错甚至没有警告，不过的确是不严谨的。
+	在c中凡是不加类型限定的函数，默认是返回整型的值，并不是void类型。所以最好不要遗漏未定义类型的函数，若没有返回值的，请声明为void。
+	
+	2.函数没有参数
+	若函数无参数，请声明其参数为void类型 例如int r_0(void){return 0;}
+	无参数的情况，这里可以分成c和c++两种情况，在c++是不允许调用参数为空的函数是向里面传入参数，而在turbo C里却不会报错，依旧会正常输出值。
+	
+	3.be careful about void-pointer
+	void *定义的指针(下面统称为void指针)不能进行算法操作，ANSI标准坚持进行算法操作的指针必须要明确其指向数据的数据类型，
+	但是凡事皆有例外，在GNU类的编译器中并不阻止void指针进行算法操作，即void *定义的例如pvoid，也可以进行诸如 pvoid++；这样的自增操作，操作的实际是pvoid的结果增大了1。
+	(GUN类编译器里将void指针的算法操作视为和char *一致)不过规范上来说，为了提高程序的移植性，这样写更好：(char *)pvoid++;
+	int * pint;	pint++; 此时的pint自增后，变大的是sizeof(int)的结果而并不是pint的值。？
+	
+	4.如果函数参数可能是任意类型的指针，那么请声明为void *类型。
+	典型的如内存操作函数：
+	void * memcpy(void *dest, const void *src, size_t len); 
+	/ int a1[100],a2[100]; memcpy(a1,a2,100*sizeof(int)); a2到a1
+	void * memset(void * buffer, int c, size_t num); 
+	/ int array[100]; memset(array,0,100*sizeof(int)); array清0
+	btw：以上两个内存操作函数返回值也是void指针类型，这是为什么？
+	
+	5.void不能表示一个真实的变量
+	void是对变量的一个抽象定义，类似于c++里的抽象基类的概念，实际上并不能给一个变量定义为void类型。
+	例如 void a； func(void b); ---> false
+	
+	6.summary
+	int *p含义是定义p为int *类型的指针，而不是用int类型定义*p这个指针！
+	无论什么类型的指针，初始值都是一样的0xCCCCCCCC(VC6里的，不同编译器会有变化)，void *p; cout<<p<<endl; 输出值应该就是之前说的那个初始值
+	一个指针如果暂时没有合适的初始化值，就可以把它置为NULL。 pNULL；p = 0；p = 0L；p = '\0'；p = 3 - 3；p = 0 * 17
+	
+	
+	
+4.#include<memory.h>  #include"stdlib.h"
+
+5.

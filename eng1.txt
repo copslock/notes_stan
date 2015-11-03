@@ -32,9 +32,10 @@ symbolic 象征意义的
 syntax 语法/句法规则
 threaded 线程
 RTOS  实时操作系统
-declare 宣布/表明
-probe 探查/探针/指针
-
+declare 宣布/表明/声明
+probe 探查/探针
+pointer 指针
+initialize 初始化
 
 
 
