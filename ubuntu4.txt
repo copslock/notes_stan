@@ -1,0 +1,4 @@
+1.简单的卸载从源码安装的包
+	checkinstall ， apt-get install checkinstall;cd vim;checkinstall;
+	apt-get remove <package>
+	apt-get autoremove <package>
