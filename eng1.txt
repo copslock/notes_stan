@@ -36,15 +36,14 @@ declare 宣布/表明/声明
 probe 探查/探针
 pointer 指针
 initialize 初始化
-
-
-
-
-
-
-
-
-
+utility 实用/功效
+retrieve 检索
+implement 工具/手段
+invoke 请求调用
+metadata 元数据
+initramfs 
+obfuscates 混淆
+simultaneity 同时的
 
 
 

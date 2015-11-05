@@ -1,0 +1,21 @@
+1.编译错误
+	关联模块：编译框架，项目配置(system.img中模块数量是否和预期有差异)，模块(apk, .a, .so)
+	编译工具
+	编译过程：常处于模块本身，.mk配置，工具版本兼容，语法错误； 系统编译错误常见于模块重复，打包失败...
+	运行时的错误：找不到对应库，库的兼容性(android L开始都是64位了 但是很多.so库可以是32位的，不同位的库放在不同的目录下：/system/lib和/system/lib64)
+		虽然lolipop兼容64和32位的库，但库要放在相应的位置，编译时也需要指定(例如要判断的是.so库，就要修改so的android.mk，相应的还要在apk的android.mk中也要修改，/system/app/[APKName]/lib/arm)
+	服务器编译环境：本地用户和服务器的编译环境差异，(kernel代码中-方法体内-声明未使用的变量-导致服务器编译不通过)
+	
+2.e.g.
+	1.找不到mmm命令：未配置编译环境 -> source build/envsetup.sh
+	2.指定目录没有android.mk -> 加
+	3.未捕获异常：不符合规则导致编译失败 -> 改了再来
+	4.找不到中间依赖目标的编译规则 -> 先在源码中找对比本地的看模块中是否有这个中间依赖目标，可能在系统中确实不存在，若存在再添加该中间目标的.mk文件
+	5.api-check：frameworks/base的API变了，但对应current.txt没有更新 -> 系统编译先执行make update-api; 
+	避免：修改或添加相应api后同时提交一下current文件；在添加的接口上用 @hide
+	(current.txt用于记录当期frameworks提供的的API)
+	6.系统编译打包时提醒/tmp空间不足 -> qcom一般需求是8到10个G，挂载至少10G到/tmp即可
+	
+3.summary
+	......
+	
