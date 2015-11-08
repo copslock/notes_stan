@@ -208,51 +208,46 @@
 	The target generates a current Build configuration of equipment information file, the file is generated
 	path: out/target/product/<product_name>/android-info.txt
 	
-	systemimage：Generate system.img.
+	systemimage：生成system.img.
 	
-	$(INSTALLED_BOOTIMAGE_TARGET):Generate boot.img.
+	$(INSTALLED_BOOTIMAGE_TARGET):生成boot.img.
 	
-	$(INSTALLED_RECOVERYIMAGE_TARGET)：Generate recovery.img.
+	$(INSTALLED_RECOVERYIMAGE_TARGET)：生成recovery.img.
 	
-	$(INSTALLED_USERDATAIMAGE_TARGET)：Generate userdata.img.
+	$(INSTALLED_USERDATAIMAGE_TARGET)：生成userdata.img.
 	
-	$(INSTALLED_CACHEIMAGE_TARGET)：Generate cache.img.
+	$(INSTALLED_CACHEIMAGE_TARGET)：生成cache.img.
 	
-	$(INSTALLED_FILES_FILE)：The target will generate out/target/product/<product_name> / installed-files.txt file, the file is already
+	$(INSTALLED_FILES_FILE)：The target will 生成 out/target/product/<product_name> / installed-files.txt file, the file is already
 	installed in the system image list file.
 	
-	make clean：To perform cleanup, equivalent to the: rm -rf out/.
+	make clean：表现为清除，等同于于清楚out目录下所有文件: rm -rf out/.
 	
-	make sdk：Compile Android SDK.
+	make sdk：编译Android SDK.
 	
 	make clean-sdk：Compile product clean SDK.
 	
-	make update-api：
-	Update API. After the framework API changes, we first need to execute this command to
-	update the API, public API records in the frameworks/base/api directory.
+	make update-api：更新api，在框架的api改变后我们应该首先去执行这个命令去更新，公共的api记录会放在 frameworks/base/api 这个文件夹里.
 	
-	make dist：Implementation of Build, and copy the output file MAKECMDGOALS variable to the /out/dist
-	directory.
+	make dist：build的执行，以及复制输出文件 MAKECMDGOALS 变量到 /out/dist 这个文件夹去.
 	
-	make all：Compile all of the content, whether defined for the current product will contain.
+	make all：编译所有的文件, whether defined for the current product will contain.
 	
-	make help：Help information, display the main make target.
+	make help：帮助信息,展示一些主要make目标.
 	
-	make snod：Fast reconstruction system image from the already compiled package.
+	make snod：从已经编译好的包里恢复 --> 快速重新组建系统.
 	
-	make libandroid_runtime：Compile all of the JNI framework content.
+	make libandroid_runtime：编译所有的和JNI框架相关的内容.
 	
-	make framework：Compile all of the Java framework content.
+	make framework：编译所有java框架的内容.
 	
-	make services：The compiler system services and related content.
+	make services：编译器系统服务和相关的一些内容.
 	
-	make <local_target>：The compilation of a specified module, local_target module name.
+	make <local_target>：一个特殊特定的模块编译信息，本地目标模块的名字.
 	
-	make clean-<local_target>：Compile results to clear a specified module.
+	make clean-<local_target>：清除一个特定的模块.
 	
-	make dump-products：
-	Display the compiler configuration information, all products such as: product name, product
-	support regional languages, will contain the product of module information.
+	make dump-products：显示编译器的配置信息，所有部件例如：名字，特定支持的语言，即将会包括的模块信息.
 	
 	make PRODUCT-xxx-yyy：编译一个特殊/特别的产品
 	
