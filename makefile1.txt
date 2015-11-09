@@ -39,6 +39,8 @@ target:object file/.exe/label
 prerequisites:生成target所需的依赖文件或目标
 command：make要执行的命令/shell指令
 
+在非android源码的环境下，就一般的linux普通文件目录中，编译了一个makefile，想执行输出，文件名必须为Makefile，类型也必须是mk，然后在该目录下执行make命令即可。
+
 e.g.
 obj = main.o kdb.o ... utils.o
 edit: $(obj)             

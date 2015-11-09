@@ -1,1 +1,7 @@
-1.
+1.第一代模拟电话网； 第二代移动数字网，GSM(group special mobile)，SIM(Subscriber identity model)，HLR归属位置寄存器 VLR拜访位置寄存器，
+MSC移动交换中心，EIR设备识别寄存器，AUC鉴权中心，OMC操作维护中心。
+
+2.GPRS通用分组无线业务，与gsm的频段相同：为gprs提供业务支持的gprs服务支持节点SGSN，提供网络媒体支持的网关支持节点GGSN，用于数据包管理和控制的分组控制单元PCU.
+gprs与cdma1.X并称为2.5代移动通信技术，适用于间断性的突发性的少量的数据传输，GPRS的升级版EDGE(enhanced增强型 data rate for gsm evolution)，戏称为2.75代。
+
+3.

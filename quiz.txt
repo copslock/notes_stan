@@ -4,7 +4,10 @@ java-call
 
 hall-sensor
 
-鸟哥、通信、复习
+鸟哥		32
+大话通信	p199
+gsm			none
+程序员...	none
 
 征集SIOEYE品牌国内slogan
 
