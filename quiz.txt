@@ -4,8 +4,8 @@ java-call
 
 hall-sensor
 
-鸟哥		32
-大话通信	p199
+鸟哥		p32
+大话通信	over
 gsm			none
 程序员...	none
 
