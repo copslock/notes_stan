@@ -1,0 +1,9 @@
+linux的GUI界面首次登入 man page
+	ctrl+alt+F1-F6 对应6个终端 可以从GUI进入shell中
+	ctrl+alt+F7 退出shell返回GUI
+	普通的都是纯文本接口(run level 3)，还有一种即是tty7对应的图形环境(run level 5)
+	以图形环境启动的系统可以在文本和图形间切换，但如果是以纯文本环境启动linux的，对应的tty7是没有东西的。若要启动GUI界面，需要在文本环境中登录后，然后用这个指令：“startx”
+	修改系统环境变量 /etc/inittab 可以让系统已纯文本环境启动
+	
+	一般用户提示字符$ root的提示字符#
+	
