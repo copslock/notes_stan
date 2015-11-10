@@ -1,0 +1,18 @@
+1.view:
+	textview:文本显示
+		button:checkbox复选框,switch拖拽条且一般有标签标识,radiobutton单选 可以被点击，通过用户去表现某种行为
+		edittext:文本展示且可编辑的
+	imageview:图片显示
+		imagebutton:图片显示且可以作为一个按钮
+	progressbar:进度条
+		seekbar:可拖动的进度条
+		surfaceview：
+2.viewgroup:view的集合，布局和视图的基础的类
+	linearlayout:radiogroup  setOrientation()/setGravity()/
+	relativelayout:
+	framelayout:scrollview
+	
+	listview:
+	spinner:
+	gridview:
+	
