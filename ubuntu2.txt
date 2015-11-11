@@ -5,7 +5,7 @@ cd ~ 主目录一般为/home/user_name  .表示当前目录  ..上一级  /根�
 cp file1 file2
 mv file1 file2
 rm [-f强制删除][-r递归删除] filename e.g. rm -rf filename/-r代表以递归的方式去执行一个命令
-ls -a显示隐藏目录 -l显示时间大小权限等 -i显示index number标志数？索引数？文件的inode号/索引节点号
+ls -a显示隐藏目录 -l显示时间大小权限等 -i显示index number标志数？索引数？文件的inode号/索引节点号  "ll"="ls -l"
 
 stat filename 详细显示一个文件的状态信息 加-f显示文件系统状态而非文件状态 -t以简洁方式输出信息 -L 支持符号连接 
 	可以查看文件的时间戳，inode号，block块大小位置，权限等等很多信息
