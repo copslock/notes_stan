@@ -1,9 +1,56 @@
 linux的GUI界面首次登入 man page
+	
+	ctrl+alt+backspace 让X windows重新启动
 	ctrl+alt+F1-F6 对应6个终端 可以从GUI进入shell中
 	ctrl+alt+F7 退出shell返回GUI
 	普通的都是纯文本接口(run level 3)，还有一种即是tty7对应的图形环境(run level 5)
 	以图形环境启动的系统可以在文本和图形间切换，但如果是以纯文本环境启动linux的，对应的tty7是没有东西的。若要启动GUI界面，需要在文本环境中登录后，然后用这个指令：“startx”
 	修改系统环境变量 /etc/inittab 可以让系统已纯文本环境启动
-	
 	一般用户提示字符$ root的提示字符#
+	
+	查看、修改shell的语系：echo$LANG;    LANG=en_US/zh_CN 设定语系为美式英语/简体中文
+	date 显示系统时间日期
+	cal [month] [year] 显示当前月份/年份日历 
+	bc 进入一种计算环境，默认是整型的结果，要小数要加上这一句“scale=3” 3代表3位小数，用”quit“离开这个计算环境
+	
+	tab 双击tab的命令补全和文档补全
+	ctrl+c 终止某一个正在运行的程序 退出一些一直显示但并不重要的东西
+	ctrl+d 等同于输入exit 退出一些文字的接口
+	
+	观察系统状态：
+	who
+	netstat -a
+	ps -aux
+	
+	sudo passwd 设置unix即root权限的密码 设置好后可以通过 “su root” 切换到root用户
+	sync 数据同步写入磁盘，因为有一部分数据在关机前可能还放在内存里
+	shutdown 系统关机 / shutdown -h 1:30 在今天的1点30分关机 / 
+	exit 用户注销
+	reboot 重启
+	切换执行等级 ”init level—number“
+		0即关机状态，3纯文本模式，5是GUI，6是重启
+	
+	
+	1.man page里第一行command的后面会接一个数字，数字的含义：
+		*1  用户在 shell 环境中可以操作的指令或可执行文件
+		2  系统核心可呼叫的函数和工具等
+		3  一些常用的(function)和(library)，大部分为 C 的(libc)
+		4  装置档案的说明，通常在/dev 下的档案
+		*5  配置文件或者是某些档案的格式
+		6  游戏(games)
+		7  惯例与协议等，例如 Linux 文件系统、网络协议、ASCII code 等等的说明
+		*8  系统管理员可用的管理指令
+		9  跟 kernel 有关的文件
+	man -f something 查看关于something的所有说明
+	在man page中 任何时候都可以输入“/word” word即是你想在这个page中查找的关键字词，它都会自动跳转到你“word”的地方，常用的空格作为向下翻页
+	[Page Down]  向下翻一页	[Page Up]  向上翻一页	[Home]  去到第一页	[End]  去到最后一页
+	/string 向『下』搜寻 string 这个字符串，如果要搜寻 vbird 的话，就输入“/vbird” 
+	?string 向『上』搜寻 string 这个字符串，以上这两个命令还可以加上N和n，在查找中，单击“n”表示按照定义的方向查找相关字符，单击“N”往相反方向
+	man page显示内容的实际存放位置在 /usr/local/man/... 和 /usr/share/man/...
+ 	
+	2.info page：
+	3./usr/share/doc/...
+
+	
+	tty1里的login欢迎界面，讯息的内容记录在/etc/issue中
 	

@@ -10,6 +10,7 @@ linux是什么
 
 	Linus Torvalds因为对unix和minix功能的不满足以bash gcc等工具制造了一个小核心程序，可以再intel386上运行，linux的雏形。自由不等于免费！
 	第一个bbs上放出的版本linux 0.02，当时存放核心程序的目录为linux，这也是linux系统名字的来源；94年 linux核心正式版1.0；96年linux 2.0，确定linux吉祥物为企鹅。
-	GUI：KDE、GNOME
+	
+	常用图形模式GUI：KDE、GNOME
 
 	uname -r查看linux核心版本 版本号格式：主版本号.副版本号.release版本号-修改版本
