@@ -30,6 +30,7 @@ linux的GUI界面首次登入 man page
 	切换执行等级 ”init level—number“
 		0即关机状态，3纯文本模式，5是GUI，6是重启
 	
+	nano 一个小的文本编辑器
 	
 	1.man page里第一行command的后面会接一个数字，数字的含义：
 		*1  用户在 shell 环境中可以操作的指令或可执行文件

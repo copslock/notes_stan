@@ -1,2 +1,21 @@
 linux的档案权限和目录配置
+	linux是多人多任务的系统
+	用户的分类：用户本人owner，群组group，其他的others，
+	系统里用户账号密码群组信息集中地：/etc/passwd, /etc/shadow, /etc/group
+	
+	ls -al 可以看到文件的权限！连接数，文件的owner和群组，大小默认为bytes，修改时间，路径目录等等
+	
+	权限后九位，三位一组分别为user，group，others的权限  
+	权限的第一个字符：d表示目录，-表示文件，|表示链接文件，b表示为装置文件里的可供存储的接口设备，c表示装置文件里的串行端口设备例如鼠标键盘
+	
+	连接数：每个文件都有的inode节点索引点，有时候多个文件共用一个inode，就是所有文件都连接在这一个inode点上
+	
+	chgrp [-R] 群组名 文件名		改变所属群组 群组名必须是在/etc/group中存在的
+	chown [-R] 用户名 文件名		改变文件归属者 用户名必须是在/etc/passwd中存在的用户名称
+	chown [-R] 用户名:组名 文件名
+	
+	chmod 权限修改
+	数字方式修改 rwx==421
+	chmod (u,g,o,a)(+,-,=)(r,w,x) filename
+	
 	
