@@ -1,0 +1,31 @@
+linux字符设备驱动
+	系统设备分为三类：cdev，bdev块设备，网络设备
+	cdev
+	
+	加载驱动 static int _init globalmem_init(void){}	module_init(globalmem_init);
+    
+	卸载驱动 static void _exit globalmem_exit(void){}	module_exit(globalmem_exit);
+	
+	写函数 static ssize globalmem_write (struct file *filp, const char __user *buf, size_t size, loff_t *ppos)
+		{
+			…
+			copy_from_user( dev->mem + p, buf, count));
+			…
+		}
+	
+	读函数 static ssize_t globalmem_read(struct file *flip, char __user *buf, size_t size, loff_t ppos)
+		{
+			…
+			copy_to_user(buf, dev->mem + p, count));
+			…
+		}
+	
+	file_operations结构体
+	static const struct file_operations globalmem_fops = {}
+	
+	.ko文件 代表kernel模块、内核驱动
+	加载驱动并查看 insmod xxx.ko, lsmod, cat /proc/devices
+	创建设备节点 mknod /dev/globalmem c 230 0, cd /dev, ls
+	用户空间读写设备 echo "xxx" > /dev/globalmem, cat /dev/globalmem 
+	
+	

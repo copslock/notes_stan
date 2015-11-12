@@ -4,7 +4,7 @@ java-call
 
 hall-sensor
 
-鸟哥		p188
+鸟哥		p193
 大话通信	over
 gsm			start
 程序员...	none

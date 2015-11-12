@@ -129,13 +129,22 @@ echo：
 	cat hx.txt|grep hx 打开hx这个文件过滤文件中“hx”这个字符后显示出来
 	cat >> test << "end" 将下面即将要输入的内容放入test这个文件中，当输入“end”的时候结束这个过程
 	
+kill -2 基本等同于ctrl+c 终止当前中断窗口运行的命令或脚本
+kill -9 pid 强制终止
+kill -15 pid 先关掉相关的程序，再将目前的终止
+ps -ef| grep vim 
+
+HUP     1    终端断线
+INT     2    中断（同 Ctrl + C）
+QUIT    3    退出（同 Ctrl + \）
+TERM   15    终止
+KILL    9    强制终止
+CONT   18    继续（与STOP相反， fg/bg命令）
+STOP   19    暂停（同 Ctrl + Z）	
 	
-	
-	
-	
-	
-	
-	
+	“nohup+命令”  可以将程序以忽略挂起信号的方式运行起来，被运行的程序的输出信息将不会显示到终端。输出默认实在当前目录下nohup.out里或者$home里，
+	若已存在这样的文件而且不可写入，那么nohup后接的cmd命令不可以被调用。
+	也可以指定输出的文件 例如这样 “nohup cmd > filename”
 	
 	
 	
