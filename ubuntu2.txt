@@ -1,11 +1,11 @@
 指令太长的时候可以用反斜杠“\”来让指令连续到下一行
 linux的大小写敏感 
 
-cd ~ 主目录一般为/home/user_name  .表示当前目录  ..上一级  /根目录
-cp file1 file2
-mv file1 file2
-rm [-f强制删除][-r递归删除] filename e.g. rm -rf filename/-r代表以递归的方式去执行一个命令
-ls -a显示隐藏目录 -l显示时间大小权限等 -i显示index number标志数？索引数？文件的inode号/索引节点号  "ll"="ls -l"
+cd ~ 主目录一般为/home/user_name  .表示当前目录  ..上一级  /根目录 -上一个工作目录 不加任何符号或者路径默认就是cd ~
+pwd [-P] 加P显示真实路径，而不是可能出现的链接路径，例如/var/mail链接到/var/spool/mail 
+	通过 “ls -ld /var/mail” 可以查看它的权限和连接到哪里去，-d 表示列出当前所在目录而不是这个目录下的文件
+ls 直接接目录路径也可以 -a显示隐藏目录 -l显示时间大小权限等 --full-time显示完整时间 --color=auto 系统自行决定是否显示颜色
+	-i显示index number标志数？索引数？文件的inode号/索引节点号  "ll"="ls -l"
 wget ftp://IP:PORT/* --ftp-user=xxx --ftp-password=xxx -r  利用ftp的方式下载东西
 
 stat filename 详细显示一个文件的状态信息 加-f显示文件系统状态而非文件状态 -t以简洁方式输出信息 -L 支持符号连接 

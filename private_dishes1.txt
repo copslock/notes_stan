@@ -13,4 +13,7 @@ linux是什么
 	
 	常用图形模式GUI：KDE、GNOME
 
-	uname -r查看linux核心版本 版本号格式：主版本号.副版本号.release版本号-修改版本
+	uname -r
+	查看linux核心版本 版本号格式：主版本号.副版本号.release版本号-修改版本
+	lsb_release -a
+	查看lsb版本，正在使用linux发行版的版本，LSB(Linux Standards Base)是一个组织也是一个linux兼容的标准
