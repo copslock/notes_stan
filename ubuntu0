@@ -14,9 +14,9 @@ linux filesystem：
 		文件的时间戳，共有三个：ctime指inode上一次变动的时间，mtime指文件内容上一次变动的时间，atime指文件上一次打开的时间。
 		链接数，即有多少文件名指向这个inode，文件数据block的位置
 	每个inode节点的大小，一般是128字节或256字节。inode节点的总数，在格式化时就给定，一般是每1KB或每2KB就设置一个inode。
-	mkfs.ext4 -i 每个inode的大小
-	mkfs.ext4 -I inode的大小 所有的总大小？
-	mkfs.ext4 -N 这个分区里inode的个数
+	mkfs.ext4 -i bytes-per-inode 	每间隔多少字节设置一个inode
+	mkfs.ext4 -I inode-size			inode的大小
+	mkfs.ext4 -N number-of-inodes	这个分区里inode的总个数
 	
 	
 	VFS虚拟文件系统

@@ -3,7 +3,6 @@ linux文件和目录“管理”
 	“-”代表前一个工作目录
 	任何一个目录下都会有“.” “..” 这两个目录存在
 	
-	预设权限umask
 	mkdir [-p] p代表可以递归的建立多层的文件目录例如 “/we/we/we/we”
 	mkdir [-m] [777] dirname m代表无视umask
 	
@@ -49,23 +48,46 @@ linux文件和目录“管理”
 	
 	touch：
 	时间戳：mtime内容改变的时间，ctime属性或权限状态改变的时间，atime文件被取用时会改变的时间
+	e.g.
+	touch -t YYMMDDhhmm filename
+	touch -d "2 days ago" filename
 	
+	P225
+	chattr设定文件隐藏属性 -i不能被删除改名或设定连接 -a该文件只能增加数据而不能删除或修改 以上两个都是只有root权限才能设置
+	lsattr查看文件的隐藏权限和属性
 	
+	预设权限umask
+	umask [-S] 数字显示的是7减去权限和的差值
+	文件夹权限与umask预设一样，单文件的权限会减去user，组，others所有的“x”即操作执行的权限
 	
+	P227
+	[4].Set UID、SUID：只用于文件,s这个权限出现在文件拥有者的x权限上，只对二进制程序有效，执行者印在执行本次拥有该程序的owner权限
+	[2].Set GID、SGID：可用于文件和文件目录,出现在group的x属性一栏，只对二进制程序有用，程序执行者执行中获得该群组的支持
+	[1].sticky bit：只用于目录,出现在others的x属性一栏, 在一个目录下建立的文件只有自己和root才有权限删除/更名/移动等操作
+	chmod 4777 filename 第一个4代表setUID 若对应的本来没有x属性，则对应的s和t变成大写的S和T
+	a+s，g+s，o+t
 	
+	指令与文件查找：
+	which [-a] cmd  用于查找指令，which和type都是到PATH设定过的路径里去找，这两个命令找不到bash内建的指令例如cd命令
 	
+	？有问题ubuntu12.04运行返回为空 whereis [-b只找二进制文件 -m只找在manual路径下的文件 -s找source来源文件 -u排除上面选项的其他文件] filename  
+	locate [-i忽略大小写 -r后面可接正则表达式] keyword
+		updatedb：根据、etc/updatedb.conf的设定去搜寻硬盘，更新、var/lib/mlocate的数据库，locate和whereis命令就是直接从数据库中查找，所以比find指令速度更快
 	
+	find [PATH] [option] [action]
+	find /a -newer /a/b 在/a目录下的文件如果比/a/b文件更新就列出
+	find /a -mtime -4 列出a目录下在4天内改动过的文件
+	find /a -mtime 4  4天前的那一天被改动过的文件
+	find /a -mtime +4 4天以前的所有天数里被改动的文件 
+	find / -user username 查找属于某一个用户的所有文件 -nouser查找不属于任何用户的文件
+	find / -name filename
+	find / -size [+-]10k 	c表示byte，k代表1kbytes等等
+	find / -type TYPE 		TYPE即之前查看文件权限中的第一项字符代号
+	find / -perm [+-]4777 		
+	find /home/name -name filename -exec ls -l {} \;
+	通配置符的运用 *keyword*
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	find / -size +50k -a ! -user root -exec ls -l {} \; 中间-a代表and，冒号！代表非，对容量大于50k的非root用户文件列出
 	
 	
 	
