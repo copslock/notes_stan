@@ -1,0 +1,124 @@
+文件的压缩和打包
+	1.数据以字节存储，一个数字1，占据8bit，但只有最低1位是1，其他7位是0，把其他的“空闲位”提取出来，是不是可以让这个数据占用的存储空间变小？
+	2.假如连续100个每位都是1，可以强数据简化 "1......1" -> "100个1"
+	
+	常用的压缩方式：
+	gzip [-c将压缩的数据输出到屏幕上 -d解压缩 -t -v显示压缩比 -number 数字1到9，数字越大压缩比最高，但是速度越慢] 文件名
+	gunzip 文件名.gz
+	zcat 文件名.gz  读取gz压缩文件的方式
+	
+	bzip2 [-c -d -k保留源文件 -z压缩参数,默认可以不写 -v -number] 文件名
+	bzcat 文件名.bz2
+	
+	P307
+	打包：		tar [-j以bz2方式压缩|-z以gz方式压缩] [-cv] [-f 打包后目标filename] 源文件要被打包的文件名或目录名，多的话空格隔开
+	查看：		tar [-j|-z] [-tv] [-f 目标文件名] 							目录名没写都默认是在当前目录下
+	解包：		tar [-j|-z] [-xv] [-f 目标文件名] [-C 解包目标文件夹名]  	解包的目标文件夹名也是一样	
+	单独解开其中一个文件：tar -jtv -f 目标文件名 | grep 'keyword';	tar [-j|-z] [-xv] [-f 目标文件名] 包里的一个文件名		
+	打包不含某些文件：--exclude=*file-keyword*
+	只备份更新的文件：tar -jcv -f 目标目录文件名 --newer-mtime="2015/11/11" /etc/*
+	
+	tarfile和tarball
+	
+	一边打包，一边解压出来：-cvf后的小短线想象成一个缓存区
+	tar -cvf - /home/ckt/test | tar -xvf - 
+	
+	P314
+	备份处理：
+	dump [-S列出备份需要的磁盘空间大小,单位是bytes -u将dump时间记录在/etc/dumpdates中 -v显示备份过程 -j加入bz2压缩] [-level压缩的等级0到9] [-f 要备份的目标文件名] 源文件
+	dump -S /dev/hda1 一般查询需要多大空间来备份
+	dump -0u -f /root/boot.dump /boot  这个/boot是在hda1里的？
+	cat /etc/dumpdates
+	dump -W 查看是否有被备份过的东西
+	dump -1u -f /root/boot.dump1 /boot   差异性备份档level1的
+	dump -W 查看备份信息的变化
+	
+	备份/etc单一目录：只能用level0的备份
+	dump -0u -f /root/fiel-name /etc
+	
+	restore -t -f 目标文件名	查看(参考于inode信息)
+	restore -r -f 目标文件名	还原备份
+	restore -C -f xxx 			对比差异
+	restore -i -f xxx			互动模式，
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

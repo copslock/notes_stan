@@ -19,7 +19,7 @@ linux filesystem：
 	mkfs.ext4 -N number-of-inodes	这个分区里inode的总个数
 	
 	
-	VFS虚拟文件系统
+	VFS虚拟文件系统转换
 	register_filesystem() 可以用于为每一个文件系统匹配相应的文件系统类型
 	super-block 包含了inode和每一个文件系统的信息 类型 大小 状态 元数据结构  /  blockgroup的分组 包含了哪些的inode
 	
