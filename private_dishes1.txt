@@ -1,0 +1,19 @@
+linux是什么
+	1.linux的开始：unix的thompson文件系统：所有程序或系统装置都是档案，程序目的只有去有效的完成目标。unix的编写从汇编到B再到C语言，沿用至今，
+	出现的BSD分支berkeley-software-distribution，编写BSD的人后创办了sun升阳公司。出现很多未统一的硬件架构，并不支持个人计算机的unix系统。
+	目前被称为纯正的unix指的就是system V和BSD。
+
+	2.GNU计划和FSF自由软件基金会
+	Richard Mathew Stallman (mit的lisp系统) 建立一个自由开放的unix操作系统
+	emacs编辑器
+	GNU c compiler的诞生(gcc) --> GNU c lib --> bash shell
+
+	Linus Torvalds因为对unix和minix功能的不满足以bash gcc等工具制造了一个小核心程序，可以再intel386上运行，linux的雏形。自由不等于免费！
+	第一个bbs上放出的版本linux 0.02，当时存放核心程序的目录为linux，这也是linux系统名字的来源；94年 linux核心正式版1.0；96年linux 2.0，确定linux吉祥物为企鹅。
+	
+	常用图形模式GUI：KDE、GNOME
+
+	uname -r
+	查看linux核心版本 版本号格式：主版本号.副版本号.release版本号-修改版本
+	lsb_release -a
+	查看lsb版本，正在使用linux发行版的版本，LSB(Linux Standards Base)是一个组织也是一个linux兼容的标准

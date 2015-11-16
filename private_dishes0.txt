@@ -1,0 +1,21 @@
+计算机概论
+	1.intel:北桥：cpu，显卡*2，ram*2
+			南桥：网卡，usb，bios支持，硬盘
+		AMD：cpu直接与ram连接，无南北桥之分
+	2.外频指的是CPU不外部组件迚行数据传输时的速度，倍频则是 CPU 内部用来加速工作效能的一个倍数，两者相乘才是CPU的主频频率速度。
+		北桥所支持的频率我们成为前端总线速度FSB front side bus，每次传送的位数则是总线的宽度，总线宽度即常说的32/64位，两者之积则是总线带宽。
+		cpu每次能处理的数据量称为字组大小，也分为32/64位，也就是我们成说的32/64位计算机。
+	3.L2、L3cache 常用sram制作，因为其晶体管使用较多价格较高，所以也不适合做成大容量的，但做成cache正好，与cpu主体频率保持一致，作为cpu主体和ram之间的缓冲带。
+		ram也有分很多例如sdram，ddr类的，现在常用是ddr3的，常做成双通道的，且频率一般和cpu外频一致。
+		bios(basic io system)是一套写死在主板上内存芯片中的程序，用的是rom类的只读不可擦除的内存，是系统在开机时首先会去读取的程序。
+		韧体firmware也是用rom来进行软件写入的，bios也是一个韧体，掌握着系统硬件的详细信息和开机设备的选择，现在的bios为了适应快速的变化带来的可能对于自身的更新，
+		所以bios也会用flash或者e2prom来做，以便可以更新bios的程序代码。
+	4.显示适配器VGA video-graphics-array ，现在发展成的GPU，PCI-express插槽(规格例如有PCIe *16，PCIe 3.0)，图形影像的显示重点在于分辨率和颜色深度，每个像素点都会占用掉一些内存，因此显卡也会有一个
+		类似与内存大小的东西-->显存，
+		例如：1024x768分辨率中会有786432个像素点，每个像素点占用3bytes，所以总共需要2.25MBytes以上！如果考虑屏幕的更新率(每秒钟屏幕的更新次数)，还会更大。
+	5.HD：机械、固态：3.5寸台式，2.5寸laptop，一般一个扇区512字节，8个扇区为一个block块，4K作为一个块。
+		sata/ide/scsi接口
+		
+		
+	6.ascii(-,--)，gbk/big5，unicode(--,--)，utf-8(-,---/----) 编码格式的发展
+	7.system call interface/process control/memory management/file system management/device drivers  linux下直接cat/proc/cpuinfo+ls pci即可

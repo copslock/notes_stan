@@ -9,12 +9,8 @@ sudo vim /etc/fstab 开机自动挂载
 sudo df -h 查看文件系统的配置情况
 sudo df -l 查看硬盘的挂载情况
 sudo mount -t ext4 /dev/sdb(硬盘路径) /home/sdb(挂载路径)  以ext4的文件系统类型将dev/sdb分区挂载到mnt/sdb
-sudo umount sdb 取消挂载/此处为挂载点的位置
+sudo umount xxx 取消挂载/xxx此处写挂载点或者被挂载的盘都可以
 sudo mount /dev/sdd/home/ubuntu-system-name/branch-name/ mount尝试挂载(需要先创建挂载点)
-
-用指定大小的块拷贝一个文件，并在拷贝的同时进行指定的转换
-dd （输入）if=/dev/zero （输出）of=hello.txt bs=100M count=1
-
 
 
 附1-fdisk命令：
@@ -41,7 +37,7 @@ fs   指定建立文件系统时的参数。
 mount [-afFnrsvw] [-t vfstype] [-L label]  [-o options] device dir
 mount [-lhv]
 说明：
--a    加载文件/etc/fstab中设置的所有设备。
+-a    加载文件/etc/fstab中设置的所有设备，一般在设置了fstab之后，检查语法是否有问题
 -f    不实际加载设备。可与-v等参数同时使用以查看mount的执行过程。
 -F    需与-a参数同时使用。所有在/etc/fstab中设置的设备会被同时加载，可加快执行速度。
 -t vfstype   指定加载的文件系统类型，如：ext3, ext4。
@@ -57,7 +53,8 @@ dir    分区的挂载点。
 file system：指定要挂载的文件系统的设备名称（如：/dev/sdb）。也可以采用UUID，UUID可以通过使用blkid命令来查看（如：blkid  /dev/sdb）指定设备的UUID号。
 mount point：挂载点。就是自己手动创建一个目录，然后把分区挂载到这个目录下。
 type：		 用来指定文件系统的类型。如：ext3, ext4, ntfs等。
-option dump：０表示不备份；１表示要将整个<file system>中的内容备份。此处建议设置为０。
+option: 	 一般defaults 
+dump：		 0表示不备份；1表示要将整个<file system>中的内容备份。此处建议设置为０
 pass： 		 用来指定fsck如何来检查硬盘。０表示不检查；挂载点为分区／（根分区）必须设置为１，其他的挂载点不能设置为１；如果有挂载ass设置成大于1的值， 则在检查完根分区后，然后按pass的值从小到大依次检查，相同数值的同时检查。如：/home　和 /boot　的pass 设置成2，/devdata 的pass 设置成3，则系统在检查完根分区，接着同时检查/boot和/home，再检查/devdata。
 
 

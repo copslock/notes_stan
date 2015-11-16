@@ -1,0 +1,19 @@
+1.view:
+	textview:文本显示
+		button:checkbox复选框,switch拖拽条且一般有标签标识,radiobutton单选 可以被点击，通过用户去表现某种行为
+		edittext:文本展示且可编辑的
+	imageview:图片显示
+		imagebutton:图片显示且可以作为一个按钮
+	progressbar:进度条
+		seekbar:可拖动的进度条
+		surfaceview：
+2.viewgroup:view的集合，布局和视图的基础的类
+	linearlayout:radiogroup  以单行单列形式排列的布局，/setOrientation()/setGravity()/
+	relativelayout:有一种相对的描述方法的布局方式 /android:layout_below/android:layout_toRightOf/android:layout_alignParentBottom
+	framelayout:scrollview 子视图以栈列的形式表现出来，最新添加的子目标在最上面，scrollview只能放置一个子目录在这一个scroll里
+
+	listview:竖直可收卷列表，部件来自于ListAdapter
+	spinner:通过一个视图展示一个子目录，用户可以选择其中的一项，部件来自于Adapter
+	gridview:可卷动的二维网格状视图，部件自动插入于一个ListAdapter
+	
+	

@@ -2,3 +2,5 @@
 	checkinstall ， apt-get install checkinstall;cd vim;checkinstall;
 	apt-get remove <package>
 	apt-get autoremove <package>
+	
+2.

@@ -1,8 +1,13 @@
-cd ~ 主目录一般为/home/user_name  .表示当前目录  ..上一级  /根目录
-cp file1 file2
-mv file1 file2
-rm [-f强制删除][-r递归删除] filename e.g. rm -rf filename/-r代表以递归的方式去执行一个命令
-ls -a显示隐藏目录 -l显示时间大小权限等 -i显示index number标志数？索引数？文件的inode号/索引节点号
+指令太长的时候可以用反斜杠“\”来让指令连续到下一行
+linux的大小写敏感 
+
+cd ~ 主目录一般为/home/user_name  .表示当前目录  ..上一级  /根目录 -上一个工作目录 不加任何符号或者路径默认就是cd ~
+pwd [-P] 加P显示真实路径，而不是可能出现的链接路径，例如/var/mail链接到/var/spool/mail 
+	通过 “ls -ld /var/mail” 可以查看它的权限和连接到哪里去，-d 表示列出当前所在目录而不是这个目录下的文件
+ls 直接接目录路径也可以 -a显示隐藏目录 -l显示时间大小权限等 --full-time显示完整时间 --color=auto 系统自行决定是否显示颜色
+	-i显示index number标志数？索引数？文件的inode号/索引节点号  "ll"="ls -l"
+wget ftp://IP:PORT/* --ftp-user=xxx --ftp-password=xxx -r  利用ftp的方式下载东西
+
 stat filename 详细显示一个文件的状态信息 加-f显示文件系统状态而非文件状态 -t以简洁方式输出信息 -L 支持符号连接 
 	可以查看文件的时间戳，inode号，block块大小位置，权限等等很多信息
 file 查看文件类型/linux的文件类型放在文件头处
@@ -46,8 +51,14 @@ tree 显示从该目录开始到每一个文件最终的目录的“tree”
 seq 用于产生从某个数到另外一个数之间的所有整数 若只有一个参数x 则默认是从1到x的所有整数
 strip 通过去除绑定程序或符号调试程序使用的信息,减少扩展公共对象文件格式(XCOFF)的对象文件的大小
 aptitude show 软件名  显示软件安装状态
+
 dpkg -l 软件名 软件版本号等等信息
-dpkg -L 软件名 查询安装路径
+dpkg -L 软件名 列出相关联文件
+	-l 列出当前已安装的包
+	-i 软件名 安装这个deb包
+	-r 删除这个软件包
+	-P 删除这个包 包括配置文件
+	
 whereis 软件名 软件安装位置及安装包位置？
 insmod <option> [file] 向kernel里加载一些模块 常见的是加载一些底层驱动
 
@@ -77,7 +88,7 @@ ps -l 查看进程
 	-M,Z  security data     c  true command name  -c scheduling class
 	-w,w  wide output       n  numeric WCHAN,UID  -H process hierarchy
 
-dd
+dd  用指定大小的块拷贝一个文件，并在拷贝的同时进行指定的转换
 	dd if=/dev/sda1 of=/home/ckt/10_M count=1 bs=10MB
 	if为源，of为输出，count为块个数，bs为写入读出一个块的大小 1M=1024*1024 1MB=1000*1000
 	dd可以用于复制一个sd的镜像 也可以执行格式化和挂载等等操作
@@ -123,13 +134,22 @@ echo：
 	cat hx.txt|grep hx 打开hx这个文件过滤文件中“hx”这个字符后显示出来
 	cat >> test << "end" 将下面即将要输入的内容放入test这个文件中，当输入“end”的时候结束这个过程
 	
+kill -2 基本等同于ctrl+c 终止当前中断窗口运行的命令或脚本
+kill -9 pid 强制终止
+kill -15 pid 先关掉相关的程序，再将目前的终止
+ps -ef| grep vim 
+
+HUP     1    终端断线
+INT     2    中断（同 Ctrl + C）
+QUIT    3    退出（同 Ctrl + \）
+TERM   15    终止
+KILL    9    强制终止
+CONT   18    继续（与STOP相反， fg/bg命令）
+STOP   19    暂停（同 Ctrl + Z）	
 	
-	
-	
-	
-	
-	
-	
+	“nohup+命令”  可以将程序以忽略挂起信号的方式运行起来，被运行的程序的输出信息将不会显示到终端。输出默认实在当前目录下nohup.out里或者$home里，
+	若已存在这样的文件而且不可写入，那么nohup后接的cmd命令不可以被调用。
+	也可以指定输出的文件 例如这样 “nohup cmd > filename”
 	
 	
 	

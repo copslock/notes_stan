@@ -14,8 +14,12 @@ linux filesystem：
 		文件的时间戳，共有三个：ctime指inode上一次变动的时间，mtime指文件内容上一次变动的时间，atime指文件上一次打开的时间。
 		链接数，即有多少文件名指向这个inode，文件数据block的位置
 	每个inode节点的大小，一般是128字节或256字节。inode节点的总数，在格式化时就给定，一般是每1KB或每2KB就设置一个inode。
+	mkfs.ext4 -i bytes-per-inode 	每间隔多少字节设置一个inode
+	mkfs.ext4 -I inode-size			inode的大小
+	mkfs.ext4 -N number-of-inodes	这个分区里inode的总个数
 	
-	VFS虚拟文件系统
+	
+	VFS虚拟文件系统转换
 	register_filesystem() 可以用于为每一个文件系统匹配相应的文件系统类型
 	super-block 包含了inode和每一个文件系统的信息 类型 大小 状态 元数据结构  /  blockgroup的分组 包含了哪些的inode
 	
@@ -27,10 +31,10 @@ linux filesystem：
 		system.img: 挂载在 /system 通常是以只读形式挂载的 可以如下来remount它：adb root; adb remount;然后就可以在上面添加或者删除文件了
 		sparse file：这是一种更有效使用文件系统空间的类型，常使用在当分配给一个文件的空间基本是空闲状态的情况下。
 					稀疏文件，只有当真正需要的时候才分配空间。
-		常见的android-fs：ext4，yaff2(for nand-flash，nand是nor和nand最常用的闪存技术的一种)，
+		常见的android-fs：ext4，yaff2(for nand-flash，nor和nand最常用的闪存技术)，
 				efs(for qcom modem，可以用EFS-Explorer工具查看), fuse(用户空间的文件系统，用在/DATA 和 /sdcard 里比较多)
 				
-		
+		filesystem in userspace
 		
 		
 		

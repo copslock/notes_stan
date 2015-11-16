@@ -1,0 +1,178 @@
+linux磁盘管理和文件系统管理
+	包含inode的-索引式存取文件系统
+	
+	block group分组形式，每组之间的inode，block，superblock是独立的
+	在所有group前有一个boot sector，可以安装对应分区的开机管理程序
+	
+	1.data block资料区块：
+	Block 大小 			1KB 	2KB 	4KB
+	最大单一档案限制 	16GB 	256GB 	2TB
+	最大文件系统总容量 	2TB 	8TB 	16TB
+	
+	2.inode table表格：每个文件对应一个inode号而不是一个block对应一个inode
+	一个inode最多只能直接指向12个block，超过12过需要以新的block块作为扩展来指向
+	12直接，1个间接，1个双间接，1个三间接   假设一个block为1k的大小，inode记录一个block花费4bytes
+	则12+1k/4+1k/4*1k/4+1k/4*1k/4*1k/4 = 16MB 如果加上单位k，即是16GB，正好是1k的block大小对应的最大文件容量限制
+	
+	inode存储文件的元信息：inode也是存储数据的一部分
+		文件的大小bytes，文件拥有者的User ID，文件的Group ID，文件的读、写、执行权限
+		文件的时间戳，共有三个：ctime指inode上一次变动的时间，mtime指文件内容上一次变动的时间，atime指文件上一次打开的时间。
+		链接数，即有多少文件名指向这个inode，文件数据block的位置
+	mkfs.ext4 -i bytes-per-inode 	每间隔多少字节设置一个inode
+	mkfs.ext4 -I inode-size			inode的大小
+	mkfs.ext4 -N number-of-inodes	这个分区里inode的总个数
+	
+	3.superblock：P248
+	对inode和block统一的管理，一般第一个block group有超级块，后面的如果有一般是作为前面的备份。
+	superblock一般大小为1024bytes，它的前面要留1024bytes让开机管理程序可以安装。
+	
+	4.fs描述
+	描述每个block-group开始和结束的block号，每个区段位于哪两个block之间
+	
+	5.block-bitmap区块对照表
+	记录block的使用情况，哪些block是空的可以使用，能否写入新文件等等，删除时在这里释放占用的block对应号码
+	
+	6.inode bitmap：与上面类似(从最顶层开始inode一般是从2开始分配)
+	dumpe2fs [-b列出保留为坏轨的部分 -h只列出superblock数据] 装置名/分区名 查看某个分区或者设备的inode，block的使用情况等等
+	
+	目录树的读取过程：由根目录开始inode -> block 一层一层递进直到目标文件
+	fs的大小和读取性能，避免同一文件的数据分散。
+	
+	ext类文件存取流程：当前目录是否有w和x权限 -> inode-bitmap找出闲置的inode号，记录文件属性权限等等写入inode表 -> block-bitmap找出未被使用的block号，
+	实际数据写入block中，更新inode指向对应block的信息 ->  将刚写入inode和block数据同步更新到对应的bitmap中，更新super-block的内容
+	
+	日志式文件系统：在文件实际的写入前后都会有记录信息
+	异步处理方式：就是改动过的文件会暂放在内存里，不会写回磁盘里，方便再次改动，系统正常关机会执行sync让数据写回磁盘
+	
+	VFS(virtual-filesystem-switch):管理所有的文件系统
+	
+	df [-a -h最常用的方式 -H -T显示文件系统类型 -i显示inode使用情况而不显示硬盘空间大小使用情况 -km]  从superblock中获取数据
+	du [-a -h -s列出总量而不列出每个目录的占用容量 -S -km] 从文件系统中搜寻数据
+	
+	实体链接和符号链接：ln
+	hard link：多个文件公用一个inode，它们之间就是实体链接，(除非刚好填满一个block块的时候，一般不会改变block和inode数据和磁盘大小)
+	tips:实体链接不能跨filesystem，不能链接文件目录
+	symbolic link：一个独立的文件，被链接文件的“快捷方式”
+	ln [-s代表以符号链接方式 -f目标文件存在时，将目标文件移除后建立新的] 来源文件 目标文件
+	建立一个新的链接时，上一级目录的link数会加1，
+	
+	详细见ubuntu1单文件：
+	分区fdisk(某个分区大小设置终点处可以是 +512M/K/G 的格式)(fdisk分区上限2TB) -> 格式化mkfs -> 挂载mount -> 设置/etc/fstab (P285)(mtab是自动更新的)
+	tips:分区后要重启系统或者执行“partprobe”重新载入分区表，然后才可以进行格式化
+	
+	P274
+	磁盘检验：fsck文件系统是否出错，badblocks用于检测硬盘是否有坏道
+	fsck [-t type][-A -C进度 -a自动检查修复有问题扇区 -y -f强制细部检查 -D针对文件系统下，目录进行优化] 分区名
+	badblocks [-s列出进度 -v可以再屏幕上看到进度 -w写入方式检测不建议使用] 分区名
+	(实际操作软件是e2fsck)检查出有问题的数据会放在分区的lost+found的文件目录中
+	
+	重挂载根目录：根目录一般是只读的状态，让其可以写入状态，"mount -o remount,rw,auto/" 
+	loop挂载：镜像文件不刻录挂载 “mount -o loop /root/xxx.iso /mnt/cdrom”，还可以用于一些大文件，将其格式化后挂载
+	
+	P280
+	label-name挂载： mount -L "label-name" 分区目录
+	mknod 分区目录 [-b设置为一个周边存储设备 -c设置为一个周边输入设备 -p设置为一个FIFO文件] [major] [minor] ：修改参数
+	e2label 分区目录 新的label名 ：一般用于修改新的label名
+	tune2fs [-j加journal -l等同于dumpe2fs -L等同于e2label] 分区目录
+	hdparm [-icdmXTt] 分区目录
+	
+	swap交换分区的设定：
+	1.t可以改变分区的system-id，swap的话改变82(详细的可以再里面查看)，保存即可
+	2.mkswap 分区目录  			格式化swap分区
+	3.swapon/swapoff 分区目录	启动、关闭
+	4.free		观察swap空间大小
+	
+	PS：
+	mke2fs [-b size 块大小 -i size 多少容量设置一个inode -L 标头 接一个label名 -cj j表示变成journal] 要格式化的分区名
+	/etc/filesystems:	系统指定的测试挂载文件系统类型
+	/proc/filesystems:	系统已经加载的文件系统类型
+	/lib/modules/$(uname -r)/kernel/fs/: 系统相关文件系统类型的驱动程序
+	
+	boot-sector和superblock：在block大小为1k时，是分开的；block为2k或者4k时，两者都在该分区的第一个block里，启动扇区在最前面的1024bytes里，后者在他后面
+	
+	parted [分区目录] [cmd[参数]]
+	parted /dev/hdc [print]		当前分区情况
+	parted /dev/hdc [mkpart [logical ext3 起始点 终止点]]
+	parted /dev/hdc [rm [分区目录]]
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
