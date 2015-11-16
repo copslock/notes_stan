@@ -1,20 +1,57 @@
 cd ~ 主目录一般为/home/user_name  .表示当前目录  ..上一级  /根目录
 cp file1 file2
 mv file1 file2
-rm [-f强制删除][-r文件夹] filename e.g. rm -rf filename
-ls -a显示隐藏目录 -l显示时间大小权限等
-file 查看文件类型
+rm [-f强制删除][-r递归删除] filename e.g. rm -rf filename/-r代表以递归的方式去执行一个命令
+ls -a显示隐藏目录 -l显示时间大小权限等 -i显示index number标志数？索引数？文件的inode号/索引节点号
+stat filename 详细显示一个文件的状态信息 加-f显示文件系统状态而非文件状态 -t以简洁方式输出信息 -L 支持符号连接 
+	可以查看文件的时间戳，inode号，block块大小位置，权限等等很多信息
+file 查看文件类型/linux的文件类型放在文件头处
 echo string_or_$var 能显示环境变量的值
-find [-H] [-L] [-P] [-Olevel] [-D help|tree] [path...]
-grep string 过滤str的内容再输出
+find [-H] [-L] [-P] [-Olevel] [-D help|tree] [path...] / find -name "str"
+
+grep string 查找文件中有“string”的部分(string部分可以加引号也可以不加) 用颜色高亮标注显示出来
+	grep "string" file1 file2 ...
+	grep -v "string" file1 file2 ... 输出除去“string”部分的所有行(反转查找)
+	grep "string" file1 file2 ... --color=auto 标记匹配颜色
+	grep -E “RE” 可以使用正则表达式  -e “str”可以自己指定如str一样的匹配样式 
+	-o 只输出文件中匹配到的部分
+	-c 计算包含有“string”部分的行数
+	-n 输出包含有“string”部分的对应行
+	grep -l “string” file1 file2 ... 列出文件内容符合指定的范本样式的文件名称。
+	-L 列出文件内容不符合指定的范本样式的文件名称。
+	grep “str” . -r -n 在多级目录中对文本进行递归搜索 -r用于查找的是目录而非文件时 .表示当前目录
+	-i 忽略大小写
+	grep "main()" . -r --include *.{php,html} 	在当前目录下所有的php和html文件中找main()
+	grep "main()" . -r --exclude "readme"		在当前目录下除readme文件的文件中找main()
+	grep "main()" . -r --exclude-from fiellist 	在搜索结果中去除filelist中列出的文件
+	grep -q “str” filename 静默输出 运行成功不会输出任何信息 失败则返回非0值 一般用于条件测试？
+	echo -e "a\nb\nc\na\nb\nc" | grep a -A 1
+	-a 不要忽略二进制数据。
+	-A<显示列数> 除了显示符合范本样式的那一行之外，并显示该行之后的内容。
+	-b 在显示符合范本样式的那一行之外，并显示该行之前的内容。
+	-w 只显示全字符合的列 	包含有该字符的
+	-x 只显示全列符合的列	查找的和你输入的字符完全一致的
+	
+	
 mount/umount -t type dev dir 挂载
 source file 当前bash环境下读取并执行file里的命令
-history 查看输入命令的历史
+history 查看输入命令的历史/！+对应id 可以再执行一次对应的命令
 sudo/su root
 man command 帮助命令 按q退出
 
 tree 显示从该目录开始到每一个文件最终的目录的“tree”
+<<<<<<< HEAD
 	tree -L X 从顶端开始往下观察X层，例如X为1代表只看根目录的文件，2代表根目录和下一级的子目录
+=======
+seq 用于产生从某个数到另外一个数之间的所有整数 若只有一个参数x 则默认是从1到x的所有整数
+strip 通过去除绑定程序或符号调试程序使用的信息,减少扩展公共对象文件格式(XCOFF)的对象文件的大小
+aptitude show 软件名  显示软件安装状态
+dpkg -l 软件名 软件版本号等等信息
+dpkg -L 软件名 查询安装路径
+whereis 软件名 软件安装位置及安装包位置？
+insmod <option> [file] 向kernel里加载一些模块 常见的是加载一些底层驱动
+
+>>>>>>> week3
 
 ps -l 查看进程
 	********* simple selection *********  ********* selection by list *********
@@ -76,3 +113,49 @@ echo：
 	?文字闪动：
 	echo -e "\033[37;31;5mMySQL Server Stop...\033[39;49;0m"
 	红色数字处还有其他数字参数：0 关闭所有属性,1 设置高亮度(加粗),4 下划线,5 闪烁,7 反显,8 消隐
+
+管道命令 |,>,<,>>,<<
+	当查找大量文件或者阅读一个内容很多的文件时，在linux中往往不能全部显示出来，或者说你需要在你找到的文件中过滤掉一些你不需要的东西，就可以用管道命令
+	
+	常见的分页显示更多文件内容 ls /dev|more
+	ls /dev > filelist.txt 将ls显示的所有内容记录到filelist中，覆盖可能会有的重名文件
+	ls /dev >> filelist.txt 在filelist中继续添加新的内容，若没有该文件就直接创建新的
+	cat hx.txt|grep hx 打开hx这个文件过滤文件中“hx”这个字符后显示出来
+	cat >> test << "end" 将下面即将要输入的内容放入test这个文件中，当输入“end”的时候结束这个过程
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

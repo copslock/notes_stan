@@ -25,8 +25,52 @@ current 当前的/最近的
 lattices 格子/格/点阵
 characteristics 角色/特点
 valid 有效的
+<<<<<<< HEAD
 emulator 模拟器
 aligned 对齐/结盟/一致
+=======
+intermediates 中间体/中间人
+layout 布局/设计/安排
+compress 压缩/打包
+symbolic 象征意义的
+syntax 语法/句法规则
+threaded 线程
+RTOS  实时操作系统
+declare 宣布/表明/声明
+probe 探查/探针
+pointer 指针
+initialize 初始化
+utility 实用/功效
+retrieve 检索
+implement 工具/手段
+invoke 请求调用
+metadata 元数据
+initramfs 
+obfuscates 混淆
+simultaneity 同时的
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>>>>>>> week3
 
 
 

@@ -3,3 +3,65 @@ Q:Could not apply the stored configuration for monitors:
 Solution:
 cd home/.config/monitors.xml
 rm -f monitors.xml
+
+
+
+linux filesystem：
+	控制数据的存储方式和检索(retrieve)方式
+	从inode号理解linux文件系统，disk -> block/8个扇区组成/一般就是4K -> sector/一个扇区512字节=0.5KByte
+	inode存储文件的元信息：inode也是存储数据的一部分
+		文件的字节数，文件拥有者的User ID，文件的Group ID，文件的读、写、执行权限
+		文件的时间戳，共有三个：ctime指inode上一次变动的时间，mtime指文件内容上一次变动的时间，atime指文件上一次打开的时间。
+		链接数，即有多少文件名指向这个inode，文件数据block的位置
+	每个inode节点的大小，一般是128字节或256字节。inode节点的总数，在格式化时就给定，一般是每1KB或每2KB就设置一个inode。
+	
+	VFS虚拟文件系统
+	register_filesystem() 可以用于为每一个文件系统匹配相应的文件系统类型
+	super-block 包含了inode和每一个文件系统的信息 类型 大小 状态 元数据结构  /  blockgroup的分组 包含了哪些的inode
+	
+	android-filesystem
+		fstab：挂载的信息 设置默认挂载什么的
+		root-fs：It’s a read-only system.
+				Other system will be mounted on it.
+				It will be uncompressed every time when phone boot up.
+		system.img: 挂载在 /system 通常是以只读形式挂载的 可以如下来remount它：adb root; adb remount;然后就可以在上面添加或者删除文件了
+		sparse file：这是一种更有效使用文件系统空间的类型，常使用在当分配给一个文件的空间基本是空闲状态的情况下。
+					稀疏文件，只有当真正需要的时候才分配空间。
+		常见的android-fs：ext4，yaff2(for nand-flash，nand是nor和nand最常用的闪存技术的一种)，
+				efs(for qcom modem，可以用EFS-Explorer工具查看), fuse(用户空间的文件系统，用在/DATA 和 /sdcard 里比较多)
+				
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		

@@ -1,0 +1,12 @@
+1.
+2.
+3.
+4.
+5.
+6.build summary
+	.cpp -> .o -> .so(linked_moduls) -> (compress_output).so(到target后的) -> (symbolic_output).so -> (strip_output).so -> install modules
+	
+	android.mk 			
+	Ipowermanager.cpp 	--->~/obj/SHARED_LIBRARY/libpowermanager_intermediates
+						------>~/symbols/system/lib64/libpowermanager.so
+						--------->~/system/lib64/libpowermanager.so

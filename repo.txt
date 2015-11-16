@@ -1,0 +1,19 @@
+repo的环境准备：
+	mkdir ~/bin
+	PATH=~/bin:$PATH
+	curl http://storage.googleapos.com/git-repo-downloads/repo > ~/bin/repo
+	chmod a+x ~/bin/repo
+
+repo help command
+	repo init -u git://10.120.10.101/msm/platform/manifest.git 配置仓库地址
+        --repo-url=git://10.120.10.101/msm/tools/repo.git repo代码的仓库地址
+        -b ckt 分支 默认是master
+        -m baseline_MSM8939.LA.2.1.xml 对应分支确定配置文件 默认default.xml
+	repo sync
+	repo start 创建分支
+		repo start <newbranchname> [--all | <project>...]
+	repo upload 上传提交代码
+		repo upload [<project>] 接目录地址或者cd到目录下 直接用repo upload .
+	repo forall -c	
+		
+	

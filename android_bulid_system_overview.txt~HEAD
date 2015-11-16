@@ -9,20 +9,28 @@
 
 		main.mk:
 		包含在root目录中，作为mk的主文件(像主函数一样的存在)，对其他的mk files包含介绍，定义一些主要的make目标，比如droid，SDK等等
+		
 		definitions.mk:
 		在build-system里的函数定义，例如my-dir,all-subdir-makefiles,fina-subdir-files,sign-package
+		
 		pdk_config.mk:
 		PDK的配置信息管理文件
+		
 		dex_preopt.mk:
 		根据之前的优化开启？jar包?
+		
 		Makefile：
 		被main.mk所包括，还有一些额外的内容由main.mk协助提供？/还是协助提供给main.mk
+		
 		$(ONE_SHOT_MAKEFILE):
 		能使用mm和mmm这样的命令去指示出在一些特定路径下的makefile的文件所在路径/位置
+		
 		$(subdir_makefiels):
 		包含了android.mk的众多模块/模板，通过python的脚本程序扫描获得
+		
 		help.mk：
 		列出常见的make目标和他们对应的描述定义
+		
 		config.mk：
 		整个build-system的配置文件，包含定义不同类型模块的常量，定义编译参数和常用/常见文件的后缀，例如.ZIP,.JAR,.APK
 		路径设置通常的工具(环境变量设置?)，例如flex,e2fsck,dx,根据BoardConfig.mk来配置文件，产品和参数的关联
@@ -62,12 +70,17 @@
 
 		Android.mk:
 		PRODUCT_MAKEFILES :=$(LOCAL_DIR)/mobeeplus01a_xxx.mk
+		
 		mobeeplus01a_xxx.mk:
 		包含一个关于产品 特殊/具体的？版本的定义，可能存在不止一个相同产品拥有多个版本信息
+		
 		PRODUCT_LOCALES 产品支持区，为lattices预设空间？en_GB语言包？;PRODUCT_PACKAGE 包含apk应用产品的各种不同版本，例如日历/联系人etc.;
+		
 		PRODUCT_COPY_FILES 去copy相应的文件去完成产品的编译 “the source path: path”
+		
 		BoardConfig.mk:
 		用于去配置硬件板？，其定义了硬件部分的特性，例如母板与相关信息，bootloader，内核的链接
+		
 		vendorsetup.sh:
 		通过 add_lunch_combo 来加入菜单选项在lunch函数里，这个参数是$(product_name)-$(compile type)，例如"add_lunch_combo msm8909_LMT-userdebug"
 		

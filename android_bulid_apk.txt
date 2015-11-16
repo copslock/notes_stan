@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 1.source structure
 	源/根目录的结构组成
 	AndroidManifest.xml 程序配置
@@ -89,5 +90,30 @@
 	
 	
 	
+=======
+5.build
+	base_rules.mk
+	
+	build/core/package_internal.mk
+	
+	$(built_dex)build/core/java.mk
+	
+	$(full_classes_proguard_jar) build/core/java.mk
+	
+	all_assets
+	
+	# build/core/android_manifest.mk
+	
+*6.summary
+	1.R.java $(create-resource-java-files)
+	2.$(transform-java-to-classed.jar)
+	3.$(transform-classes.jar-to-dex)
+	4.$(transfomrm-dex-to-proguard)
+	5.$(create-empty-package)
+	6.$(add-asset-to-package); $(add-jni-shared-libs-to-package); $(add-dex-to-package); $(add-java-resources-to-package)
+	7.$(sign-package)
+	8.$(dexpreopt-one-file); $(dexpreopt-remove-classes.dex)
+	9.$(align-package)
+>>>>>>> week3
 	
 	
