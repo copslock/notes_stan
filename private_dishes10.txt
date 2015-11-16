@@ -1,0 +1,177 @@
+Vim编辑器
+	vi到vim的变化
+	
+	vi：
+	一般模式、命令行(? / :)、编辑模式(i I o O a A r R)
+	insert\option\append\r
+	
+	P336
+	光标移动：
+	[Ctrl] + [f]  屏幕『向下』移一页，相当亍 [Page Down]按键 (常用)
+	[Ctrl] + [b]  屏幕『向上』移一页，相当亍 [Page Up] 按键 (常用)
+	[Ctrl] + [d]  屏幕『向下』移半页
+	[Ctrl] + [u]  屏幕『向上』移半页
+	+  光标移到非空格符下一列
+	-  光标移到非空格符上一列
+	n<space>：	例如n为20，按下数字后再按空格键，光标会向右移这一行的n个字符
+	n<enter>:	向下移动n行(常用)
+	nG 			移动到第n行
+	gg			回到第1行(常用)
+	G			到最后一行(常用)
+	H  光标移到这个屏幕最上方那一行的第一个字符
+	M  光标移到这个屏幕中夬那一行的第一个字符
+	L  光标移到这个屏幕最下方那一行的第一个字符
+	0 功能键[Home]:  移到这一行最前面字符处 (常用)
+	$ 功能键[End] :  移到这一行最后面字符处(常用) 
+	
+	P337
+	搜寻：
+	/keyword	向下寻找
+	?keyword	向上寻找
+	n/N			重复上一个搜查动作/反向
+	:n1,n2s/word1/word2/g	n1到n2行寻找word1替换为word2 (常用)
+	:1,$s/word1/word2/g		从第一行到最后一行寻找 word1 字符串，替换为word2 (常用)
+	:1,$s/word1/word2/gc	从第一行到最后一行寻找 word1 字符串，替换为word2，c代表需要用户确认(常用)
+	
+	删除/复制/粘贴：
+	x, X	在一行字当中，x为向后删除一个字符 (相当亍 [del] 按键)， X为向前删除一个字符(相当于[backspace]亦即是退格键) (常用)
+	dd		删除当前光标所在一行
+	ndd		包括本行在内，删除向下一共n行
+	yy		复制光标所在那一行
+	nyy		包括本行在内，复制向下一共n行
+	u		撤销上一个动作
+	ctrl+r	redo上一个动作
+	.		小数点代表重复前一个动作
+	p/P		粘贴
+	
+	P338
+	进入编辑模式：
+	insert 	当前光标处插入
+	option	光标的下一个字符插入
+	append	光标的下一行插入
+	r		取代模式，取代光标所在那个字符
+	
+	P339
+	存储/退出：
+	:w/:q/:w!/:q!
+	ZZ 	文件没变直接退出，有变化保存后退出
+	:w filename		另存为一个文件
+	:r filename		在编辑中读入另一个文件数据
+	:n1,n2 w filename	n1到n2行的内容存储到一个新的新建中去
+	:!cmd	暂时跳回shell先执行命令
+	
+	vim编辑时会有一个暂存档 filename.swp ,防止不正常中断导致的文件内容丢失或者没保存等等
+	多人编辑同一文件也有可能会造成这种情况，一般会有6中选择供你选择：[O]pen Read-Only，
+	(E)dit anyway，(R)ecover从.swp文件中恢复数据，(D)elete it这里是删除那个.swp文件，(Q)uit，(A)bort
+	
+	P343
+	visual block：
+	ctrl+v进入区块选择模式，上下左右移动选择要编辑的“块”
+	y 将反白的地方复制， d 将反白的地方删除
+	shift+i 输入内容 
+	esc 退出这种模式并改变内容
+	
+	多文件编辑：
+	:n	编辑下一个文件
+	:N	编辑上一个文件
+	:files 列出vim目前打开的所有文件
+	vim hosts /etc/hosts -> :files -> ...
+	
+	多窗口编辑：
+	:sp(filename) 若要在新窗口启动另一个文件，就加入文件名
+	ctrl+w+上下方向切换
+	ctrl+w+q 退出一个窗口
+	
+	环境设置.vimrc，.viminfo(自动产生，记录一些操作信息，也有一些配置)
+	:set nu		显示行号
+	:set nonu
+	:set hlsearch	搜索字符高亮
+	:set nohlsearch
+	:set autoindent		自动缩排
+	:set noautoindent
+	:set backup		自动存储备份文件
+	:set ruler		显示右下角的状态栏说明
+	:set showmode  是否要显示 --INSERT-- 类的左下角状态栏。
+	:set backspace=(012) 设置为bs=2即可
+	:set all  显示目前所有的环境参数设定值。
+	:set	显示和系统默认值不同的参数，即你自己改过的参数
+	:syntax on	语法高亮
+	:syntax off
+	:set bg=dark	背景色色调
+	:set bg=light
+	
+	...
+	
+	vim常用指令-详细可见-vim使用快捷键.png
+	
+	P349
+	dos和linux的断行字符的不同造成可能出现的编译错误，可以进行下列的转换：
+	dos2unix [-kn] file [newfile]
+	unix2dos [-kn] file [newfile]
+	
+	语言的编码转换：
+	iconv --list
+	进入相应要转换编码的文件夹内执行：
+	iconv -f 原本编码 -t 新编码 filename [-o newfile]
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

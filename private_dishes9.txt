@@ -24,28 +24,45 @@
 	tar -cvf - /home/ckt/test | tar -xvf - 
 	
 	P314
-	备份处理：
+	备份处理流程：
 	dump [-S列出备份需要的磁盘空间大小,单位是bytes -u将dump时间记录在/etc/dumpdates中 -v显示备份过程 -j加入bz2压缩] [-level压缩的等级0到9] [-f 要备份的目标文件名] 源文件
 	dump -S /dev/hda1 一般查询需要多大空间来备份
 	dump -0u -f /root/boot.dump /boot  这个/boot是在hda1里的？
 	cat /etc/dumpdates
 	dump -W 查看是否有被备份过的东西
-	dump -1u -f /root/boot.dump1 /boot   差异性备份档level1的
+	当/boot目录下有文件删除、添加、改变等等
+	dump -1u -f /root/boot.dump1 /boot   差异性备份档 level1的
 	dump -W 查看备份信息的变化
 	
 	备份/etc单一目录：只能用level0的备份
 	dump -0u -f /root/fiel-name /etc
 	
+	dump文件还原方法：
 	restore -t -f 目标文件名	查看(参考于inode信息)
-	restore -r -f 目标文件名	还原备份
+	restore -r -f 目标文件名	还原备份 从level0开始一直到你备份的level1、level2等等为止
 	restore -C -f xxx 			对比差异
-	restore -i -f xxx			互动模式，
+	restore -i -f xxx			互动模式，进入到压缩的文件内部，命令类似于shell内的指令
+		add file	将文件添加到要解压的列表中
+		delete file	从要解压的列表中移除
+		extract		列表中所有文件解压
+		不知道的用help
 	
+	P320
+	刻录光盘：略
+	mkisofs [-o 目标镜像文件][-rv][-m file排除在外的文件] 待备份文件... [-V vol] -graft-point isodir=systemdir...
+	cdrecord -scanbus dev=ATA					查询刻录机器位置
+	cdrecord -v dev=ATA:x,y,z blank=[fast|all]	抹除光盘原始内容
+	cdrecord -v dev=ATA:x,y,z -format			格式化
+	cdrecord -v dev=ATA:x,y,z [option] file-name.iso	iso镜像写入光盘
 	
+	特殊的备份指令dd
+	dd if= of= bs= count=
+	还原的话把if和of的目标对换
+	详细可见ubuntu2单文件里
 	
-	
-	
-	
+	备份 cpio -ovcB > [file|device]   	e.g find /boot|cpio -ocvB > /tmp/boot.cpio
+	还原 cpio -ivcdu < [file|device]	e.g
+	查看 cpio -ivct < [file|device]		e.g
 	
 	
 	
