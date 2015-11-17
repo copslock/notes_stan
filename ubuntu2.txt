@@ -43,7 +43,11 @@ source file 当前bash环境下读取并执行file里的命令
 history 查看输入命令的历史/！+对应id 可以再执行一次对应的命令
 sudo/su root
 man command 帮助命令 按q退出
+
 tree 显示从该目录开始到每一个文件最终的目录的“tree”
+<<<<<<< HEAD
+	tree -L X 从顶端开始往下观察X层，例如X为1代表只看根目录的文件，2代表根目录和下一级的子目录
+=======
 seq 用于产生从某个数到另外一个数之间的所有整数 若只有一个参数x 则默认是从1到x的所有整数
 strip 通过去除绑定程序或符号调试程序使用的信息,减少扩展公共对象文件格式(XCOFF)的对象文件的大小
 aptitude show 软件名  显示软件安装状态
@@ -58,6 +62,7 @@ dpkg -L 软件名 列出相关联文件
 whereis 软件名 软件安装位置及安装包位置？
 insmod <option> [file] 向kernel里加载一些模块 常见的是加载一些底层驱动
 
+>>>>>>> week3
 
 ps -l 查看进程
 	********* simple selection *********  ********* selection by list *********

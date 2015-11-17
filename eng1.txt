@@ -25,6 +25,10 @@ current 当前的/最近的
 lattices 格子/格/点阵
 characteristics 角色/特点
 valid 有效的
+<<<<<<< HEAD
+emulator 模拟器
+aligned 对齐/结盟/一致
+=======
 intermediates 中间体/中间人
 layout 布局/设计/安排
 compress 压缩/打包
@@ -66,6 +70,7 @@ simultaneity 同时的
 
 
 
+>>>>>>> week3
 
 
 

@@ -120,6 +120,12 @@ clean:            
 include<filename>
 filename可以使当前系统shell的文件模式或者包含路径和通配符
 
+<<<<<<< HEAD:makefile1.txt
+makefile常见的伪目标定义：
+
+
+
+=======
 makefile常见的为目标定义：
 	.PHONY 本身就是伪的意思 
 	规则所定义的命令不是去创建目标文件而是去执行一个特定的命令，例如clean，讲一个target定义为伪目标后，make在执行规则时不会去试图查找隐含的规则来创建它。
@@ -132,6 +138,7 @@ makefile常见的为目标定义：
 		p3:p3.c
 	
 	
+>>>>>>> week3:makefile1.txt
 
 
 
