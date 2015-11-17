@@ -37,8 +37,9 @@ shell/Bash
 	env	列出目前shell环境下的所有环境变量及内容
 	$HOME,$SHELL,$HISTSIZE历史命令最多纪录的条数一般是1000条,$MAIL,$PATH,$LANG,$RANDOM产生随机数
 	set 观察所有环境变量和自定义变量
+	
 	P368
-	PS1 命令提示符 即 '[\u@\h\W]\$' --> [root@www ~]# <-- [用户名@主机名：工作目录]提示字符 (root是# 一般用户是$)
+	PS1 命令提示符(prompt) 即 '[\u@\h\W]\$' --> [root@www ~]# <-- [用户名@主机名：工作目录]提示字符 (root是# 一般用户是$)
 	PS2 '>'  一般就是使用跳脱字符\时第二行会被自动列出一个>符号
 	PS1='[\u@\h \w \A #\#]\$' 这种也不错 \#提示是第几个指令 \A时间
 	$ 	shell-bash的PID号
@@ -46,9 +47,9 @@ shell/Bash
 	OSTYPE, HOSTTYPE, MACHTYPE：(主机硬件和核心的等级)
 	
 	export 变量名
-	环境变量和自定义变量，差异在于能否被子程序继续引用。因为子程序只会继承父程序的环境变量，
-	所以自定义变量到环境变量的过程，即是export。
-	export 单命令不接变量名也可以显示出所有的环境变量
+		环境变量和自定义变量，差异在于能否被子程序继续引用。因为子程序只会继承父程序的环境变量，
+		所以自定义变量到环境变量的过程，即是export。
+		export 单命令不接变量名也可以显示出所有的环境变量
 	
 	locale [-a]
 	查询语系的变量
@@ -59,15 +60,15 @@ shell/Bash
 	read [-p提示输入字符 -t接输入时间 秒数] 变量名
 	
 	设定变量的类型：默认的都是字符串类型
-	declare [-a变为数组类型 -i整型 -x变成环境变量 -r变为只读的变量，不能被unset] 变量名
-	typeset xxx typeset与declare功能一样
-	declare -x xxx 	变为环境变量
-	declare +x xxx	变为非环境变量
+		declare [-a变为数组类型 -i整型 -x变成环境变量 -r变为只读的变量，不能被unset] 变量名
+		typeset xxx typeset与declare功能一样
+		declare -x xxx 	变为环境变量
+		declare +x xxx	变为非环境变量
 	
 	文件系统和程序限制管理：P375
-	ulimit -a 目前的限制资料数值
-	ulimit -f 10240 单位是kbytes，设定文件大小不能超过10M
-	复原的方法重新登录或者重新设置即可
+		ulimit -a 	目前的限制资料数值
+		ulimit -f 10240 	单位是kbytes，设定文件大小不能超过10M
+		复原的方法重新登录或者重新设置即可
 	
 	P376 变量名的改变、删除：略
 	${variable#/*kerberos/bin:} 	/和:之间满足字符匹配的最短的
@@ -105,10 +106,10 @@ shell/Bash
 	!!		执行上一个指令
 	
 	路径和指令搜寻执行顺序：
-	1. 以相对/绝对路径执行，例如『/bin/ls 』『./ls 』；
-	2. 由 alias 找到对应的指令执行；
-	3. 由 bash 内建指令执行；
-	4. 透过 $PATH 定义的环境变量中搜到的第一个指令执行
+		1. 以相对/绝对路径执行，例如『/bin/ls 』『./ls 』；
+		2. 由 alias 找到对应的指令执行；
+		3. 由 bash 内建指令执行；
+		4. 透过 $PATH 定义的环境变量中搜到的第一个指令执行
 	
 	P385
 	bash的登录信息(tty1-tty6登录里的)：
@@ -117,9 +118,9 @@ shell/Bash
 	
 	login-shell、no-login shell相关的环境变量：
 	login shell读取顺序如下:
-	1.系统级变量：/etc/profile
-	2.用户个人的3个选一个读取：~/.bash_profile   ~/.bash_login   ~/.profile
-	3.~/.bashrc
+		1.系统级变量：/etc/profile
+		2.用户个人的3个选一个读取：~/.bash_profile   ~/.bash_login   ~/.profile
+		3.~/.bashrc
 	no-login shell会直接读取 ~/.bashrc 而跳过之前的
 	
 	source：读入环境配置文件
@@ -130,21 +131,21 @@ shell/Bash
 	
 	P390 略
 	终端机环境设定 stty/set
-	Ctrl + C 终止目前癿命令
-	Ctrl + D 输入结束 (EOF)
-	Ctrl + M 就是 Enter 
-	Ctrl + S 暂停屏幕输出
-	Ctrl + Q 恢复屏幕输出
-	Ctrl + U 在提示字符下，将整列命令删除
-	Ctrl + Z 『暂停』目前的命令
+		Ctrl + C 终止目前癿命令
+		Ctrl + D 输入结束 (EOF)
+		Ctrl + M 就是 Enter 
+		Ctrl + S 暂停屏幕输出
+		Ctrl + Q 恢复屏幕输出
+		Ctrl + U 在提示字符下，将整列命令删除
+		Ctrl + Z 『暂停』目前的命令
 	
 	P394
 	通配符和特殊符号：
-	* 	代表无穷多个任意字符
-	? 	代表一定有一个任意字符
-	[]	同样代表一定有一个在括号内的字符(非任意字符)。例如[abcd]代表一定有一个字符，可能是a,b,c,d这四个任何一个
-	[-]	若有减号在中括号内时，代表在编码顺序内的所有字符，例如[0-9]代表0到9的所有数字
-	[^]	若中括号内第一个字符为符号^，表示反向选择，例如[^abc]代表一定有一个字符，是非a,b,c的其他字符都可以
+		* 	代表无穷多个任意字符
+		? 	代表一定有一个任意字符
+		[]	同样代表一定有一个在括号内的字符(非任意字符)。例如[abcd]代表一定有一个字符，可能是a,b,c,d这四个任何一个
+		[-]	若有减号在中括号内时，代表在编码顺序内的所有字符，例如[0-9]代表0到9的所有数字
+		[^]	若中括号内第一个字符为符号^，表示反向选择，例如[^abc]代表一定有一个字符，是非a,b,c的其他字符都可以
 	
 	数据流导向/重导向
 		命令从file接受标准输入，执行后，输出标准输出或者标准错误输出。
@@ -170,32 +171,78 @@ shell/Bash
 		数据导向的原因和用途：输出信息很关键需要保存，不希望干扰当前屏幕显示，对已知会出现的错误信息进行抛弃，错误信息和正确信息分别输出时
 	
 	多命令执行判断：
-	cmd;cmd;
-	cmd&&cmd	根据回传值$?判断 0是成功 失败为非0值
-	cmd||cmd
+		cmd;cmd;
+		cmd&&cmd	根据回传值$?判断 0是成功 失败为非0值
+		cmd||cmd
+		ls /tmp/abc || mkdir /tmp/abc && touch /tmp/abc/hehe 
+		ls /tmp/vbirding && echo "exist" || echo "not exist"
 	
+	pipe：
+		通过管线|分隔不同的命令，前一个的stdout作为下一个的stdin，一层一层执行下去
+		管线命令：能够接受来自前一个命令的数据使其成为stdin，仅会处理stdout，对于stderr忽略，
+		
+		截取：
+		cut -d '以什么作为分割符' -f fields		cut -d ':' -f 3,4,5		以:分割，取第3，4，5区块
+		cut -c 字符区块							cut -c 10-20	取第10个到第20个字符区间的所有字符
+		grep “keyword” filename 提取有关键字的某几行	cat file1|grep 'hx'|cut -d ' ' -f 1
+		grep详细命令见ubuntu2单文件
+		
+		排序：
+		sort
+		-f：忽略大小写差异
+		-b：忽略最前面的空格符部分
+		-M：以月份的名字杢排序
+		-n：使用纯数字排序(默认是以文字型态排序) 
+		-r：反向排序
+		-u：就是uniq，相同数据中，仅出现一行代表
+		-t：分隔符，默认是用[tab]
+		-k：以那个区间(field)进行排序
+		cat /etc/passwd|sort; cat /etc/passwd|sort -t ':' -k 2 以第二栏的数据来排序; 
+		
+		...|uniq 排序但不显示重复的; ...|sort -u; ...|uniq -c 包含计数功能;
+		
+		wc [-l列出多少行 -w列出多少英文字 -m多少字符]
+		...|wc; 
 	
+		数据的双向重导向：
+		输出即打印到屏幕上，另一方面也可以保存下来
+		tee [-a累加的方式添加] filename
+		tee也是管线命令：	ll /|tee -a filename|more
+		
+		字符转换命令：
+		...|tr -d ':'	删除:字符 	^M是DOS的断行字符
+		...|tr '[a-z]''[A-Z]'	小写替换成大写，单引号可以不加
+		
+		...|col -x|cat -A|more	cat-A能看见的^I就是tab键，这里将tab全部替换为空格了
+		man col|col -b > /root/col.man	man-page转存中去掉一些“怪异字符”方便查阅
+		
+		join -t ':' file1 file2		两个文件中有相同关键字的行合并，-t和:依旧是表示分割符
+		join -t ':' -1 4 /etc/passwd -2 3 /etc/group  file1的第4个区块和file2的第三个区块相同，以此来合并
+		-1 -2代表第几个文件
+		
+		paste [-d可接粘贴后的分割符，默认是tab分开] file1 file2
+		...|paste file1 -|head -n 3		-代表前一个命令的stdout信息
+		
+		expand [-t接数字，自定义一个tab代表多少个字符] file 
+		grep '^MANPATH' /etc/man.config|head -n 3|expand -t 6 -|cat -A
+		^行首代表标志 tab替换为6个空格 
 	
+		分割文件命令：
+		split [-b分割后的单文件大小 -l以行数来分割] file prefix		前缀方便查找，也方便把零散文件合并
+		split -b 300k file prefix
+		分割后的零散文件合并为一体：cat prefix* > filename
+		ls -al /|split -l 10 - lsroot	每10行输出成一个文件，前缀是lsroot，-代表前一个命令的stdout
+		
+		参数替换： arguments(参数)
+		xargs [-0 -e后接一个字符串，遇到字符串停止分析 -p执行每个指令的arg时都会询问 -n接次数，每次cmd指令执行要使用几个参数] command
+		cut -d':' -f1 /etc/passwd|head -n 3|xargs finger
+		cut -d':' -f1 /etc/passwd|head -n 3|xargs -p finger
+		cut -d':' -f1 /etc/passwd|xargs -p -n 5 finger
+		cut -d':' -f1 /etc/passwd|xargs -p -e'lp' finger
+		find /sbin -perm +7000 | xargs ls -l	关键！ls -l本来不是管线命令，可以用xargs让其能够引用stdin
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+		减号-
+		前面已经看到很多次了 即代表前一个命令的stdout
 	
 	
 	
