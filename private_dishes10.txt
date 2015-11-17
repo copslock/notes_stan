@@ -54,11 +54,13 @@ Vim编辑器
 	P339
 	存储/退出：
 	:w/:q/:w!/:q!
+	q:	查看在vim里历史命令
 	ZZ 	文件没变直接退出，有变化保存后退出
 	:w filename		另存为一个文件
 	:r filename		在编辑中读入另一个文件数据
 	:n1,n2 w filename	n1到n2行的内容存储到一个新的新建中去
 	:!cmd	暂时跳回shell先执行命令
+	:e! 恢复到文件的原始状态，此次进入前的状态
 	
 	vim编辑时会有一个暂存档 filename.swp ,防止不正常中断导致的文件内容丢失或者没保存等等
 	多人编辑同一文件也有可能会造成这种情况，一般会有6中选择供你选择：[O]pen Read-Only，
@@ -78,7 +80,10 @@ Vim编辑器
 	vim hosts /etc/hosts -> :files -> ...
 	
 	多窗口编辑：
-	:sp(filename) 若要在新窗口启动另一个文件，就加入文件名
+	:sp(filename) 若要在新窗口启动另一个文件，就加入文件名，水平分屏
+	:vsp(xx) 竖直分屏
+	vim -on 1.c 1.txt	水平分屏
+	vim -On 1.c 1.txt	竖直分屏
 	ctrl+w+上下方向切换
 	ctrl+w+q 退出一个窗口
 	
@@ -93,6 +98,7 @@ Vim编辑器
 	:set ruler		显示右下角的状态栏说明
 	:set showmode  是否要显示 --INSERT-- 类的左下角状态栏。
 	:set backspace=(012) 设置为bs=2即可
+	:set backspace=indent,eol,start
 	:set all  显示目前所有的环境参数设定值。
 	:set	显示和系统默认值不同的参数，即你自己改过的参数
 	:syntax on	语法高亮

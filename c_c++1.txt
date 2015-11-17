@@ -56,6 +56,19 @@
 	对于静态数组和动态数组识别的不同：
 	char * ss="blabla", sizeof(ss)=4/一个长整型指针所占的空间, sizeof(*ss)=1/ss数组第一个字符所占的空间, strlen(ss)=6/ss字符串的长度，会识别空格
 
+7.struct结构体
+	typedef struct xxx(){
+	;
+	;
+	
+	}xxx1;
+	
+	struct xxx(){
+	;
+	;
+	
+	};
+	xxx xxx1;
 
 
 

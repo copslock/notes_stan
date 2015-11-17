@@ -132,7 +132,6 @@ echo：
 	ls /dev > filelist.txt 将ls显示的所有内容记录到filelist中，覆盖可能会有的重名文件
 	ls /dev >> filelist.txt 在filelist中继续添加新的内容，若没有该文件就直接创建新的
 	cat hx.txt|grep hx 打开hx这个文件过滤文件中“hx”这个字符后显示出来
-	cat >> test << "end" 将下面即将要输入的内容放入test这个文件中，当输入“end”的时候结束这个过程
 	
 kill -2 基本等同于ctrl+c 终止当前中断窗口运行的命令或脚本
 kill -9 pid 强制终止

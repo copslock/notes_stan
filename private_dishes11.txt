@@ -1,50 +1,178 @@
-Bash
+shell/Bash
+	能够操作应用程序的接口程序可以称为shell
+	bash = Bourne Again SHell 在bourne shell基础上发展起来的
+	/etc/shells里记录着所有可用的shells
+	/etc/passwd里记录着不同用户默认shell程序
 	
+	bash的优点：记录历史命令(~/.bash_history)，tab的补全功能，别名设置(alias ll='ls -l')，工作过程控制(nohup?)，
+	shell-scripts，通配符等等
 	
+	type [-tpa] cmd
+	查询命令是外部指令还是shell-bash内建的，type本身也是内建指令
 	
+	\[enter] 跳脱到下一行的命令 makefile里面也有类似的用\符号来表示两行内容是连续的情况
 	
+	变量：
+	以一组简单文字或符号去替代一些复杂的设定或数据
 	
+	变量定义：
+	等号两边不能接空格，变量名可以包含数字但不能以数字开头，例如 username=‘hx’，单引号、双引号或不加引号都可以，但是变量内容中有空格或其他特殊字符的，必须加单引号或者双引号或者就用下一行的那种方法定义
+	(单引号只是保持特殊字符的存在，双引号才能引用例如$特殊的属性)
+	kernel_version=$(uname -r)，这种定义类似makefile里相似
+	该变量是扩增变量内容：以下三种表示方法都可以
+	PATH="$PATH":/home/bin
+	PATH=$PATH:/home/bin
+	PATH=${PATH}:/home/bin
+	若该变量需要在其他子程序中执行：
+	export 设定的变量名
+	取消变量设定：unset 变量名
+	反引号``：反引号中的内容先执行其内部命令，结果被当成外部命令的输入信息，
+	例如cd /lib/modules/`uname -r`/kernel 和下面那条功能相同
+	cd /lib/modules/$(uname -r)/kernel 核心模块目录
 	
+	变量使用：
+	普通变量	$(变量名)
+	数组的读取 	${a[n]}
 	
+	env	列出目前shell环境下的所有环境变量及内容
+	$HOME,$SHELL,$HISTSIZE历史命令最多纪录的条数一般是1000条,$MAIL,$PATH,$LANG,$RANDOM产生随机数
+	set 观察所有环境变量和自定义变量
+	P368
+	PS1 命令提示符 即 '[\u@\h\W]\$' --> [root@www ~]# <-- [用户名@主机名：工作目录]提示字符 (root是# 一般用户是$)
+	PS2 '>'  一般就是使用跳脱字符\时第二行会被自动列出一个>符号
+	PS1='[\u@\h \w \A #\#]\$' 这种也不错 \#提示是第几个指令 \A时间
+	$ 	shell-bash的PID号
+	?	上个cmd的回传值，正确执行一般返回0，出现问题返回非0值
+	OSTYPE, HOSTTYPE, MACHTYPE：(主机硬件和核心的等级)
 	
+	export 变量名
+	环境变量和自定义变量，差异在于能否被子程序继续引用。因为子程序只会继承父程序的环境变量，
+	所以自定义变量到环境变量的过程，即是export。
+	export 单命令不接变量名也可以显示出所有的环境变量
 	
+	locale [-a]
+	查询语系的变量
+	LANG的重新设定：例如LANG=zh_CN.UTF-8 引号可加可不加
 	
+	P373
+	读取键盘的输入，变为变量名代表的内容
+	read [-p提示输入字符 -t接输入时间 秒数] 变量名
 	
+	设定变量的类型：默认的都是字符串类型
+	declare [-a变为数组类型 -i整型 -x变成环境变量 -r变为只读的变量，不能被unset] 变量名
+	typeset xxx typeset与declare功能一样
+	declare -x xxx 	变为环境变量
+	declare +x xxx	变为非环境变量
 	
+	文件系统和程序限制管理：P375
+	ulimit -a 目前的限制资料数值
+	ulimit -f 10240 单位是kbytes，设定文件大小不能超过10M
+	复原的方法重新登录或者重新设置即可
 	
+	P376 变量名的改变、删除：略
+	${variable#/*kerberos/bin:} 	/和:之间满足字符匹配的最短的
+	${variable##/*kerberos/bin:}	/和:之间满足字符匹配的最长的
+	${path%:*bin}	从最后一个字符开始向前找的，以:结尾的最短的
+	${path%%:*bin}	从最后一个字符开始向前找的，以:结尾的最长的
 	
+	${path/a/b}		path变量的内容中 a替换为b
+	${path//a/b}	符合条件的a全部被替换为b
 	
+	username=${username:-root}	无论username是否被定义或是空字符串，都替换为root这个变量值，不加冒号的话如果username本来已经有定义就会保持不变
 	
+	变量设定方式 		str 未定义 			str为空字符串 		str非为空字符串
+	var=${str-expr} 	var=expr 			var= 				var=$str
+	var=${str:-expr} 	var=expr 			var=expr 			var=$str
+	var=${str+expr} 	var= 				var=expr 			var=expr
+	var=${str:+expr} 	var= 				var= 				var=expr
+	var=${str=expr}		str=expr var=expr	str不变 var=		str不变	var=$str	
+	var=${str:=expr}	str=expr var=expr	str=expr var=expr	str不变 var=$str
+	var=${str?expr} 	expr输出至stderr 	var= 				var=$str
+	var=${str:?expr} 	expr输出至stderr 	expr输出到stderr 	var=$str
 	
+	清屏：clear
 	
+	别名的设定和取消：
+	alias ll='ls -l'
+	unalias ll
 	
+	命令历史记录：history
+	~/.bash_hisory
+	$HISTSIZE	当注销一次时才会写入这一次的所有记录
+	$HISTFILEZIZE
+	!number	执行历史记录里行号对应的
+	!cmd	执行历史记录里最近的以cmd开头的指令
+	!!		执行上一个指令
 	
+	路径和指令搜寻执行顺序：
+	1. 以相对/绝对路径执行，例如『/bin/ls 』『./ls 』；
+	2. 由 alias 找到对应的指令执行；
+	3. 由 bash 内建指令执行；
+	4. 透过 $PATH 定义的环境变量中搜到的第一个指令执行
 	
+	P385
+	bash的登录信息(tty1-tty6登录里的)：
+	/etc/issue, /etc/motd	本地的
+	/etc/issue.net	远程登录端的欢迎信息存放处
 	
+	login-shell、no-login shell相关的环境变量：
+	login shell读取顺序如下:
+	1.系统级变量：/etc/profile
+	2.用户个人的3个选一个读取：~/.bash_profile   ~/.bash_login   ~/.profile
+	3.~/.bashrc
+	no-login shell会直接读取 ~/.bashrc 而跳过之前的
 	
+	source：读入环境配置文件
+	source ~/.bashrc
+	. ~/.bashrc
 	
+	其他和bash相关的配置文件：/etc/manpath.config寻找man-page的路径设置, ~/.bash_history, ~/.bash_logout注销bash后系统会帮我们做的事,
 	
+	P390 略
+	终端机环境设定 stty/set
+	Ctrl + C 终止目前癿命令
+	Ctrl + D 输入结束 (EOF)
+	Ctrl + M 就是 Enter 
+	Ctrl + S 暂停屏幕输出
+	Ctrl + Q 恢复屏幕输出
+	Ctrl + U 在提示字符下，将整列命令删除
+	Ctrl + Z 『暂停』目前的命令
 	
+	P394
+	通配符和特殊符号：
+	* 	代表无穷多个任意字符
+	? 	代表一定有一个任意字符
+	[]	同样代表一定有一个在括号内的字符(非任意字符)。例如[abcd]代表一定有一个字符，可能是a,b,c,d这四个任何一个
+	[-]	若有减号在中括号内时，代表在编码顺序内的所有字符，例如[0-9]代表0到9的所有数字
+	[^]	若中括号内第一个字符为符号^，表示反向选择，例如[^abc]代表一定有一个字符，是非a,b,c的其他字符都可以
 	
+	数据流导向/重导向
+		命令从file接受标准输入，执行后，输出标准输出或者标准错误输出。
+		1. 标准输入 (stdin) ：代码为0，使用 < 或 << ；
+		2. 标准输出 (stdout)：代码为1，使用 > 或 >> ；
+		3. 标准错误输出(stderr)：代码为2，使用 2> 或 2>> ；
+		
+		例如：ll > ./ll.info  将本来应该打印在屏幕上的数据输出到了ll.info这个文件里，改变了数据的流向
+		> 输出文件不存在会自动建立，存在的话会强制覆盖掉
+		>> 输出文件不存在会自动建立，存在的话会把新的内容添加在后面
+		2>,2>>效果与上面相同，不同的是输出的是错误信息
+		find /home -name .bashrc > list_right 2> list_error 分开保存正确和错误的输出信息
+		... >/dev/null 垃圾桶，抛弃掉错误的信息，只显示正确的信息
+		... >list 2>&1 都输出到同一文件list，&将指令变为背景下工作
+		... &>list
+		
+		cat > filename  此命令也可以建立文件
+		输入信息
+		ctrl+d 退出
+		cat > filename < ~/.bashrc 将bashrc的内容输出到filename这个文件中去
+		cat > filename << "end"  和上面类似，不同在于不是用ctrl+d退出而是输入end的时候退出，end并不会被记录到输入信息中去
+		
+		数据导向的原因和用途：输出信息很关键需要保存，不希望干扰当前屏幕显示，对已知会出现的错误信息进行抛弃，错误信息和正确信息分别输出时
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	多命令执行判断：
+	cmd;cmd;
+	cmd&&cmd	根据回传值$?判断 0是成功 失败为非0值
+	cmd||cmd
 	
 	
 	
