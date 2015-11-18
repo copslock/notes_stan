@@ -1,2 +1,97 @@
-正则表达式-文件的格式化处理
+正则表达式Regular Expression-文件的格式化处理
+	支持正则表达式的例如vi，grep，awk，sed等等
+	正则与通配符完全不同
+	
+	P419
+	[:alnum:]=[a-zA-Z0-9], [:alpha:]=[a-zA-Z], [:upper:], [:lower:], [:digit:]
+	
+	基础RE:
+	1.[-], [], [^ ]
+	以行为单位来截取数据的命令：grep
+	grep [-A接数字，表示继续打印后续n行][-B接数字，表示继续打印之前n行][--color=auto] 'keyword' filename	管线中可以没有filename这一项，因为前面可能会有stdout
+	dmesg|grep 'eth'	dmesg系统启动信息，内核的环形缓冲区信息，eth网卡相关信息
+	dmesg|grep -n ‘eth’	-n显示行号
+	...|grep -n -A3 -B2 
+	grep -vn 'the' filename		反向匹配，不包含the的都要
+	grep -in 'the' filename		忽略大小写
+	grep -n 't[ae]st' filename 	keyword匹配t?st类的字符，[]代表一个字符，其中的内容任选1
+	grep -n '[^g]oo' filename 	非[]内包含的任意字符，后面有“oo”
+	grep -n '[^a-z]' filename 	不要有小写字母的
+	grep -n '[0-9]' filename 	匹配有数字0到9的
+	
+	2.^, $
+	grep -n '^the' file		匹配以the开头的
+	grep '^[a-z]' file
+	grep '^[^a-zA-Z]' file
+	grep '\.$' file		匹配以小数点.结尾的，因为小数点还具有其他意思，所以这里用了跳脱字符\
+	cat -An file|head -n 10|tail -n 6	文件内容打印，取出前10行，在这10行里再取出后6行
+	grep '^$' file		匹配空白行，无字符不是空格
+	grep -nv '^#'|grep -vn '^$'		去除空白行和以#开头的注释行
+	
+	3.任意字符.	重复字符*
+	. = 一定有一个任意字符
+	* = 重复前一个RE字符(0到无穷次),它前一个RE字符和*看作是一个整体
+	grep -n 'g..d' file		匹配例如good,glad,gold
+	grep -n 'ooo*' file		匹配至少两个o，最多无上限个数的o序列
+	grep '^go*oo*g$' file	匹配字符串开头结尾都是g，但是两个g之间存在至少一个o
+	grep '^goo*g$' file
+	grep '^go*og$' file
+	grep '^g*g$' file	匹配字符串开头结尾都是g，但是两个g之间字符可有可无
+	grep '.*' file		.* 0个或多个任意的字符
+	grep '[0-9][0-9]*'	匹配任意有数字的行
+	
+	4.限定连续RE字符范围 {}
+	grep -n 'o\{2\}' file	跳脱字符\=转义字符\  避免一些特殊符号的特殊含义，让其就表示在RE中的含义
+	grep -n 'o\{2\}' file		匹配至少有连续2个o的字符串
+	grep 'go\{2,5\}' file		匹配go*，其中o的个数是2个到5个
+	
+	sed：
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	

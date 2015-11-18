@@ -7,6 +7,7 @@ pwd [-P] 加P显示真实路径，而不是可能出现的链接路径，例如/
 ls 直接接目录路径也可以 -a显示隐藏目录 -l显示时间大小权限等 --full-time显示完整时间 --color=auto 系统自行决定是否显示颜色
 	-i显示index number标志数？索引数？文件的inode号/索引节点号  "ll"="ls -l"
 wget ftp://IP:PORT/* --ftp-user=xxx --ftp-password=xxx -r  利用ftp的方式下载东西
+wget http://...
 
 stat filename 详细显示一个文件的状态信息 加-f显示文件系统状态而非文件状态 -t以简洁方式输出信息 -L 支持符号连接 
 	可以查看文件的时间戳，inode号，block块大小位置，权限等等很多信息
