@@ -1,0 +1,183 @@
+android_log
+	目的：记录运行情况，解决问题
+	构成：time，grade，tag，pid，message
+	类型：main，events，radio，system
+	用户空间等级：debug，info，error，verbose，warn
+	内核等级：KERN_WARNING, KERN_INFO, KERN_DEBUG...
+	优先级由低到高如下：
+	•V — Verbose (lowest priority) 
+	•D — Debug 
+	•I — Info 
+	•W — Warning 
+	•E — Error 
+	•F — Fatal 
+	•S — Silent (nothing is ever printed)
+
+	WRITE:写入log会反馈给我们的信息
+	Pwd ： system/core/liblog/logd_write_kern.c
+		App&Framework:
+		private static final String TAG = “XXX";
+		Log.d(TAG,”any thing useful”);
+
+		Native:
+		#define LOG_TAG ”XXX”
+		LOGV(" any thing useful.");
+
+		kernel:
+		printk(KERN_ALERT "anything useful.");
+		
+		Event:
+		private static final String TAG = “XXX";
+		EventLog.writeEvent(TAG, “any thing useful” )；
+
+		System:
+		private static final String TAG = “XXX";
+		Slog.i(TAG, “any thing useful” )；
+
+		Radio:
+		private static final String TAG = “XXX";
+		Log.i(TAG, “any thing useful” )；
+
+		if ((bufID != LOG_ID_RADIO) &&
+			(!strcmp(tag, "HTC_RIL") ||
+			!strncmp(tag, "RIL", 3) || /* Any log tag with "RIL" as the prefix */
+			!strncmp(tag, "IMS", 3) || /* Any log tag with "IMS" as the prefix */
+			!strcmp(tag, "AT") ||
+			!strcmp(tag, "GSM") ||
+			!strcmp(tag, "STK") ||
+			!strcmp(tag, "CDMA") ||
+			!strcmp(tag, "PHONE") ||
+			!strcmp(tag, "SMS"))) {
+				bufID = LOG_ID_RADIO;
+			...
+		   } 
+
+	READ:阅读log
+		adb shell logcat
+		
+		adb shell logcat *:e						设置过滤器？ 
+		adb shell logcat –s ActivityManage			设置过滤器？ 静默方式，ActivityManage的信息
+		adb shell logcat –v time					设置输出格式(brief,process,tag,thread,raw,time,threadtime,long)，默认是brief
+		adb shell logcat –b event/main..			加载一个环形缓冲区来查看日志文件(main,events,system,radio)，默认是main
+		adb logcat ActivityManager:I MyApp:D *:S	过滤器语句格式：tag:priority，滤除标签为”ActivityManager”和优先级为”Info”以上的和标签为”MyApp”和优先级为”Debug”以上的
+		元素 *:S ,，是设置所有的标签为”silent”，所有日志只显示有”View”and“MyApp”的
+		cat /tmp/thread.log|awk '{print $2}'|sort -n|uniq	log里的第二列数据(在这里指的是pid)提取出来进行无重复项的排序
+		cat /tmp/thread.log|awk '$2 ~/PID:/'|awk '$3 /TID)/'|grep "^E"	^E查找E开头的行
+		adb logcat |grep -e"tag1"		输出有tag1关键字的行，tag1内容可自己指定
+		
+		awk ''
+	
+		adb shell dmesg 查看内核缓冲区信息
+		adb shell dumpstate 各类信息，比如进程信息，内存信息，进程是否异常，kernnel的log等
+		adb shell dumpcrash
+		adb shell dumpsys  查询所有service的状态
+		
+	ANR(Application Not Responding):
+	analyze
+	data/anr/
+	
+	grep -v "netstats_mobile_sample\|auditd\|…." events_log.txt  | tee events_am.txt
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

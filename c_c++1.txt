@@ -37,7 +37,8 @@
 	int *p含义是定义p为int *类型的指针，而不是用int类型定义*p这个指针！
 	无论什么类型的指针，初始值都是一样的0xCCCCCCCC(VC6里的，不同编译器会有变化)，void *p; cout<<p<<endl; 输出值应该就是之前说的那个初始值
 	一个指针如果暂时没有合适的初始化值，就可以把它置为NULL。 pNULL；p = 0；p = 0L；p = '\0'；p = 3 - 3；p = 0 * 17
-	
+
+(void)argc; 
 	
 	
 4.#include<memory.h>  #include"stdlib.h"
