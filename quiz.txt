@@ -4,10 +4,10 @@ java-call
 
 hall-sensor
 
-鸟哥		p428
-大话通信	over
-gsm			start
-程序员...	none
+鸟哥			p445
+大话通信		over
+gsm				start
+程序员自我修养	none
 c prime 	
 maide		
 

@@ -140,7 +140,7 @@ makefile常见的为目标定义：
 	
 >>>>>>> week3:makefile1.txt
 
-
+make -jN  make的并发执行，N代表并发执行的数量
 
 
 

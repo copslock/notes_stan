@@ -14,6 +14,7 @@ stat filename 详细显示一个文件的状态信息 加-f显示文件系统状
 file 查看文件类型/linux的文件类型放在文件头处
 echo string_or_$var 能显示环境变量的值
 find [-H] [-L] [-P] [-Olevel] [-D help|tree] [path...] / find -name "str"
+last 显示用户的登录情况信息
 
 grep string 查找文件中有“string”的部分(string部分可以加引号也可以不加) 用颜色高亮标注显示出来
 	grep "string" file1 file2 ...
@@ -135,8 +136,8 @@ echo：
 	cat hx.txt|grep hx 打开hx这个文件过滤文件中“hx”这个字符后显示出来
 	
 kill -2 基本等同于ctrl+c 终止当前中断窗口运行的命令或脚本
-kill -9 pid 强制终止
-kill -15 pid 先关掉相关的程序，再将目前的终止
+kill -9 pid 强制终止对应pid的程序
+kill -15 pid 先关掉相关pid的程序，再将目前的终止
 ps -ef| grep vim 
 
 HUP     1    终端断线

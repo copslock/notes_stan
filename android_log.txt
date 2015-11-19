@@ -1,7 +1,7 @@
 android_log
 	目的：记录运行情况，解决问题
 	构成：time，grade，tag，pid，message
-	类型：main，events，radio，system
+	用户空间的buffer类型(/dev/log)：main，events，radio，system
 	用户空间等级：debug，info，error，verbose，warn
 	内核等级：KERN_WARNING, KERN_INFO, KERN_DEBUG...
 	优先级由低到高如下：
@@ -56,18 +56,17 @@ android_log
 		adb shell logcat
 		
 		adb shell logcat *:e						设置过滤器？ 
-		adb shell logcat –s ActivityManage			设置过滤器？ 静默方式，ActivityManage的信息
-		adb shell logcat –v time					设置输出格式(brief,process,tag,thread,raw,time,threadtime,long)，默认是brief
-		adb shell logcat –b event/main..			加载一个环形缓冲区来查看日志文件(main,events,system,radio)，默认是main
+		adb shell logcat –s ActivityManage			查看tag是ActivityManage的log
+		adb shell logcat –v time					打印出带有时间戳的log，设置输出格式(brief,process,tag,thread,raw,time,threadtime,long)，默认是brief
+		adb shell logcat –b event/main..			观察哪一个buffer的log，加载一个环形缓冲区来查看日志文件(main,events,system,radio)，默认是main
 		adb logcat ActivityManager:I MyApp:D *:S	过滤器语句格式：tag:priority，滤除标签为”ActivityManager”和优先级为”Info”以上的和标签为”MyApp”和优先级为”Debug”以上的
 		元素 *:S ,，是设置所有的标签为”silent”，所有日志只显示有”View”and“MyApp”的
 		cat /tmp/thread.log|awk '{print $2}'|sort -n|uniq	log里的第二列数据(在这里指的是pid)提取出来进行无重复项的排序
 		cat /tmp/thread.log|awk '$2 ~/PID:/'|awk '$3 /TID)/'|grep "^E"	^E查找E开头的行
 		adb logcat |grep -e"tag1"		输出有tag1关键字的行，tag1内容可自己指定
+		adb shell logcat *:w			前提是分析好它到底是属于哪一个buffer的(main,system,radio,events)，再过滤出那个buffer里等级大于等于warning的log，优先级排序见本文件最上面部分。
 		
-		awk ''
-	
-		adb shell dmesg 查看内核缓冲区信息
+		adb shell dmesg=cat /proc/kmsg 查看内核缓冲区信息
 		adb shell dumpstate 各类信息，比如进程信息，内存信息，进程是否异常，kernnel的log等
 		adb shell dumpcrash
 		adb shell dumpsys  查询所有service的状态
@@ -78,7 +77,7 @@ android_log
 	
 	grep -v "netstats_mobile_sample\|auditd\|…." events_log.txt  | tee events_am.txt
 
-	
+	trace文件在/data/anr/目录下面
 	
 	
 	

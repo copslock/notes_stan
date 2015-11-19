@@ -3,63 +3,153 @@
 	正则与通配符完全不同
 	
 	P419
-	[:alnum:]=[a-zA-Z0-9], [:alpha:]=[a-zA-Z], [:upper:], [:lower:], [:digit:]
+	[:alnum:]=[a-zA-Z0-9], [:alpha:]=[a-zA-Z], [:upper:], [:lower:], [:digit:] 非C和英语语系可以用一些通用的符号来代替
 	
 	基础RE:
-	1.[-], [], [^ ]
-	以行为单位来截取数据的命令：grep
-	grep [-A接数字，表示继续打印后续n行][-B接数字，表示继续打印之前n行][--color=auto] 'keyword' filename	管线中可以没有filename这一项，因为前面可能会有stdout
-	dmesg|grep 'eth'	dmesg系统启动信息，内核的环形缓冲区信息，eth网卡相关信息
-	dmesg|grep -n ‘eth’	-n显示行号
-	...|grep -n -A3 -B2 
-	grep -vn 'the' filename		反向匹配，不包含the的都要
-	grep -in 'the' filename		忽略大小写
-	grep -n 't[ae]st' filename 	keyword匹配t?st类的字符，[]代表一个字符，其中的内容任选1
-	grep -n '[^g]oo' filename 	非[]内包含的任意字符，后面有“oo”
-	grep -n '[^a-z]' filename 	不要有小写字母的
-	grep -n '[0-9]' filename 	匹配有数字0到9的
-	
-	2.^, $
-	grep -n '^the' file		匹配以the开头的
-	grep '^[a-z]' file
-	grep '^[^a-zA-Z]' file
-	grep '\.$' file		匹配以小数点.结尾的，因为小数点还具有其他意思，所以这里用了跳脱字符\
-	cat -An file|head -n 10|tail -n 6	文件内容打印，取出前10行，在这10行里再取出后6行
-	grep '^$' file		匹配空白行，无字符不是空格
-	grep -nv '^#'|grep -vn '^$'		去除空白行和以#开头的注释行
-	
-	3.任意字符.	重复字符*
-	. = 一定有一个任意字符
-	* = 重复前一个RE字符(0到无穷次),它前一个RE字符和*看作是一个整体
-	grep -n 'g..d' file		匹配例如good,glad,gold
-	grep -n 'ooo*' file		匹配至少两个o，最多无上限个数的o序列
-	grep '^go*oo*g$' file	匹配字符串开头结尾都是g，但是两个g之间存在至少一个o
-	grep '^goo*g$' file
-	grep '^go*og$' file
-	grep '^g*g$' file	匹配字符串开头结尾都是g，但是两个g之间字符可有可无
-	grep '.*' file		.* 0个或多个任意的字符
-	grep '[0-9][0-9]*'	匹配任意有数字的行
-	
-	4.限定连续RE字符范围 {}
-	grep -n 'o\{2\}' file	跳脱字符\=转义字符\  避免一些特殊符号的特殊含义，让其就表示在RE中的含义
-	grep -n 'o\{2\}' file		匹配至少有连续2个o的字符串
-	grep 'go\{2,5\}' file		匹配go*，其中o的个数是2个到5个
+		1.[-], [], [^ ]
+		以行为单位来截取数据的命令：grep
+		grep [-A接数字，表示继续打印后续n行][-B接数字，表示继续打印之前n行][--color=auto] 'keyword' filename	管线中可以没有filename这一项，因为前面可能会有stdout
+		dmesg|grep 'eth'	dmesg系统启动信息，内核的环形缓冲区信息，eth网卡相关信息
+		dmesg|grep -n ‘eth’	-n显示行号
+		...|grep -n -A3 -B2 
+		grep -vn 'the' filename		反向匹配，不包含the的都要
+		grep -in 'the' filename		忽略大小写
+		grep -n 't[ae]st' filename 	keyword匹配t?st类的字符，[]代表一个字符，其中的内容任选1
+		grep -n '[^g]oo' filename 	非[]内包含的任意字符，后面有“oo”
+		grep -n '[^a-z]' filename 	不要有小写字母的
+		grep -n '[0-9]' filename 	匹配有数字0到9的
+		
+		2.^, $
+		grep -n '^the' file		匹配以the开头的
+		grep '^[a-z]' file
+		grep '^[^a-zA-Z]' file
+		grep '\.$' file		匹配以小数点.结尾的，因为小数点还具有其他意思，所以这里用了跳脱字符\
+		cat -An file|head -n 10|tail -n 6	文件内容打印，取出前10行，在这10行里再取出后6行
+		grep '^$' file		匹配空白行，无字符不是空格
+		grep -nv '^#'|grep -vn '^$'		去除空白行和以#开头的注释行
+		
+		3.任意字符.	重复字符*
+		. = 一定有一个任意字符
+		* = 重复前一个RE字符(0到无穷次),它前一个RE字符和*看作是一个整体
+		grep -n 'g..d' file		匹配例如good,glad,gold
+		grep -n 'ooo*' file		匹配至少两个o，最多无上限个数的o序列
+		grep '^go*oo*g$' file	匹配字符串开头结尾都是g，但是两个g之间存在至少一个o
+		grep '^goo*g$' file
+		grep '^go*og$' file
+		grep '^g*g$' file	匹配字符串开头结尾都是g，但是两个g之间字符可有可无
+		grep '.*' file		.* 0个或多个任意的字符
+		grep '[0-9][0-9]*'	匹配任意有数字的行
+		
+		4.限定连续RE字符范围 {}
+		grep -n 'o\{2\}' file		跳脱字符\=转义字符\  避免一些特殊符号的特殊含义，让其就表示在RE中的含义
+		grep -n 'o\{2\}' file		匹配至少有连续2个o的字符串
+		grep 'go\{2,5\}' file		匹配go*，其中o的个数是2个到5个
 	
 	sed：
+		sed [-n安静模式，只有经过sed处理过的行才会被列出 -e直接在指令列模式进行sed动作编辑 -f将sed动作写入一个文件/执行一个文件里的sed动作 -r动作由延伸型RE支持 -i直接修改读取的内容不经过屏幕输出] 'action' file
+		当sed后面的动作超过两个以上在每一个前面加-e
+		[n1],[n2]action:	(n1n2代表行数范围，结尾可以用$表示，开头不能用^表示)
+		a接字符串，字符串会出现新的下一行；
+		c接字符串，字符串取代n1n2之间的行；
+		d删除；
+		i接字符串，字符串会出现在新的上一行；
+		p打印；
+		s搜寻并直接取代；s/xx/yy/g
+
+		增加、删除：
+		cat -n /etc/passwd|sed '2,5d'	删除2到5行内容然后打印到屏幕
+		cat -n /etc/passwd|sed '2,$d'
+		nl /etc/passwd|sed '2a drink tea'	第二行下面新添一行并加上drinktea字符串，2和a之间，a和字符串之间有没有空格都可以
+		nl /etc/passwd|sed '2i drink tea'	第二行上面新加一行并加上drinktea字符串
+		
+		取代、显示：
+		nl /etc/passwd|sed '2,5c No 2-5 number'		c后面的字符串整行取代2到5行的内容，字符串前后的空格不计入字符串内
+		nl /etc/passwd|sed -n '5,10p'		打印显示5到10行内容，常和-n连用，只打印sed处理的行数，否则因为前面的nl命令会打印出所有行的内容
+		sed 's/要被取代的字符串/新的字符串/g'
+		/sbin/ifconfig eth0|grep 'inet'|sed 's/^.*inet//g' 	第一个cmd是读取网卡内容，然后取出有inet的行，后面把^.*inet内容替换为空
+		/sbin/ifconfig eth0|grep 'inet'|sed 's/:.*$//g'		从冒号到最后的所有字符都被替换为空白
+		cat /etc/man.config|grep 'MAN'|sed 's/#.*$//g'		替换掉从#开始到每一行最后的所有字符，即注释行都变成了空白行
+		cat /etc/man.config|grep 'MAN'|sed 's/#.*$//g'|sed '^$/d'	再加上删除掉被替换后的所有空白行
+		
+		直接修改文件内容：
+		sed -i 's/\.$/\!/g' file	所有结尾是小数点的行，小数点被替换为冒号！，-i就是直接sed操作不用打印内容到屏幕
+		sed -i '$a string' file 	直接在文件的最后一行加一行字符串string，不加i只是在打印到屏幕上会显示多一行，而用cat在去查看时并不会有刚才的信息，加i之后就是直接实际输入了信息到文件中去
+		sed -i '100i something' 1.txt	直接添加第100行的新内容
 	
+	延伸RE:
+		grep只支持基本RE，egrep支持延伸RE，grep -E = egrep
+		
+		| 群组功能：
+		egrep -v '^$|^#' file	一次搜寻去掉空白行和#开头的注释行
+		
+		+，？，|，()，()+
+		egrep -n 'go+d' file		+和前一个RE字符看作一个整体，o+代表一个以上的o
+		egrep -n 'go?d' file		?和前一个RE字符看作一个整体，o?代表0个或1个o
+		egrep -n 'gd|good' file		匹配gd或者good字符串
+		egrep -n 'g(la|oo)d' file	匹配glad或者good字符串
+		echo AabcabcC|egrep 'A(abc)+C'		匹配含有A开头，C结尾，中间有1一个以上的abc的字符串
 	
+	文件的格式化处理：
+		printf 'format' 实际文件内容
+		\a 警告声音输出
+		\b 退格键
+		\f 清除屏幕
+		\n 输出新一行
+		\r Enter
+		\t 水平[tab]按键
+		\v 垂直[tab]按键
+		\xNN 	NN为两位数的数字，可以转换数字成为字符。
+		%i		整数
+		%s		字符串
+		%8.2f 代表浮点数一共8位，2位小数部分，5位整数部分，还有1位是小数点
+		
+		printf '%10s %5i %8.2f\n' $(cat file)
+		printf '\x45\n'		打印16进制里0x45代表的字符(ASCII码)
 	
+	awk：数据处理工具
+		sed，grep面向于单位为行的数据，awk是以行为一次的处理单元，以一个字段为最小的处理单位。
+		
+		awk '条件类型1{action1；action1.1}条件类型2{action2[enter]action2.1}...' file
+		{}里的action用分号隔开或者直接enter换行
+		与bash里有一些差别，awk里的变量不用加$可以直接使用
+		last -n 5|awk '{print $1 "\t" $3}'	取出用户登录信息前5行，每一行打印出第一个字段和第三个字段，中间用tab间分隔开
+		NF： 当前所在行的“字段”总数
+		NR： 当前awk所处理的在哪一行
+		FS： 当前的分隔字符，默认是空格(awk对于字段分隔的判定一般是根据空格或者tab键)
+		last -n 5|awk '{print $1 "\t lines:" NR "\t columes:" NF}'	前5行都打印第一个字段的数据，并标出所在行数，以及所在行一共有多少字段数
+		逻辑运算符例如<,>,>=,==,!=等等适用于awk里：
+		cat /etc/passwd|awk '{FS=":"}$3<10{print $1 "\t" $3}' 	设定分隔符是冒号，打印第三行字段数据小于10的每一行的第一和第三字段的数据
+		上面输出里，第一行的数据没有正确显示，因为读入第一行数据时，FS=:还没有生效，所以第一行还是以空格作为分隔的，第二行FS的设定才开始生效。
+		cat /etc/passwd|awk 'BEGIN{FS=":"}$3<10{print $1 "\t" $3}'	加一个BEGIN让其在一开始就接受所有的设定信息
+		cat 1.txt|awk 'NR==1{print $1"\t"$2"\t"$3"\t"$4"\t""TOTAL"}NR>=2{total=$2+$4; printf "%s\t%d\t%d\t%d\t%0.2f\n",$1,$2,$3,$4,total}'
+		cat 1.txt|awk '{if(NR==1){print $1"\t"$2"\t"$3"\t"$4"\t""TOTAL"}NR>=2{total=$2+$4; printf "%s\t%d\t%d\t%d\t%0.2f\n",$1,$2,$3,$4,total}'
+		awk支持if判断
 	
+	文件对比工具diff、cmp
+		diff，主要是以一行为单位去对比
+		diff [-b忽略一行中的空格差异 -B忽略空白行差异 -i忽略大小写差异]old-file new-file
+		一般用在纯文本文件的对比，不同目录下的相关文件也可以
+		cat file|sed -e '4d' -e '6c no six line' > file.new	对文件进行改动，删除第4行，第六行替换为no six line
+		diff file file.new
+		diff /etc/rc3.d/ /etc/rc5.d/
+		
+		cmp 利用字节作为单位去对比
+		cmp [-s] file1 file2
+		会列出两个文间差异点在多少字节，第几行处
 	
+	patch
+		通过diff对比的差异制作patch文件，就可以由patch去更新旧文件
+		diff -Naur file.old file.new > file.patch
+		cat file.patch	可以观察patch的具体改动点，哪里增加哪里删除了
+		patch -pN < file.patch	应用patch去更新，-p后面接数字代表取消几层目录
+		patch -R -pN < file.patch	取消更新，恢复到打patch之前的文件状态
+		
+		patch -p0 < passwd.patch	p0代表都在同一个目录
+		patch -R -p0 < passwd.patch
 	
-	
-	
-	
-	
-	
-	
-	
-	
+	文件打印准备pr：略
+		pr 文件目录/文件名
+		在第一行的位置生成文件建立的时间，文件的目录标题名，对应的页码数等等
 	
 	
 	
