@@ -79,7 +79,7 @@ android_log
 
 	trace文件在/data/anr/目录下面
 	
-	
+	2015-11-21
 	
 	
 	
