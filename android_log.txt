@@ -65,12 +65,20 @@ android_log
 		cat /tmp/thread.log|awk '$2 ~/PID:/'|awk '$3 /TID)/'|grep "^E"	^E查找E开头的行
 		adb logcat |grep -e"tag1"		输出有tag1关键字的行，tag1内容可自己指定
 		adb shell logcat *:w			前提是分析好它到底是属于哪一个buffer的(main,system,radio,events)，再过滤出那个buffer里等级大于等于warning的log，优先级排序见本文件最上面部分。
-		
+	
 		adb shell dmesg=cat /proc/kmsg 查看内核缓冲区信息
 		adb shell dumpstate 各类信息，比如进程信息，内存信息，进程是否异常，kernnel的log等
 		adb shell dumpcrash
 		adb shell dumpsys  查询所有service的状态
 		
+		-s  设置过滤器，例如指定 '*:s'  
+		-f <filename> 输出到文件，默认情况是标准输出
+		-v <format>   设置log的打印格式,  <format> 是下面的一种:brief process tag thread raw time threadtime long
+  		-c  清除所有log并退出 
+		-d  得到所有log并退出 (不阻塞)
+		-g  得到环形缓冲区的大小并退出
+		-b  请求不同的环形缓冲区
+
 	ANR(Application Not Responding):
 	analyze
 	data/anr/
