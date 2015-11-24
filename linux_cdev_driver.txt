@@ -1,31 +1,101 @@
 linux字符设备驱动
-	系统设备分为三类：cdev，bdev块设备，网络设备
-	cdev
+	系统设备分为三类：cdev(character dev)，bdev块设备，网络设备
+	cdev字符设备是指一个一个字节读写的设备,例如键盘鼠标串口控制台设备etc.
+	相应的/dev目录下有对应的设备文件/节点
 	
+	字符设备驱动cdev结构体
+	struct  cdev
+	{
+        struct kobject kobj;               //内嵌的kobject对象
+        struct module *owner;          //所属模块
+        struct file_operations *ops;  //文件操作结构体,open,close,write,read...
+        dev_t  dev;                           //设备号32位，12位主设备号，20位次设备号
+        unsigned int count;       
+    }
+	获取主次设备号函数:MAJOR(dev_t dev);MINOR(dev_t dev)
+	
+	分配和释放设备号:
+	register_chrdev_region()
+	alloc_chrdev_region()	为未知设备申请设备号,申请到的设备号放在第一个参数里
+	unregister_chrdev_region()
+	
+	用户空间和内核空间内存访问方式:
+	copy_from_user();copy_to_user();	用户空间缓冲区和内核空间缓冲区的文件交换
+	get_user();put_user();		简单的单个类型变量交换
+	
+	globalmem虚拟设备实例描述:
 	加载驱动 static int _init globalmem_init(void){}	module_init(globalmem_init);
-    
-	卸载驱动 static void _exit globalmem_exit(void){}	module_exit(globalmem_exit);
-	
-	写函数 static ssize globalmem_write (struct file *filp, const char __user *buf, size_t size, loff_t *ppos)
+	//kzalloc==kmalloc+memset; 参数1是字节长度,参数2是gfp_t flags,返回值是kmalloc(size,flags|__GFP_ZERO);
+	//kmalloc
+    卸载驱动 static void _exit globalmem_exit(void){}	module_exit(globalmem_exit);
+	写函数 static ssize globalmem_write(struct file *filp, const char __user *buf, size_t size, loff_t *ppos)
 		{
 			…
-			copy_from_user( dev->mem + p, buf, count));
+			copy_from_user(dev->mem + p, buf, count);
 			…
 		}
-	
+	//filp是文件结构体指针,buf是用户空间内存地址,size要读写的字节数,ppos是写的位置相对于文件开头的偏移量
 	读函数 static ssize_t globalmem_read(struct file *flip, char __user *buf, size_t size, loff_t ppos)
 		{
 			…
-			copy_to_user(buf, dev->mem + p, count));
+			copy_to_user(buf, dev->mem + p, count);
 			…
 		}
 	
 	file_operations结构体
-	static const struct file_operations globalmem_fops = {}
+	static const struct file_operations globalmem_fops = 
+	{
+		.owner = THIS_MODULE,
+		.read = globalmem_read;
+		.write = globalmem_write;
+		.open = globalmem_open;
+		.release = globalmem_release;
+	}
 	
+	1.模块编译:
+	globalmem源文件 -> makefile脚本 -> 编译模块 -> 解决问题
+	2.加载驱动:
 	.ko文件 代表kernel模块、内核驱动
-	加载驱动并查看 insmod xxx.ko, lsmod, cat /proc/devices
-	创建设备节点 mknod /dev/globalmem c 230 0, cd /dev, ls
-	用户空间读写设备 echo "xxx" > /dev/globalmem, cat /dev/globalmem 
+	加载驱动并查看:
+	insmod xxx.ko, lsmod, cat /proc/devices
+	3.创建设备节点
+	mknod /dev/globalmem c 230 0 
+	cd /dev
+	ls			//dev中出现对应创建的设备节点
+	4.用户空间读写设备
+	通过操作函数操作设备节点
+	echo "xxx" > /dev/globalmem
+	cat /dev/globalmem 
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
