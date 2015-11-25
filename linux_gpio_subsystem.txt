@@ -1,0 +1,125 @@
+GPIO Subsystem
+	
+1.basic 	
+	通用目的IO口,由软件控制的数字信号
+	1.PIN作为gpio需要的配置
+	引脚功能配置;引脚特性配置
+	2.操作gpio
+	gpio是输入还是输出;输出配置高低电平;输入读取电平状态
+2.gpio subsystem作用
+	多个chip分别有自己的gpio操作函数--->引入GPIOLIB,定义全局数组gpio_desc[ARCH_NR_GPIOS],gpio的操作函数统一起来
+3.gpio subsystem模块图
+	gpio-lib为下层的所有特定的gpio-controller-driver提供了向上层driver的统一接口
+4.GPIO框架图
+	1.用户空间:/sys/class/gpio/ 是让用户可以调用内核gpio的统一接口
+	2.内核:gpio驱动接口(gpiolib.c),包含内核调用有:gpio_request();gpio_free();gpio_direction_input();gpio_direction_output();
+	gpio_get_value_cansleep();gpio_set_value_cansleep();
+	特定chip对应的gpio驱动,向gpiolib.c注册对应的gpiochip_add();然后gpio驱动接口就可以操作每一个特定gpio驱动
+	3.硬件部分:各种特定的器件,由相应的对应的gpio驱动来操作控制
+	
+	1.用户空间的/sys/class/gpio有3类:用户空间控制的接口;gpio本身;gpio控制器(base:表示此芯片GPIO地址从此数开始; ngpio:表示此控制器所管理的 GPIO 数量(而 GPIO 编号从 N 到N + ngpio - 1); label:注释，说明)
+	2.gpio驱动接口:
+	定义一个全局数组gpio_desc;数组里分配一定空间,从后往前分配!
+	常用gpio接口函数如下:
+	int gpiochip_add(struct gpio_chip *chip)函数里将gpio_desc和soc_gpio_chip联系起来,chip成员指向同一个数据结构;
+	int gpiochip_remove(struct gpio_chip *chip);	gpio conctoller的注销
+	int gpio_request(unsigned gpio, const char *label);
+	void gpio_free(unsigned gpio);
+	int gpio_direction_input(unsigned gpio);
+	int gpio_direction_output(unsigned gpio, int value);
+*	int gpio_set_debounce(unsigned gpio, unsigned debounce);
+	int gpio_get_value_cansleep(unsigned gpio);
+	void gpio_set_value_cansleep(unsigned gpio, int value);
+*	int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
+*	int gpio_request_array(const struct gpio *array, size_t num);
+*	void gpio_free_array(const struct gpio *array, size_t num);
+
+5.gpio驱动底层实现细节
+	初始化gpio_chip;
+	
+	将flags的FLAG_REQUESTED位置1并返回原值 test_and_set_bit(FLAG_REQUESTED,&desc->flags)-->申请gpio chip->request(chip,gpio_chip_hwgpio()desc)-->清除flags的FLAG_REQUESTED位 clear_bitFLAG_REQUESTED,&desc->flags(;)
+	
+	自动申请机制新版被放弃所以在使用gpio之前必须手动申请 status=gpio_ensure_requested(desc);-->获取偏移量 offset=gpio_chip_hwgpio(desc);
+	
+6.gpio使用
+	1.检查gpio合法性;	gpio_is_valid();
+	2.申请gpio;	gpio_request();
+	3.IO配置;	......
+	4.释放gpio;	gpio_free();
+	
+	int gpio_request_one(unsigned gpio, unsigned long flags, const char *label);
+	flags可指定的属性:
+	GPIOF_DIR_IN - 配置方向为输入	GPIOF_DIR_OUT - 配置方向为输出	GPIOF_INIT_LOW - 在作为输出时,初始值为低电平	GPIOF_INIT_HIGH - 在作为输出时,初始值为高电平
+	GPIOF_OPEN_DRAIN - gpio引脚为开漏信号	GPIOF_OPEN_SOURCE - gpio引脚为源极开路信号
+	因为 GPIOF_INIT_* 仅有在配置为输出的时候才存在,所以有效的组合为:	
+	GPIOF_IN - 配置为输入	GPIOF_OUT_INIT_LOW - 配置为输出,并初始化为低电平	GPIOF_OUT_INIT_HIGH - 配置为输出,并初始化为高电平
+
+	desc数组,一般为1024个元素的长度,每一个元素代表一个pin,从后往前分配第一个的base号+它的pins应该是等于1024的,
+	base/ngpio
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

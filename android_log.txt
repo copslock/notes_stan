@@ -55,7 +55,7 @@ android_log
 	READ:阅读log
 		adb shell logcat
 		
-		adb shell logcat *:e						设置过滤器？ 
+		adb shell logcat *:e						设置过滤器,大小写不敏感
 		adb shell logcat –s ActivityManage			查看tag是ActivityManage的log
 		adb shell logcat –v time					打印出带有时间戳的log，设置输出格式(brief,process,tag,thread,raw,time,threadtime,long)，默认是brief
 		adb shell logcat –b event/main..			观察哪一个buffer的log，加载一个环形缓冲区来查看日志文件(main,events,system,radio)，默认是main
@@ -63,7 +63,7 @@ android_log
 		元素 *:S ,，是设置所有的标签为”silent”，所有日志只显示有”View”and“MyApp”的
 		cat /tmp/thread.log|awk '{print $2}'|sort -n|uniq	log里的第二列数据(在这里指的是pid)提取出来进行无重复项的排序
 		cat /tmp/thread.log|awk '$2 ~/PID:/'|awk '$3 /TID)/'|grep "^E"	^E查找E开头的行
-		adb logcat |grep -e"tag1"		输出有tag1关键字的行，tag1内容可自己指定
+		adb logcat |grep -e"tag1"		输出有tag1关键字的行，tag1内容可自己指定,-E是后面可以接正则表达式
 		adb shell logcat *:w			前提是分析好它到底是属于哪一个buffer的(main,system,radio,events)，再过滤出那个buffer里等级大于等于warning的log，优先级排序见本文件最上面部分。
 	
 		adb shell dmesg=cat /proc/kmsg 查看内核缓冲区信息
