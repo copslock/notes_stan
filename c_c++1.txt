@@ -71,8 +71,12 @@
 	};
 	xxx xxx1;
 
-
-
+	
+	
+	
+while (*++*argv) 
+**++argv
+++**argv
 
 
 
