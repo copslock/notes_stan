@@ -319,11 +319,85 @@ GSM主要信令过程分析
 		BSC向MSC返回"指配完成".over
 		
 		4.通话连接过程
+		接在话音信道分配之后,MSC接收到BSC的信令"指配完成",向GMSC送出初始化地址"IAI"报文,还会继续传给PSTN,可能含有可用于被叫接续的消息,由其建立与被叫网络的路由-->\
+		等待回应时可向MS发送"PROGRESS"进展中的指示,若成功则MSC收到GMSC的"ACM",失败则MSC会收到"RELEASE"-->\
+		若收到"ADDDRESS COMPLETE"后,向MS发送"ALERTING",该消息属于DTAP消息类别,若被叫无应答或主叫也没有终止,一段时间后,网络会终止呼叫或执行无应答转移-->\
+		此时被叫用户"摘机",MSC会收到由PSTN和GMSC发来的"ANSWER",此时被叫与主叫之间链路接通,MSC发送"CONNECT"到下层,这条命令也是DTAB消息-->\
+		MS收到后回返"CONNECT ACK"逐层直到MSC,至此呼叫建立完毕,进入通话和数据业务阶段.over
 		
+	主叫与被叫之间有一条物理链路,收到MSC的指配请求,Um接口的无线信道和Abis的地面信道会连在一起;收到CONNECT后,MSC会吧Abis和网络内使用的信道连接在一起.
+		
+	2.呼叫释放过程
+	去活正在使用的专用信道
+		1.呼叫连接CC释放和MM释放
+		主叫挂机后,MS利用FACCH信道向MSC发送"DISCONNECT",携带呼叫清除的原因和发起端-->\
+		MSC收到,停止所有CC连接定时器,清除业务信道在网络中的连接,向被叫端和主叫端都会发送释放消息"RELEASE",通知通信终止-->\
+		被叫端收到后,端到端的连接结束;MSC通知主叫端收到后,释放CC层的连接,MS也开始释放MM层的连接,并向系统返回"RELEASE COM"释放完成消息-->\
+		MS进入空闲,L3层连接全部释放完毕,MSC收到释放完成消息后,也释放MM层连接,所有都完毕后,网络向BSC发出"CLEAR CMD"请求释放SCCP信令链路-->\
+		若清除失败BCS会向网络发出"CLEAR REQUEST"再次清除.
+		2.RR连接释放
+		BSC收到"CLEAR CMD",开始进行释放RR连接,向MS侧发送"CHANNEL RELEASE",启动T3109,同时向BTS发送"DEACTIVATE SACCH"去活SACCH信道,BTS之后会想BSC回返"去活SACCH ACK"信息-->\
+		MS收到后,回返一条LAPDM的DISC(断开连接)消息,启动T3110并断连主信令链路,当T3110超时,或收到BTS回返的UA帧,MS去活所有信道,认为RR连接已经释放,返回到CCCH空闲模式-->\
+		BTS收到DISC后,回返UA帧,向BSC发出"RELEASE INDICATION"-->\
+		BSC收到释放指示后,停止T3109,启动T3111;向BTS发出"RF CHANNEL RELEASE",发送了此消息后T3111终止,BTS会做出相应的"...ACK"回返信息-->\
+		BSC收到BTS回返后,确定该信道已空闲,向MSC发送"CLEAR COMPLETE",无线链路清除完毕-->\
+		MSC收到后,向BSC发送"RLSD",BSC回返给MSC一个"RLC"来完成对SCCP连接的释放,到此该信令流程彻底完毕.over
+		
+6.MS被叫信令流程
+	1.查询过程
+		主叫端信令链路建立起来后,主叫端把初始化地址IAI消息通过PSTN发给GMSC,IAI中包含被叫用户的MSISDN,GMSC通过号码找出被叫用户归属HLR的七号指令识别号-->\
+		GMSC向HLR发送"MAP SEND ROUTING INFOMATION"发送路由消息报文,HLR收到后检查用户记录,向VLR发送提供漫游号码消息"MAP PROVIDE ROAMING NUMBER"-->\
+		若VLR已知IMSI号,则VLR提供漫游号码"MSRN";否则像HLR申请用户信息;将IMSI号与漫游号联系起来,返回给HLR"MAP PROVIDE ROAMING NUMBER RESULT",携带分配的MSRN号和该MS所在LAC区号-->\
+		HLR在将"MAP PROVIDE ROAMING NUMBER RESULT"连同MSRN号返回给GMSC-->\
+		GMSC通过MSRN找到被叫端的MSC,送去"IAI"消息,被叫端MSC收到"IAI"后,根据MSRN对比MS的IMSI,通过所获得的LAC号进行寻呼该移动台过程,当呼叫建立后,MSRN才可以被释放掉.
+	
+	2.寻呼过程
+		被叫端MSC收到IAI后向其VLR发送入局呼叫消息"MAP SEND INFO I/C CALL",VLR分析被叫号码能否接纳主叫的需要,若失败则通知主叫端呼叫建立失败-->\
+		正常情况,VLR向MSC发出寻呼消息"map pageing",携带该MS的LAI以及被叫端的IMSI或TMSI号,MSC向BSC发送"paging"报文,携带LAI和IMSI,TMSI-->\
+		BSC向该LAC所有小区BTS发送"paging cmd",携带所属寻呼子信道组的号码和所占用的时隙号-->\
+		小区在该寻呼组所属寻呼子信道发出(BTS向MS发送)"paging request",携带被寻呼(被叫端)用户的IMSI或TMSI号-->\
+	*	网络可通过寻呼子信道广播寻呼请求,并启动T3113
+		被叫MS通过解码发现自己的寻呼,发出(向BTS)"channnel request"来触发初始化信道分配过程,启动T3120-->\
+	*	BTS向BSC"channel required";BSC回返给BTS"channel activation";BTS向BSC发出"channel activation ACK";BSC向BTS发出"立即指配CMD"-->\
+		BTS向MS发出立即指配CMD后,MS停止T3120,MS采用SABM方式发回寻呼应答"paging response"给BTS来建立主信令链路-->\
+		BTS回返一个UA帧,同时向BSC发送"建立指示(寻呼响应)",停止T3101-->\
+		BSC再向MSC以三层业务请求发送"paging response",携带CKSN,MS ID,CGL,CLrk2等等信息(鉴权加密,TMSI再分配等等过程包含其中),网络停止T3113,并通知MS的MM子层已建立RR连接-->\
+		MSC向BSC返回连接确认"ConnectionConfirm"命令,寻呼信令流程完毕.
+		
+		寻呼模式信息单元要求:
+		1.正常寻呼
+		2.扩展寻呼
+		3.寻呼重组
+		4.与前一个寻呼模式相同
+	
+	3.被叫的呼叫建立
+	VLR向MSC发送"MAP COMPLETE"-->\
+	MSC向MS侧发送"SET-UP",启动T303,-->\
+	MS收到后,核实该消息,若MS能够处理业务请求,回返给MSC一条呼叫确认"CALL CONFIRM"(DTAP类消息),携带MS选定的参数(信道,业务类别),重置定时器T303-->\
+	MSC收到后,向BSC发起话音信道指配,指配完成后,被叫MS向网络发出"ALERTING",MSC再次收到后,向主叫端发出地址完成的消息"ACM",主叫端相应提醒主叫用户-->\
+	被叫用户收到提示摘机,发送给MSC"CONNECT",MSC收到后"ANSWER"给主叫端,并向被叫MS返回"CONNECT ACK",网络接通主被叫链路,用户端对端的传输建立.over
+	
+	4.呼叫转移对路由建立的影响
+		1.无条件前转CFU
+		
+		
+		2.遇忙前转CFB
+		
+		
+		3.呼叫不可及前转CFNRc
+		
+		
+		4.呼叫无应答前转CFNRy
+		
+		
+		5.呼叫等待CW/呼叫保持HOLD
+		呼叫等待即MSC收到主叫端的IAI消息后,若正在进行其他通信,MSC可跳过寻呼及MS和MSC底层的建立而直接发送SETUP报文
+		呼叫保持可以切换两个通话
 		
 		
 	2.呼叫释放过程
 	
+7.短消息流程分析
 	
 	
 	
@@ -403,7 +477,9 @@ GSM主要信令过程分析
 	
 MS---(Um)---BTS---(Abis)---BSC---(A)---MSC---(B)------VLR-----(D)------HLR------
 ()内的是接口									拜访位置寄存器	归属位置寄存器
-
+MSC---(E)---GMSC-----------PSTN
+			被叫端的MSC?
+MSC---(B)---VLR---(D)---HLR---(C)---GMSC----PSTN	
 
 	
 	
