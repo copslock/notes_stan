@@ -379,44 +379,136 @@ GSM主要信令过程分析
 	
 	4.呼叫转移对路由建立的影响
 		1.无条件前转CFU
-		
+		因为HLR已有被叫MS的信息存在,则发送SEND ROUTING INFORMATION不经过VLR,只在HLR和GMSC之间交互
 		
 		2.遇忙前转CFB
-		
+		用户在通话中,VLR会记录用户标识为"忙",若又有新呼叫,被叫用户登记的VLR为其分配一个漫游号码MSRN并将其送回主叫端,主叫由此将路由建立至被叫端,再由被叫进行到呼叫转移号码的接续
 		
 		3.呼叫不可及前转CFNRc
-		
+		情况1:被叫MS在某区域位置登记失败,HLR记录这种情况,所以自行判断不可接入到该用户
+		情况2:HLR无上述情况1的记录,直到进行到MSC对该用户进行寻呼,无寻呼响应返回,则判断用户无法接入,MSC将该呼叫前转
+		情况3:IMSI分离造成,HLR指示已关机,HLR将不会再与被叫用户登记的VLR联系,直接将前转号码包含在路由信息中发回给主叫端的交换机
 		
 		4.呼叫无应答前转CFNRy
-		
+		当VMSC对该用户寻呼成功,MS向网络发送了"ALERTING",网络回返ACK后,但网MS没有再次发出"CONNECT",则由此引起呼叫前转
 		
 		5.呼叫等待CW/呼叫保持HOLD
 		呼叫等待即MSC收到主叫端的IAI消息后,若正在进行其他通信,MSC可跳过寻呼及MS和MSC底层的建立而直接发送SETUP报文
 		呼叫保持可以切换两个通话
-		
-		
-	2.呼叫释放过程
-	
+
 7.短消息流程分析
+	主要分类:点对点,小区广播短消息
+	点对点:通过MO和MT的个体之间,编码后单条短消息长度140B,承载160B的英文及类似编码方案字符
+	小区广播:BSC向一个区域发送短消息,每页消息长度82B,最大页数15页
 	
+	完成与PSTN,ISDN,PSPDN互通,实现来自SME(short message enity)人工自动台的消息传递
+	短消息中心---(IWMSC)---七号信令网:接口实现七号信令消息与IP协议的转换
 	
+	1.MS发送短消息流程:MO
+		MS<--(ACCESS REQUEST AND possible authentication)-->VLR
+		MS--(message transfer)-->MSC
+*		MSC<--(Sendinfofor_MO_SMS)-->VLR
+		MSC--(上传短消息Forward_shortMessage)-->SMS IWMSC
+		SMS IWMSC--(MESSAGE TRANSFER)-->SC
+		SC--(ACK)-->SMS IWMSC
+		SMS IWMSC--(ACK)-->MSC
+		MSC--(ACK)-->MS
+		
+		一般短消息中心要对MS进行鉴权,MS也要设置正确归属的短消息中心(SM-SC)
+		MSC和SMS IWMSC需要协商MAP协议版本,高的向低的降低兼容,要不短消息会在上传到SC过程中失败
+		
+		短消息中心之间通过SM_TL层的SM_TP协议传送短消息,这一层的消息称为TPDU,以下有四类:
+		SMS-SUBMIT UL 短消息上传
+		SMS-DELIVER DL 短消息下发
+		SMS-STATUS-REPORT DL 短消息状态报告
+		SMS-CMD UL 短消息指令
+		每条短消息在MS和SM-SC中都有唯一表示SMI=short message identifier,但MS和SM-SC之间对于同一条消息的SMI号的并不相同
+	2.MS接受短消息流程:MT
+		SC--(MESSAGE TRANSFER消息传送请求)-->SMS GMSC
+		SMS GMSC<--(SEND ROUTING INFO_FOR_SHORTMsg查询发送路由)-->HLR
+		SMS GMSC--(FORWARD_SHORTMESSAGE前传短消息)-->MSC
+*		MSC<--(SEND INFO FOR_MT_SMS)-->VLR;	更新用户的IMSI号和目前用户所在的MSC号码
+		MSC<--(Message transfer)-->MS
+		MSC--(Delivery report)-->SMS GMSC--(Delivery report)-->SC
+		
+		用户无响应-->SMS GMSC去HLR置位MNRF(mobile not reachable flag)
+		用户短消息存储已满-->SMS GMSC去HLR置位MCEF(memory capacity exceeded flag)
+		信令名称为Delivery status report;
+		
+		当SMS-GMSC去HLR取路由,发现MNRF或MCEF已被置位,则HLR除了要发送路由信息,还要发送inform SC到SMS-GMSC
+		
+		每次下发成功,短消息中心检测所发是否为MO短消息并要求状态报告,若是,将此信息发给用户
+	3.Alert_SC流程
+		短消息中心下发短消息失败,在HLR记录相关错误信息,消息会存在SC里,等到不可接受的原因解除后,MS申请,SC会重发该消息
+		MS<--(RP_MS_TO_NETWORK_SMS_A 向网络报告短消息功能可用)-->VLR
+		VLR<--(RegForSM 能够接收短消息)-->HLR--(ALERA_SC)-->SMS-GMSC--(ALERT_SC 唤醒提醒)-->SC-->重新开始短消息接收流程
+
+8.无线链路控制
+	1.无线链路故障
+		由于干扰或接收电平过低导致语音数据信息恶化,无法正确接收解码信息,且无法通过可行手段控制的时候,即认为出现无线链路故障
+		通信过程中丢失通信链路-->呼叫重建/强行拆链
+		无线链路超时(radio link time out):小区设定的参数,通过BCCH和SACCH,若MS应该受到SACCH而无法正确得到SACCH消息的次数超过这个"值",则会报告无线链路失败
+		无线链路故障被察觉发生的情况:
+			1.分析L1的接收消息
+			2.主信令链路的数据链路层故障判断
+			3.MS在信道指配或切换程序中尝试返回原信道
+			4.定时器检测不到另一层的响应
+		1.MS发现下行链路故障
+		根据从小区广播无线链路超时值,SACCH消息接收失败一次就自减1,直到0,判断下行无线链路失败,MS将在所有信令链路上执行本端释放,MS将去活所有信道,
+		MS将在本小区或邻小区试图寻找一个支持呼叫重建的,小区允许的话发出"信道请求消息channel request",都不允许的情况则MS转入到空闲状态
+		
+		2.BTS发现上行链路故障
+		它的无线链路故障计数器CT和MS的无线链路超时值保持一致,无法译码一次MS发来的SACCH报告,自减1,正确译码一次自增2,直到为0,则判断上行链路故障-->\
+		判断故障后BTS向BSC发送"CONNECTION FAILURE",系统启动T3109,T3109超时之前都可以进行呼叫重建-->\
+		T3109超时之后,BSC向MSC发送"CLEAR REQUEST",携带不正常释放的原因-->\
+		MSC--(CLEAR CMD要求释放无线资源)-->BSC--(RF CHANNNEL RELEASE)-->BTS
+		BTS--(RF CHANNEL RELEASE ACK)-->BSC--(CLEAR COMPLETE)-->MSC,BSC认为信道已释放完毕,MSC确认清除过程完毕
 	
+	2.呼叫重建
+	无线链路发生故障,在本小区或其他小区(或许位置区也会变化)进行呼叫重建
+	短消息和呼叫独立的补充业务不能进行呼叫重建
 	
+	MS先发现下行故障:MS在支持的小区发送呼叫重建请求,以前信道资源将在BTS定时器超时后被BSC释放
+	BSS侧先发现上行故障:BTS发送无线链路故障消息给BSC,BSC释放旧的无线资源,启动T3109等待呼叫重建,超时则开始清除过程
 	
+	小区支持呼叫重建RE参数必须为"ALLOWED",小区不能使被禁止接入的
 	
+	MS根据SACCH上携带的小区BA表,测量服务小区和邻小区BCCH载波接收电平,5s内选择电平最高的小区作为呼叫重建的目标,若6次这样的选择都失败,则放弃呼叫重建,
+	目标小区必须结束呼叫重建后才能进行位置更新
 	
+	呼叫重建规范:略
+		1.MM层呼叫重建
+		发生在低层故障,至少有一个MM连接激活
+		
+		2.CC层呼叫重建规范
+		MM连接建立时,MM子层可以给CC实体一个指示,MM连接已中断但是可以通过CC请求被重建,CC实体的反应取决于呼叫重建是否允许,CC实体可以决定是请示重建或释放MM连接
 	
+9.切换
+	能维持MS进行最优的小区变换而不中断通信过程的技术叫做"切换"
+	1.概述
+	MS-测量-电平强度--->BTS-监视-上行接收电平和质量/话务信道的干扰电平--->BSC-判决--->MSC-得出结果
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	2.切换准备
+		1.测量报告
+		有MS向网络侧定期发送的下行测量报告和基站的上行链路测量报告来判决
+		在RR连接下,以SACCH作为信令层,有规律向网络发送测量报告,包含服务小区和邻小区(电平最强的6个)性能测试结果,
+P74		信号强度(RXLEV): RXLEV no= no-110 dBM
+		信号质量(RXQUAL):8个等级,展示解码前的误码率
+		
+		2.测量周期
+		MS在专用模式下占用信道不同,SACCH发送测量报告的周期也不同
+		伴随SDCCH信道时,周期470ms,1个SACCH消息块存在于2个SDCCH的51复帧
+		伴随TCH信道,周期480ms,1个完整SACCH消息块存在于4个TCH的26复帧
+		4个SACCH的突发脉冲才能组成一个完整的测量报告:两个51复帧可以放8个测量报告,在SDCCH信道是连续发送的;在TCH信道就要分开发4次,4个26复帧才能放下一个测量报告
+		全局测量:对所有突发脉冲值进行平均(26*4减去4个末尾的空闲帧)
+		局部测量:对12个突发脉冲进行平均(8个特定位置的TCH和4个SACCH)
+		
+		3.测量报告处理
+		基站对于两份报告提取有用信息处理,作出判决
+		
+		4.邻小区的预同步
+		通过服务小区的指示去收听邻小区的BCCH,其中携带着FCCH和SCH的信息,MS利用
+		
 	
 	
 	
