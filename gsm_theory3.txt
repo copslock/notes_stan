@@ -507,12 +507,105 @@ P74		信号强度(RXLEV): RXLEV no= no-110 dBM
 		基站对于两份报告提取有用信息处理,作出判决
 		
 		4.邻小区的预同步
-		通过服务小区的指示去收听邻小区的BCCH,其中携带着FCCH和SCH的信息,MS利用
+		通过服务小区的指示去收听邻小区的BCCH,其中携带着FCCH和SCH的信息,MS利用接收结束和开始发送的时间间隔(约1ms)测量本小区接收电平和信号质量,
+		发送结束和开始接受这个时间间隔(约2ms)测量本小区及邻小区电平,在TCH26复帧最后一位的空闲帧(大约有6ms)进行SCH和FCCH的解码,当SACCH
+		伴随SDCCH信道时,虽然此时周期是51复帧,但分配给MS的SDCCH只占这51帧的1/8,因此它的空闲帧很多,必定能个邻小区同步.
 		
+		5.MS列入邻小区表的小区应满足的条件
+		基站收到邻小区报告的判断公式:
+		RXLEV_NCELL(n)邻小区的接收电平 > rxLevMinCell(n)邻小区最小接入电平 + MAX(0,Pa)		单位都是dBm
+		Pa = msTxPwrMaxCell(n)允许MS在邻小区专用信道上发射的最大功率 - msTxPwrMax在服务小区专用信道MS最大发射功率
+		符合上述条件才会将该邻小区列入切换候选小区表中
+		
+		6.BSIC(基站识别码)对切换的影响
+		MS收SCH后认为已同步该小区,为了正确译出下行公共信令信道上的信息,MS必须知道其采用的训练序列,训练序列有8种,分别与BSIC中的BCC一一
+		对应,因此SCH信道携带的BSIC还可以通知MS所在服务小区所采用的训练序列号.
+		MS根据从收听系统得来的BSIC和频点来区分不同的邻小区并与其实现与同步;当有一个有邻小区具有相同BSIC和频点的小区信号足够好,会被认为
+		是邻小区的信号,于是由此引起的切换往往回失败或掉话,这也称为"孤岛效应"
 	
+	3.触发切换的原因
+		1.预防性功率预算切换PBGT(占切换总数50%以上)
+		
+		PBGT(n) - hoMargin(n) > 0
+		PBGT = RXLEV_NCELL(n) - [RXLEV_DL服务小区的下行接收电平 + nPb] + Pa
+		nPb = bsTxPwrMax基站最大允许发射功率 - bsCurrentTxPwr基站当前发射功率
+		Pa = MIN(msTxPwrMax,MSTxPwr移动台额定最大发射功率) - MIN(msTxPwrMaxCell(n),MSTxPwr)
+		让MS永远在接收电平最高的小区,在MS穿过小区边界时,MSC收到测量报告发现某一个邻小区满足上述公式,则会将最大PBGT(n)将作为备选的切换目标邻小区
+		邻小区有一个切换容限(homargin),加大一点切换难度,防止在两个小区电平差不多时发生的来回切换频繁的"乒乓效应"
+		
+		2.救援性电平切换
+		小区切换参数中有定义上下行电平的门限值,若测量报告低于此门限则切换,这个门限应该比预算功率门限低一点
+		救援性电平切换容限homarginrxlev,邻小区的测量报告中寻找一个最合适的邻小区作为目标来触发切换,若没有则很容易导致掉话现象
+		
+		3.救援性质量切换
+		当测量报告的误码率高于救援性质量切换容限homarginrxoual,会触发
+		
+		4.距离切换
+		BSC发现测量报告的TA值高于距离切换容限homargindist,会触发
+		
+		5.话务切换
+		呼叫建立阶段,小区首先分配SDCCH信道以连通MS和BS,进一步在分配TCH语音通话信道
+		为充分利用周围无线资源,会通过MS测量报告的指示来接入到最佳邻小区的空闲话音信道		
+		
+	4.切换的种类
+		1.定时提前分类:同步切换;异步切换
+		2.交换点位置分类:小区内,小区间;小区内部切换,BTS内部切换,BSC内部切换,MSC内部切换,MSC间切换
+		
+P77	5.切换流程
+		1.小区内切换流程intra cell handover(小区内空闲信道的切换)
+		BSC分析报告--(channel active)-->BTS启动小区切换--(ACK)-->BSC--(assignment)-->BTS
+		BTS--(assignment complete)-->BSC--(hoperfomed切换已执行,携带切换的类型)-->MSC
+		BSC释放无线信道--(RF channel release)-->BTS,收到后将TCH资源释放--(ACK)-->BSC
+		
+		小区内部切换门限比触发功率控制的门限低,比越区切换的门限高一点
+		
+		2.BSC内部切换流程intra bsc handover
+		发起切换--->物理信道建立--->切换完成
+		BTS1--(HO INDICATION)-->BSC--(channel active)-->BTS2--(ACK)--BSC--(ho cmd,启动T3103)-->BTS1--(ho cmd)-->MS
+		MS--(在主DCCH发送4个连续时隙传送 ho access)-->BTS2--(ho detect切换监测)-->BSC	BTS2--(physical info)-->MS
+		MS--(SABME inew_dcchl)-->BTS2--(UA)-->MS	BTS2--(establish indication inew_dcchl)-->BSC	MS--(ho complete)-->BTS2--(ho complete)-->BSC,收到后停止T3103--(ho performed)-->MSC
+		BSC--(RF channel release)-->BTS1--(ACK)-->BSC
+		若MS为收到physical_info或回返UA帧,会在原小区发出切换失败的报文,由原小区在判断是否需要进行切换
+		
+		3.MSC内部切换流程
+		BTS--(ho required)--BSC1--(ho required)-->MSC--(ho required)-->BSC2--(CC)-->MSC	BSC2--(channel activate)-->BTS2--(channel activate ACK)-->BSC2
+		BSC2--(ho required ACK)-->MSC--(ho cmd)-->BSC1--(ho cmd,启动T8和T3103)-->BTS--(ho cmd)-->MS--(ho access)-->BTS2
+		BTS2--(ho detect)-->BSC2--(ho detect)-->MSC		BTS2--(physical info)-->MS--(SABME)-->BTS2--(UA)-->MS
+		BTS2--(establish indication)-->BSC2   MS--(ho complete)-->BTS2--(ho complete)-->BSC2--(ho complete)-->MSC
+		MSC--(clear cmd)-->BSC1--(RF channel release,停止T3103和T8)-->BTS--(RF channel release ACK)-->BSC1--(clear complete)-->MSC
+		
+		
+		4.MSC间切换流程
+		
+		5.规范?
 	
+10.功率控制和不连续发射
+	1.功率控制
+	一定范围内,以无线的方式来改变MS和BS的传输功率,作用是提供频谱利用率,减少对周围地区其他呼叫的干扰
+	上行链路的MS功率控制范围是20-30dB;下行链路有设备制造商决定,功率控制这个功能是否采用有网络运营商决定,但所有MS和BS都支持这个功能
 	
+	改变MS的功率命令和改变TA值在每一个下行的SACCH信息块所带的第一层的报头传送给MS
+	MS在上行的SACCH第一层报头设置现在所用的功率电平并将测量报告发给基站
+	MS通过收听BCCH广播来确定最大发射功率,一直保持这个功率或者是MS端子机能够达到的最大功率发射,直到收到SDCCH或TCH上SACCH消息块
+	所携带的功率控制命令,才开始受系统的控制
+	MS收到控制消息并不会立即生效,在下一个报告周期开始才开始执行,MS的功率最大变化速度是每13帧变化2dB
+	MS会在每一个报告周期结束时收到BTS的功率控制命令
+	对BTS来说功率控制的整个过程从发出到得到证实需要3个报告周期
 	
+	[1]BTS在SACCH报头发送调整功率控制和TA的命令-->MS收到SACCH信息块
+	[2]MS开始执行命令,采用新的TA和功率控制-->MS开始构造新的SACCH报头来报告新的TA和功率控制消息
+	[3]MS开始发送上个复帧结尾处的测量报告-->BTS收到报告
+
+	2.不连续发射
+	用于实际通话的时间很少,所以有DTX的这种不连续发射模式
+	定义:MS只传送特殊的被编码的"舒适噪声",用于满足系统测量的需要,并且让用户不会误认为发生掉话,需求的速率传送260bit/20ms
+		1.话音激活监测VAD
+		比较测量所得的滤波信号和规定的门限,来决定每一个输出帧包含的是话音还是背景噪声,可以提供知识是否传输这一帧的附加信息
+		准则:噪声的能量总是要比话音低
+		VAD技术每20ms产生一个门限,来作为下一个20ms的比较门限,高于此门限的才会被编码传送
+		2.静态描述帧SID
+		第一个SID帧与它之前的话音帧和之后的SID帧一同完成交织
+		测量DTX的使用:全局测量和局部测量
 	
 	
 	
