@@ -5,7 +5,7 @@ GSM移动通信系统概述
 	900/1800Mhz
 	综合业务数字网(Integrated Services Digital Network，ISDN)
 	特点：FDMA/TDMA,频率利用率高；和公共通信网实现互联；承载业务、电信业务；鉴权和加密功能；抗干扰通信质量好；
-	组成：BSS(BTS,BSC);MS;NSS(MSC,VLR,HLR,AUC,EIR);OSS(OMC-R无线,OMC-S系统)
+	组成：BSS(BTS,BSC);MS;NSS(MSC,VLR,HLR,AUC,EIR设备识别寄存器);OSS(OMC-R无线,OMC-S系统)
 	业务：承载业务、提供接入点之间的传输信号的能力；语音；数据；短信；其他
 	主要的核心功能：通信业务；移动性网络管理；安全性；支持呼叫处理的附加网络功能
 2.GSM编号计划
