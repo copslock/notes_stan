@@ -17,7 +17,7 @@ android_log
 	Pwd ： system/core/liblog/logd_write_kern.c
 		App&Framework:
 		private static final String TAG = “XXX";
-		Log.d(TAG,”any thing useful”);
+*		Log.d(TAG,”any thing useful”);
 
 		Native:
 		#define LOG_TAG ”XXX”
@@ -34,7 +34,7 @@ android_log
 		private static final String TAG = “XXX";
 		Slog.i(TAG, “any thing useful” )；
 
-		Radio:
+*		Radio:
 		private static final String TAG = “XXX";
 		Log.i(TAG, “any thing useful” )；
 
@@ -66,7 +66,7 @@ android_log
 		adb logcat |grep -e"tag1"		输出有tag1关键字的行，tag1内容可自己指定,-E是后面可以接正则表达式
 		adb shell logcat *:w			前提是分析好它到底是属于哪一个buffer的(main,system,radio,events)，再过滤出那个buffer里等级大于等于warning的log，优先级排序见本文件最上面部分。
 	
-		adb shell dmesg=cat /proc/kmsg 查看内核缓冲区信息
+		adb shell dmesg		cat /proc/kmsg 查看内核缓冲区信息
 		adb shell dumpstate 各类信息，比如进程信息，内存信息，进程是否异常，kernnel的log等
 		adb shell dumpcrash
 		adb shell dumpsys  查询所有service的状态

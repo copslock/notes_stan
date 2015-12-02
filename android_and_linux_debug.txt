@@ -4,21 +4,21 @@ android_and_linux_debug
 	
 	printk/pr_debug/dev_dbg log输出到环形buffer里，调用控制台驱动输出信息到控制台
 	
-	KERN_EMERG
-	KERN_ALERT
-	KERN_CRIT
-	KERN_ERR
-	KERN_WARNING
-	KERN_NOTICE
-	KERN_INFO
-	KERN_DEBUG
-	KERN_DEFAULT
+	KERN_EMERG	0
+	KERN_ALERT	1
+	KERN_CRIT	2
+	KERN_ERR	3
+	KERN_WARNING	4
+	KERN_NOTICE	5
+	KERN_INFO	6
+	KERN_DEBUG	7
+	KERN_DEFAULT	d
 	
-	修改控制台log输出级别，只有低于这个级别的log才会被输出
+	修改控制台log输出级别，只有低于这个级别的log才会被输出,默认是default级别,即输出所有等级的信息
 	echo 8 > /proc/sys/kernel/printk  
     vim kernel/kernel/printk.c  
 	
-	dump_stack()	快速清理函数调用关系
+	dump_stack()	打印堆栈函数 快速清理函数调用关系
 	
 	adb：adb shell dmesg/adb shell cat proc/kmsg
 	串口：连接串口线,且确保kernel serial配置项已打开
@@ -46,6 +46,8 @@ android_and_linux_debug
 
 	getevent -l 目录    获取系统的输入事件
     setevent     发送模拟事件
+	set/get/watch prop
+	top/ps
     netstat      显示各种网络相关的信息
     vmstat       监控cpu使用率，内存使用，虚拟交换，IO读写
 	strace -wc ls	跟踪还未启动的程序，启动时开始跟踪
@@ -58,9 +60,7 @@ android_and_linux_debug
 		USB
 		显示
 		裸机：JTAG
-		
-		
-		
+
 		反编译目标文件和可执行文件：
 		objdump [option(s)] [files(s)] 	确定错误位置？
 		常用选项：
@@ -68,11 +68,7 @@ android_and_linux_debug
 		 -t:    输出目标文件的符号表
 		 -h:   输出目标文件的所有段概括
 		 -j ./text/.data –S :输出指定段的信息
-		 -S:   C语言与汇编语言同时显示 
-		
-		top/ps/procrank:
-		
-		VSS/RSS/USS/PSS:
+		 -S:   C语言与汇编语言同时显示
 		
 		systrace：来自于android内核例如cpu调度系统，硬盘活动，应用程序线程，生成html网页显示出各种信息
 		run the strace.py and generate the html -> open this html

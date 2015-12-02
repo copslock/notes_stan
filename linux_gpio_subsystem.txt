@@ -51,6 +51,7 @@ GPIO Subsystem
 	flags可指定的属性:
 	GPIOF_DIR_IN - 配置方向为输入	GPIOF_DIR_OUT - 配置方向为输出	GPIOF_INIT_LOW - 在作为输出时,初始值为低电平	GPIOF_INIT_HIGH - 在作为输出时,初始值为高电平
 	GPIOF_OPEN_DRAIN - gpio引脚为开漏信号	GPIOF_OPEN_SOURCE - gpio引脚为源极开路信号
+	
 	因为 GPIOF_INIT_* 仅有在配置为输出的时候才存在,所以有效的组合为:	
 	GPIOF_IN - 配置为输入	GPIOF_OUT_INIT_LOW - 配置为输出,并初始化为低电平	GPIOF_OUT_INIT_HIGH - 配置为输出,并初始化为高电平
 

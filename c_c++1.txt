@@ -78,7 +78,9 @@ while (*++*argv)
 **++argv
 ++**argv
 
-
+错在哪?
+int *p=1
+*p=0
 
 
 

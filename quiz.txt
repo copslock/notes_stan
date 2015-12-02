@@ -6,7 +6,7 @@ hall-sensor
 
 鸟哥		    p445
 大话通信	    over
-gsm原理			P147
+gsm原理			P152
 程序员自我修养  none
 c prime 		
 maide			

@@ -63,7 +63,7 @@ dpkg -L 软件名 列出相关联文件
 	
 whereis 软件名 软件安装位置及安装包位置？
 insmod <option> [file] 向kernel里加载一些模块 常见的是加载一些底层驱动
-
+mknod /dev/modules-name c或b 主设备号 次设备号	创建设备节点
 >>>>>>> week3
 
 ps -l 查看进程

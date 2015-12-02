@@ -6,7 +6,7 @@ linux字符设备驱动
 	字符设备驱动cdev结构体
 	struct  cdev
 	{
-        struct kobject kobj;               //内嵌的kobject对象
+        struct kobject kobj;               //内嵌的kobject对象 设备驱动类型
         struct module *owner;          //所属模块
         struct file_operations *ops;  //文件操作结构体,open,close,write,read...
         dev_t  dev;                           //设备号32位，12位主设备号，20位次设备号
@@ -54,12 +54,13 @@ linux字符设备驱动
 	
 	1.模块编译:
 	globalmem源文件 -> makefile脚本 -> 编译模块 -> 解决问题
-	2.加载驱动:
+	2.加载模块:
 	.ko文件 代表kernel模块、内核驱动
-	加载驱动并查看:
+	加载模块并查看:
 	insmod xxx.ko, lsmod, cat /proc/devices
 	3.创建设备节点
 	mknod /dev/globalmem c 230 0 
+	mknod 设备 类型(c代表cdev,也可以是b) 主设备号(230) 次设备号(0)
 	cd /dev
 	ls			//dev中出现对应创建的设备节点
 	4.用户空间读写设备

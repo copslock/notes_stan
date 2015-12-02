@@ -1,8 +1,8 @@
 linux timer
 	时间基准:让系统可以从规定时间开始计时,DOS的时间基准是1980年1月1日,Unix和Minux,Linux的时间基准是1970年1月1日0点
 	
-	jiffies：无符号"32位变量"，用来记录系统自启动以来所经过的时钟滴答数
-	xtime：可以理解为Linux中的墙上时间，记录的是自1970年1月1日24时到当前时刻所经历的纳秒数
+	jiffies：无符号"32位变量"，用来记录系统自启动以来所经过的时钟滴答数"tik-tok"
+	xtime：可以理解为Linux中的墙上时间，记录的是自1970年1月1日到当前时刻所经历的纳秒数
 	jiffies与xtime区别:在系统休眠后jiffies不计数,但是xtime不受影响
 
 	jiffies的不断循环,最大支持时间(2^32-1)/100/3600/24 = 497.1天?	100是HZ值,HZ是每秒的时钟中断次数,1s=jiffies/HZ
@@ -10,10 +10,10 @@ linux timer
 	
 	为解决jiffies的绕回问题,提供了以下的宏:
 	#define time_after(a,b) (typecheck(unsigned long, a)&&typecheck(unsigned long, b)&&((long)((b) - (a)) < 0))
-	使用time_after时,延时不能超过2^31-1个tick
+	使用time_after时,延时不能超过 2^31-1个tick
 	为满足延时需要还可以使用jiffies_64;time_after64();
 	
-	用户空间--timer_lib---timer用户空间接口---定时器\TimeKeeping---Tickdevice---通用clockEvent\通用clockSource模块---clock_source_driver---CPU_local_timer
+	用户空间--timer_lib-()-timer用户空间接口---定时器\TimeKeeping---Tickdevice---通用clockEvent\通用clockSource模块-()-clock_source_driver-()-CPU_local_timer/global counter
 	
 	定时器以时间轮划分为5个段,tv1数组长度为256,tv2-tv5都是64的长度,tv5位最高,tv1最低
 		1.添加定时器
@@ -31,7 +31,7 @@ linux timer
 	
 	手机中的RTC(实时时钟)时间: "busybox date" "busybox hwclock -r"
 	RTC不受系统关闭影响
-	RTC更新xtime流程:略
+*	RTC更新xtime流程:略
 	
 	/dev/rtc0		--->	(init xtime)	--->	kernel xtime
 	/data/time/ats_*		time_daemon
