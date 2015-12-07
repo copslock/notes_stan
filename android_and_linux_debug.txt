@@ -2,7 +2,17 @@ android_and_linux_debug
 	java-exception(in frameworks and app layer wirtten in java codes);native(in userspace,inlcuding native c/c++ app and lib);
 	kernel(kernel opps and kernel panic in linux kernel mode);external(device its own memory-space adn binary codes);
 	
-	printk/pr_debug/dev_dbg log输出到环形buffer里，调用控制台驱动输出信息到控制台
+	printk输出，调用控制台驱动输出信息到控制台
+	
+	动态输出pr_debug/dev_dbg log
+	include/linux/printk.h里找到pr_debug的定义
+	三个判断条件决定pr_debug的用法：
+		1.如果定义了CONFIG_DYNAMIC_DEBUG，就使用动态debug机制dynamic_pr_debug();
+		2.如果定义了DEBUG，就使用printk(KERN_DEBUG...)
+		3.默认情况下，不打印。
+	1.#define CONFIG_DYNAMIC_DEBUG xx	--> dynamic_pr_debug(fmt, ##__VA_ARGS__)
+	2.#define DEBUG xx --> printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
+	
 	
 	KERN_EMERG	0
 	KERN_ALERT	1
@@ -14,9 +24,9 @@ android_and_linux_debug
 	KERN_DEBUG	7
 	KERN_DEFAULT	d
 	
-	修改控制台log输出级别，只有低于这个级别的log才会被输出,默认是default级别,即输出所有等级的信息
+	修改控制台log输出级别，只有低于这个级别的log才会被输出,默认是default级别(8),即会输出所有等级的信息
 	echo 8 > /proc/sys/kernel/printk  
-    vim kernel/kernel/printk.c  
+    vim kernel/printk.c  --> #define DEFAULT_CONSOLE_LOGLEVEL 8
 	
 	dump_stack()	打印堆栈函数 快速清理函数调用关系
 	
