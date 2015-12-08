@@ -1,0 +1,51 @@
+在现有CDCKT平台上移植系统/应用级的操作系统分析报告
+
+1、概述：
+	Firefox OS，专案名称为Boot to Gecko。是由谋智公司（Mozilla Corporation）主导研发的开放源代码移动操作系统，采用Linux核心，应用于智能手机。采用开放网络（open Web）技术，它以Gecko浏览器引擎为核心，采用HTML5相关的Web前端技术开发。所有应用都基于网页技术（Web前端技术），但网页从来就不是必须依赖网络的，只是我们平时碰到的网页恰巧都依赖网络，和其他手机操作系统一样，应用先下载再运行。
+	Firefox OS的目标就是遵循互联网无处不在的本质，提供一个平台使得用户能在移动设备，桌面电脑，平板或者任何可以连到网络的设备上获得相同的程序体验。
+	CDCKT 现以Qualcomm 平台、 MTK平台居多，如果在现有平台下移植系统和应用级操作系统，需要考虑系统与硬件芯片是否支持，经过多方面的资料查找，发现firefox ox支持高通芯片，同时对于基于HTML5技术并完全开源且免费的移动平台firefox os的设计理念比较新颖，故选择移植firefox os 操作系统；
+2、可行性分析
+	根据firefox os官网提供的《对于已经支持手机平台移植的详细过程》、《Mozilla将移植Firefox OS到树莓派》和《[火狐ROM定制] 火狐os firefox os (B2G) 移植流程概谈》
+等技术文档，可以从中找出我们需要的资料来作为我们系统移植的重要资料；
+	http://www.linuxidc.com/Linux/2014-11/108881.htm
+	https://developer.mozilla.org/en-US/Firefox_OS/Introduction
+	http://www.sanxing.org/thread-2855-1-1.html
+	资料较为丰富，同时根据官网显示是支持高通平台的，所以移植成功性还是相对较高；
+3、主要的工作
+（具体实现细节暂不描述）
+3.1、选定一款手机平台，并对手机平台的硬件特性作详细的了解；
+3.2、获取和构建 Firefox OS
+	构建和安装Firefox OS火狐操作系统需要消耗大量的时间，网络带宽，和计算机硬件配置。此部分将大致描述构建的过程、步骤以及目标，帮助用户自行进行构建。
+	3.2.1、构建 Firefox OS 之前
+		第一次构建 Firefox OS 之前所需要了解和准备的工作。
+	3.2.2、构建 Firefox OS 的准备
+		构建 Firefox OS，需要获取源代码并配置构建过程所需要的参数。本篇	文章将告诉我们该怎么做。
+		https://developer.mozilla.org/en-US/Firefox_OS/Introduction
+	3.2.3、构建 Firefox OS
+	3.2.4、移植 Firefox OS
+		关于如何移植 Firefox OS 到新的设备中。
+3.3、调试 
+	3.3.1  Firefox OS 调试概述
+	3.3.2  Firefox OS 开发相关设置
+	3.3.3  连接 Firefox OS 设备到电脑
+	3.2.4  使用 Firefox 开发者工具调试 Firefox OS
+	3.2.5  如何在移动设备上打印日志
+	3.2.6  安装和使用 ADB
+	3.2.7  截屏
+	3.2.8  使用 WebIDE
+	3.2.9  使用 Firefox OS 应用管理器
+	3.2.10  Firefox OS 崩溃报告
+	3.2.11 调试 Firefox OS 的内存错误
+	3.2.12 调试并对 Firefox OS 进行安全性测试
+	3.2.13 使用 gdb 调试 B2G
+	3.2.14 使用 Valgrind 调试 B2G
+4、开发周期
+	根据小组讨论，对于手机系统移植的了解不是很多，开发周期可能较长，大概2个月左右；具体周期定义可能需要根据实际情况修改；
+5、参考文档
+[1] http://www.linuxidc.com/Linux/2014-11/108881.htm 将移植Firefox OS到树莓派wiki
+[2] https://developer.mozilla.org/en-US/Firefox_OS/Introduction  firefox os 官网系统移植
+[3] http://mozilla.com.cn/forum-41-1.html 火狐中文社区
+[4] http://www.sanxing.org/thread-2855-1-1.html [火狐ROM定制] 火狐os firefox os (B2G) 移植流程概谈
+[5] https://github.com/mozilla-b2g/B2G
+[6] https://wiki.mozilla.org/Fxos_on_RaspberryPi
+

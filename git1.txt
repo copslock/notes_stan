@@ -105,7 +105,7 @@ git show tag-name 详细显示该标签信息
 
 官方的github/项目名.git  ---folk(<---pull request---)--->  my/项目名.git 
 								 ^ |
-							     push| |clone
+							 push| |clone
 								 | |
 								 | V
 							  local/项目名.git

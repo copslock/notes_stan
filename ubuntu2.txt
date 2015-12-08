@@ -6,8 +6,28 @@ pwd [-P] 加P显示真实路径，而不是可能出现的链接路径，例如/
 	通过 “ls -ld /var/mail” 可以查看它的权限和连接到哪里去，-d 表示列出当前所在目录而不是这个目录下的文件
 ls 直接接目录路径也可以 -a显示隐藏目录 -l显示时间大小权限等 --full-time显示完整时间 --color=auto 系统自行决定是否显示颜色
 	-i显示index number标志数？索引数？文件的inode号/索引节点号  "ll"="ls -l"
-wget ftp://IP:PORT/* --ftp-user=xxx --ftp-password=xxx -r  利用ftp的方式下载东西
-wget http://...
+	
+wget --ftp-user=xxx --ftp-password=xxx -r  ftp://IP:PORT/* 	利用ftp的方式下载东西,-r为递归下载
+wget ftp-ULR 	ftp的匿(ni)名下载
+wget URL
+wget -O 下载文件想改成的名字 URL
+wget --limit-rate=300k URL	下载限速
+wget -c URL	断点下载
+wget -b URL	后台下载,会给出后台的pid	tail -f wget-log 查看后台的下载进度
+wget --spider URL	测试网站下载链接
+wget --user-agent="Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.204 Safari/534.16" http://www.linuxde.net/testfile.zip
+伪装成某个浏览器以便下载被拒绝
+wget --tries=40 URL		下载重试次数,默认是20次
+首先写一份下载链接文件:filelist.txt中包含所有下载要用的链接(url1 url2 url3 url4...) --> wget -i filelist.txt 
+wget -r -A.pdf url		下载固定格式的文件(pdf,图片,视频)
+wget -o download.log URL	下载信息存入日志文件,不在终端显示
+wget --reject=gif url	下载中过滤固定格式文件,例如不下载GIF
+wget --mirror -p --convert-links -P ./LOCAL URL 下载整个网站到本地 
+--miror	开户镜像下载 
+-p	下载所有为了html页面显示正常的文件 
+--convert-links	下载后，转换成本地的链接
+-P ./LOCAL	保存所有文件和目录到本地指定目录
+
 
 stat filename 详细显示一个文件的状态信息 加-f显示文件系统状态而非文件状态 -t以简洁方式输出信息 -L 支持符号连接 
 	可以查看文件的时间戳，inode号，block块大小位置，权限等等很多信息
@@ -152,8 +172,11 @@ STOP   19    暂停（同 Ctrl + Z）
 	若已存在这样的文件而且不可写入，那么nohup后接的cmd命令不可以被调用。
 	也可以指定输出的文件 例如这样 “nohup cmd > filename”
 	
-	
-	
+ip [-s] link list	网络设备运行情况,加s显示更详细信息
+ip route list		显示核心路由表信息
+ip neigh list		显示邻居表
+ifconfig
+ip addr		具体ip地址
 	
 	
 	
