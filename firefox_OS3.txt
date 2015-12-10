@@ -1,0 +1,157 @@
+Firefox OS porting
+
+0.some compatible devices info(https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Building_and_installing_Firefox_OS/Compatible_Devices)
+
+1.Set up your build system(more details > https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Firefox_OS_build_prerequisites)
+1-1.Compatible build targets
+	emulator/devices/desktop
+1-2.requirements for GNU/linux
+	for ubuntu12.04LTS:	somethings you need(如下)
+	sudo apt-get install autoconf2.13 bison bzip2 ccache curl flex gawk gcc g++ g++-multilib git ia32-libs lib32ncurses5-dev lib32z1-dev libasound-dev libgconf2-dev libgl1-mesa-dev libx11-dev lzop make zip libxml2-utils
+1-3.Configure ccache
+	The B2G build process uses ccache. The default cache size for ccache is 1GB, but the B2G build easily saturates this; around 10GB is recommended. You can configure your cache by running the following command inside terminal:
+	ccache --max-size 10GB
+1-4.configure the udev rule for your phone(for linux)
+	vim /etc/udev/rules.d/android.rules
+	frame-msm8210;vendor_id=05c6(qcom);
+	SUBSYSTEM=="usb", ATTR{idVendor}=="05c6", MODE="0666", GROUP="plugdev"
+	Please note that the fastboot device (that is used when you flash) might have a different vendor ID, and that you'll need a rule for it. For example the Firefox Flame also needs the Google vendor ID
+	SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="plugdev"
+	重新设置udev里的rules启动
+	sudo service udev restart	
+1-5.Install/Update GCC and G++ compilers
+	Depending on what version of Gecko you are attempting to build, you may be required to update gcc to a newer version.
+	sudo apt-get install g++ gcc-4.8
+1-6.enable debugging
+	adb操作
+	fastboot操作可能会识别另一个不同vendor_id等等
+1-7.back-up your entire android system partition
+	整个android系统分区备份在手机上
+	Newer versions of the build script (e.g. in the v2.5 branch) create already a backup automatically as part of the build process.
+
+	adb pull /system <backup target dir>/system
+	Depending on the phone, you may also need to pull the /data and/or /vendor directories:
+	adb pull /data <backup target dir>/data
+	adb pull /vendor <backup target dir>/vendor
+
+	If the pull commands fail with an "insufficient permission" message, try the following:
+	1]stop and restart the adb server, or if that fails
+	2]double-check that you have granted root permissions to the adb tool within your custom ROM
+	3]Verify that you have set up the udev rule correctly
+
+2.clone the B2G's repo(https://developer.mozilla.org/en-US/Firefox_OS/Preparing_for_your_first_B2G_build)
+2-1.clone两个关键的仓库
+	git clone https://github.com/mozilla-b2g/B2G.git
+	git clone https://github.com/mozilla-b2g/b2g-manifest.git
+	
+	第一个B2G仓库里的config.sh运行可以查看支持的的设备列表
+	重要!!:If your device isn't listed, you should stop right now and help port Firefox OS!
+2-2.正常的列表中有的设备,可以直接 ./config.sh [devices name]
+	e.g .config.sh nexus-6-l
+	
+	If you are doing this for a new device you could add it to config.sh and then hand it your local manifest file like so:
+	./config.sh <device> -m path/to/manifest.
+2-3.Configuring a build using a system backup
+	如果你的手机从来没有跑过android系统,你的B2G-tree没有the binary blobs,那么就需要之前备份的system区的文件
+	ANDROIDFS_DIR=<absolute path to parent dir of system dir> ./config.sh <target>
+2-4.Configuring the B2G build for an emulator
+	./config.sh emulator-jb
+...略部分属于install和build部分,这里主要写port OS到新设备的方法	
+
+3.Add a new device to config.sh
+	vim config.sh
+	
+4.Create a manifest for the new device
+	根据已有的manifest(官方推荐是以hamachi.xml作为模块去改)
+	然后git add/commit...
+	
+	为了使用本地的b2g-manifest仓库里的而不是官方的,改变在config.sh里的GITREPO和BRANCH变量值,如下
+	GITREPO=${GITREPO:-"file:///home/yourname/b2g-manifest"}
+	BRANCH=${BRANCH:-master}
+
+5.Create a configuration tree for the new device
+	在这个device/<manufacturer>/<device_id>目录里至少包括以下内容:
+	AndroidBoard.mk
+	AndroidProducts.mk
+	BoardConfig.mk
+	extract-files.sh
+	full_<device_id>.mk
+	idc files for touchscreen
+	init files (init.rc, init.<target>.rc, uevent.rc, ...)
+
+	This part requires a lot of hacking, testing, and debugging to figure out which binary blobs should be extracted.
+	可参考hamachi的devices目录:https://github.com/mozilla-b2g/android-device-hamachi
+	可参考porting配置网址:http://www.cyanogenmod.com/
+	http://forum.xda-developers.com/
+
+6.Rebuild boot.img
+	This isn't usually needed for the kernel itself, but to pick up the changes to init.rc.
+	你所使用的init.rc不是由B2G提供的,而是需要你自己从设备里pull出来,或者根据实际修改内容(去掉zygote,和一个和display相关的service)
+6-1.import init.b2g.rc(都是在init.rc里修改?)
+	on early-init
+		start ueventd
+		import /init.b2g.rc
+6-2.fix permissions
+	修改下面这些目录的权限 /system/b2g/b2g, /system/b2g/updater, /system/b2g/plugin-container; 
+	当被成功挂载可以读/写之后执行/this should be done after the lines that mount the filesystem read/write:
+
+	chmod 0755 /system/b2g/b2g
+	chmod 0755 /system/b2g/updater
+	chmod 0755 /system/b2g/plugin-container
+	
+	You might want to start by modifying the init.rc from the new device instead of using the init.rc provided by the build system; 
+	if so, you need to remember to set TARGET_PROVIDES_INIT_RC in BoardConfig.mk.
+6-3.Prebuilt kernel vs. building the kernel from source
+	You can use a prebuilt kernel, or you may build the kernel from source. To build the kernel from source, 
+	add AndroidKernel.mk and the kernel config to the device configuration tree.
+
+	The maguro on the old build system is an example that builds the kernel from source.
+6-4.
+
+7.Add the new device to flash.sh
+Add the new device to flash.sh; the specifics of how to do this will depend on what tools need to be used to flash the new device.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

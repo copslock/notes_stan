@@ -1,0 +1,4 @@
+Firefox OS phatform architecture(gaia;gecko;gonk)
+
+
+	
