@@ -1,4 +1,37 @@
 Firefox OS phatform architecture(gaia;gecko;gonk)
 
-
+build的目标就是3个image文件:(如下)
+the boot.img
+	包括linux kernel的img和一个初始化分区,初始化"脚本",它会被加载到memory里使用,被称作"ramdisk"
+	boot.img被拷贝到设备上的boot分区,ramdisk的目录可以再root目录里看到,当设备的文件系统进入到运行
+	boot.img建立对于root用户的权限在目录root,文件default.prop中
 	
+	修改boot.img,ramdisk的内容,参考(http://k.japko.eu/alcatel-otf-hackers-guide-1.html)
+	
+the system.img
+	包括gonk,gecko,gaia,b2g这些firefoxOS的核心部分
+	system.img将会被copy到手机的system分区上,然后可以再在目录/system下看到,当设备的文件系统进入到运行
+	
+the recovery.img
+	同样有包含一个kernel.img和ramdisk,它用了一个不同的初始化脚本,会引导用户去设定一些恢复的命令(用于恢复的镜像)
+	
+	recovery.img会被copy到设备的recovery分区,在正常的运行中,这个不会被挂载到文件系统上
+	
+build overview:
+setup:
+环境问题,编译器问题,不同系统对应用到的工具,参考firefox_OS3文档
+
+configure:
+用相应的config.sh(不同设备对应其manifest.xml文件)去拖源代码,repo工具公共管理多个仓库
+目标代码会被存储在目录 B2G/.repo/projects 下面(这里用时很久)
+
+build:
+主要用到的build.sh这个脚本文件
+可以编译一些指定模块 ./build.sh gecko;	./build.sh gaia
+
+单独built system.img :	./build.sh out/platform/$target/system.img
+$target参数就是在configure步骤里给出的那个设备的参数
+
+install:
+用到的flash.sh脚本
+单独编译的模块也可以单独被flash进去(e.g):./flash.sh gaia

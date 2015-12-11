@@ -99,20 +99,45 @@ Firefox OS porting
 	chmod 0755 /system/b2g/updater
 	chmod 0755 /system/b2g/plugin-container
 	
-	You might want to start by modifying the init.rc from the new device instead of using the init.rc provided by the build system; 
-	if so, you need to remember to set TARGET_PROVIDES_INIT_RC in BoardConfig.mk.
+	通过修改从设备里提取出来的init.rc而不是使用build-system提供的init.rc 
+	如果你需要使用自己设备的init.rc而不是build-system提供的,你需要在文件 BoardConfig.mk中去设置 TARGET_PROVIDES_INIT_RC
 6-3.Prebuilt kernel vs. building the kernel from source
 	You can use a prebuilt kernel, or you may build the kernel from source. To build the kernel from source, 
-	add AndroidKernel.mk and the kernel config to the device configuration tree.
+	添加 AndroidKernel.mk 文件和 the kernel config 到device configuration tree.
 
 	The maguro on the old build system is an example that builds the kernel from source.
-6-4.
-
+	(https://github.com/andreasgal/B2G/tree/master/glue/gonk/device/toro/maguro)
+6-4.Extracting and modifying an existing boot image从已有的boot.img里解压并修改相应文件
+	通过dumping 目录/dev/mtd/mtd1或者/dev/mtd/mtd2,结果img可以被很容易的recover
+	adb shell 'cat /dev/mtd/mtd1 > /sdcard/boot.img'
+	adb pull /sdcard/boot.img
+	http://whiteboard.ping.se/Android/Unmkbootimg 打开boot.img的工具unmkbootimg,他将会同时解压包括kernel.img和ramdisk
+	unmkbootimg boot.img 
+	
+	创建一个新文件夹来存放再解压的ramdisk 文件
+	mkdir initramfs_dir
+	cd initramfs_dir
+	gunzip -c ../initramfs.cpio.gz | cpio -i
+	
+	做完所有修改(例如init.rc),再用mkbootfs打包ramdisk,确定use the version that has been built with the B2G host tools:
+	/path/to/your/B2G/out/host/linux-x86/bin/mkbootfs . | gzip > ../newinitramfs.cpio.gz
+	回到上层再用mkbootimg工具打包整个boot.img
+	/path/to/your/B2G/out/host/linux-x86/bin/mkbootimg --kernel zImage --ramdisk newinitramfs.cpio.gz --base 0x200000 --cmdline 'androidboot.hardware=aphone' -o newboot.img
+	
+	copy新的镜像文件到 out/target/product/$DEVICE/boot.img 目录,当执行flash.sh即可自动进行flash
+	或者执行以下的操作:
+	adb reboot bootloader	设备重启并停止在bootloader的步骤
+	fastboot flash boot newboot.img		在boot分区刷入相应的镜像文件到devices
+	fastboot reboot	
+	
 7.Add the new device to flash.sh
 Add the new device to flash.sh; the specifics of how to do this will depend on what tools need to be used to flash the new device.
 
+8.Configure, build, and flash the new device
 
-
+	ANDROIDFS_DIR=my_device_backup ./config.sh <device_id> '../b2g-manifest/default.xml'
+	./build.sh
+	./flash.sh
 
 
 
