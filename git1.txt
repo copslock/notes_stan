@@ -162,6 +162,17 @@ chmod +x .git/hooks/commit-msg
 4.推送到服务器，待审核：git push origin HEAD:refs/for/branchname
 5.直接推送分支到服务器(需要push分支的权限，一般仅限项目负责人操作)：git push origin branchname
 
+但是，如果你想让"mywork"分支历史看起来像没有经过任何合并一样，你也许可以用 git rebase:
+$ git checkout mywork
+$ git rebase origin
+这些命令会把你的"mywork"分支里的每个提交(commit)取消掉，并且把它们临时 保存为补丁(patch)(这些补丁放到".git/rebase"目录中),
+然后把"mywork"分支更新 为最新的"origin"分支，最后把保存的这些补丁应用到"mywork"分支上。
+在rebase的过程中，也许会出现冲突(conflict). 在这种情况，Git会停止rebase并会让你去解决 冲突；在解决完冲突后，
+用"git-add"命令去更新这些内容的索引(index), 然后，你无需执行 git-commit,只要执行:
+$ git rebase --continue
+这样git会继续应用(apply)余下的补丁。
+在任何时候，你可以用--abort参数来终止rebase的行动，并且"mywork" 分支会回到rebase开始前的状态。
+$ git rebase --abort
 
-
+git pull --rebase 也可以起到这样的作用,先取消本地所有commit早于origin的,同步之后,再把本地的以patch形式打在已同步的仓库里
 
