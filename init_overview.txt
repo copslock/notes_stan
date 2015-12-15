@@ -1,0 +1,79 @@
+init.rc/init程序
+system/core/init/init.c	文件夹/主文件
+system/core/rootdir/init.rc 对应的脚本文件(手机上就在根目录上 / )
+一个默认属性配置文件default.prop文件
+
+
+Init进程-主要作用：
+1.解析系统property文件并初始化property信息
+2.解析脚本init.rc，触发Action及启动Service
+3.提供系统property服务管理及完成对应的触发事件
+4.维护系统级Service
+
+
+init.rc的编写风格:
+	action动作;option补充选项;trigger触发器;command命令;services服务;
+
+一个action的格式:(由trigger和cmd组成)
+on trigger
+	cmd
+	cmd
+	cmd
+	...
+	
+一个services的格式:
+services name pathname [参数]
+	option
+	option
+	......
+option定义一个服务的相关参数,什么时候开始结束,运行方式
+		critical（关键）:说明这是一个对于设备关键的服务。如果他四分钟内退出大于四次，系统将会重启并进入recovery（恢复）模式
+		disabled（失效）:说明这个服务不会同与他同trigger（触发器）下的服务自动启动。他必须被明确的按名启动
+		setenv <name> <value> （设置环境变量）:在进程启动时将环境变量<name>设置为<value>
+		socket <name> <type> <perm> [<user> [<group>]]:创建一个Uinx域的名为/dev/socket/<name>的套接字,
+		并传递它的文件描述符给已启动的进程,<type>必须是"dgram"或"stream",User和group默认为0
+		user <username>:在启动这个服务前改变该服务的用户名。此时默认为root。（？？？有可能的话应该默认为nobody）。当前，如果你的进程要求Linux capabilities（能力），你无法使用这个命令。即使你是root，你也必须在程序中请求capabilities（能力）。然后降到你想要的 uid。
+		group <groupname> [ <groupname> ]*:在启动这个服务前改变该服务的组名。除了（必需的）第一个组名，附加的组名通常被用于设置进程的补充组（通过setgroups()）。此时默认为root。（？？？有可能的话应该默认为nobody）。
+		oneshot:服务退出时不重启
+		class <name>:指定一个服务类。所有同一类的服务可以同时启动和停止。如果不通过class选项指定一个类，则默认为"default"类服务
+		onrestart:当服务重启，执行一个命令（下详）
+
+Triggers（触发器）是一个用于匹配特定事件类型的字符串，用于使Actions（行动）发生
+       boot:	这是init执行后的第一个被触发的Triggers（触发器）。（在 /init.conf （启动配置文件）被装载之后）
+       <name>=<value>:	这种形式的Triggers（触发器）会在属性<name>被设置为指定的<value>时被触发
+       device-added-<path>:
+       device-removed-<path>:	这种形式的Triggers（触发器）会在一个设备节点文件被增删时触发
+       service-exited-<name>:	这种形式的Triggers（触发器）会在一个特定的服务退出时触发
+
+Properties（属性）:Init更新一些系统属性以提供对正在发生的事件的监控能力:
+       init.action:此属性值为正在被执行的action的名字，如果没有则为""。
+       init.command:此属性值为正在被执行的command的名字，如果没有则为""。
+       init.svc.<name>:名为<name>的service的状态("stopped"（停止）, "running"（运行）, "restarting"（重启）)   
+	   
+Commands（命令）
+   exec <path> [ <argument> ]*:创建和执行一个程序（<path>）。在程序完全执行前，init将会阻塞。由于它不是内置命令，应尽量避免使用exec，它可能会引起init卡死。(??? 是否需要一个超时设置?)
+   export <name> <value>:在全局环境变量中设在环境变量 <name>为<value>。（这将会被所有在这命令之后运行的进程所继承）    
+   ifup <interface>:启动网络接口<interface>
+   import <filename>:解析一个init配置文件，扩展当前配置。
+   hostname <name>:设置主机名。
+   chmod <octal-mode> <path>:更改文件访问权限。
+   chown <owner> <group> <path>:更改文件的所有者和组。
+   class_start <serviceclass>:启动所有指定服务类下的未运行服务。
+   class_stop <serviceclass>:停止指定服务类下的所有已运行的服务。
+   domainname <name>:设置域名。
+   insmod <path>:加载<path>中的模块。
+   mkdir <path> [mode] [owner] [group]:创建一个目录<path>，可以选择性地指定mode、owner以及group。如果没有指定，默认的权限为755，并属于root用户和root组。
+   mount <type> <device> <dir> [ <mountoption> ]*:试图在目录<dir>挂载指定的设备。<device> 可以是以 mtd@name 的形式指定一个mtd块设备。<mountoption>包括 "ro"、"rw"、"remount"、"noatime"、 ...
+   setkey:待完成......（暂时不可用）
+   setprop <name> <value>:设置系统属性 <name> 为 <value>值.
+   setrlimit <resource> <cur> <max>:设置<resource>的rlimit（资源限制）。
+   start <service>:启动指定服务（如果此服务还未运行）。
+   stop <service>:停止指定服务（如果此服务在运行中）。
+   symlink <target> <path>:创建一个指向<path>的软连接<target>。
+   sysclktz <mins_west_of_gmt>:设置系统时钟基准（0代表时钟滴答以格林威治平均时（GMT）为准）
+   trigger <event>:触发一个事件。用于将一个action与另一个 action排列。（？？？？？）
+   write <path> <string> [ <string> ]*:打开路径为<path>的一个文件，并写入一个或多个字符串。
+  
+调试记录:
+在默认情况下，程序在被init执行时会将标准输出和标准错误都重定向到/dev/null(丢弃),若你想要获得调试信息，你可以通过Andoird系统中的logwrapper程序执行你的程序。它会将标准输出/标准错误都重定向到Android日志系统(通过logcat访问)
+

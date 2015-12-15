@@ -24,7 +24,7 @@ Firefox OS porting
 	sudo apt-get install g++ gcc-4.8
 1-6.enable debugging
 	adb操作
-	fastboot操作可能会识别另一个不同vendor_id等等
+	fastboot操作可能会识别另一个不同vendor_id等等(udec里的rules还要多添加一条fastboot时的vendor-id)
 1-7.back-up your entire android system partition
 	整个android系统分区备份在手机上
 	Newer versions of the build script (e.g. in the v2.5 branch) create already a backup automatically as part of the build process.
@@ -47,7 +47,7 @@ Firefox OS porting
 	第一个B2G仓库里的config.sh运行可以查看支持的的设备列表
 	重要!!:If your device isn't listed, you should stop right now and help port Firefox OS!
 2-2.正常的列表中有的设备,可以直接 ./config.sh [devices name]
-	e.g .config.sh nexus-6-l
+	e.g ./config.sh nexus-6-l
 	
 	If you are doing this for a new device you could add it to config.sh and then hand it your local manifest file like so:
 	./config.sh <device> -m path/to/manifest.
@@ -56,7 +56,7 @@ Firefox OS porting
 	ANDROIDFS_DIR=<absolute path to parent dir of system dir> ./config.sh <target>
 2-4.Configuring the B2G build for an emulator
 	./config.sh emulator-jb
-...略部分属于install和build部分,这里主要写port OS到新设备的方法	
+...略	部分属于install和build部分,这里主要写port OS到新设备的方法	
 
 3.Add a new device to config.sh
 	vim config.sh
@@ -84,7 +84,7 @@ Firefox OS porting
 	可参考porting配置网址:http://www.cyanogenmod.com/
 	http://forum.xda-developers.com/
 
-6.Rebuild boot.img
+6.Rebuild boot.img(project-name/system/core/rootdir/init.rc)
 	This isn't usually needed for the kernel itself, but to pick up the changes to init.rc.
 	你所使用的init.rc不是由B2G提供的,而是需要你自己从设备里pull出来,或者根据实际修改内容(去掉zygote,和一个和display相关的service)
 6-1.import init.b2g.rc(都是在init.rc里修改?)
@@ -108,10 +108,10 @@ Firefox OS porting
 	The maguro on the old build system is an example that builds the kernel from source.
 	(https://github.com/andreasgal/B2G/tree/master/glue/gonk/device/toro/maguro)
 6-4.Extracting and modifying an existing boot image从已有的boot.img里解压并修改相应文件
-	通过dumping 目录/dev/mtd/mtd1或者/dev/mtd/mtd2,结果img可以被很容易的recover
+	通过dumping 目录/dev/mtd/mtd1或者/dev/mtd/mtd2,结果img可以被很容易的recover(手机里的操作)
 	adb shell 'cat /dev/mtd/mtd1 > /sdcard/boot.img'
 	adb pull /sdcard/boot.img
-	http://whiteboard.ping.se/Android/Unmkbootimg 打开boot.img的工具unmkbootimg,他将会同时解压包括kernel.img和ramdisk
+	http://whiteboard.ping.se/Android/Unmkbootimg 打开boot.img的工具unmkbootimg(system/core/mkbootimg/),他将会同时解压包括kernel.img和ramdisk
 	unmkbootimg boot.img 
 	
 	创建一个新文件夹来存放再解压的ramdisk 文件
@@ -124,7 +124,7 @@ Firefox OS porting
 	回到上层再用mkbootimg工具打包整个boot.img
 	/path/to/your/B2G/out/host/linux-x86/bin/mkbootimg --kernel zImage --ramdisk newinitramfs.cpio.gz --base 0x200000 --cmdline 'androidboot.hardware=aphone' -o newboot.img
 	
-	copy新的镜像文件到 out/target/product/$DEVICE/boot.img 目录,当执行flash.sh即可自动进行flash
+	copy新的镜像文件到 out/target/product/$DEVICE/boot.img 目录(手机上的目录?),当执行flash.sh即可自动进行flash
 	或者执行以下的操作:
 	adb reboot bootloader	设备重启并停止在bootloader的步骤
 	fastboot flash boot newboot.img		在boot分区刷入相应的镜像文件到devices
