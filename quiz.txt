@@ -6,12 +6,13 @@ hall-sensor
 
 鸟哥		    p445
 大话通信	    over
-gsm原理			P152
+gsm原理			chapter-10
 程序员自我修养(文件的编译,链接)  ready-to-go
 c prime 		暂时放弃
 c the programming lang	ready-to-go
 
-指纹识别		task
+指纹识别			task-->cut
+firefox OS porting 	task-->ing
 
 征集SIOEYE品牌国内slogan
 

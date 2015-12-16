@@ -1,1 +1,204 @@
 Shell Scripts
+
+作用:自动管理重要工作,入侵监测,连续指令执行,自动化数据处理,
+
+#!/bin/bash		应用的shell为bash
+#......			注释(内容功能描述,作者,日期,版本信息)
+#......
+主要环境变量设定 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin...
+export PATH
+程序部分	echo "xxx"
+定义返回值	exit 0
+
+设定环境变量:
+export PATH="$PATH:/bin"
+
+读取用户输入:
+read -p "Please input your first name:" firstname 	#提示使用者输入
+read -p "Please input your last name:" lastname 	#提示使用者输入
+
+输出:
+echo -e "\nYour full name is: $firstname $lastname" #结果由屏幕输出,-e是让转义字符生效
+
+filename=${fileuser:-"filename"} # 开始判断有否配置文件名
+
+时间:
+date1=$(date --date='2 days ago' +%Y%m%d) # 前两天的日期
+date2=$(date --date='1 days ago' +%Y%m%d) # 前一天的日期(date获取当前时间,+后面跟的是显示的年月日格式)
+date3=$(date +%Y%m%d) # 今天的日期
+date +%Y%m%d%H%M%S
+格式表示:Y-年份2015 y-年份15 m-数字表示月份 M-英文表示月份 d-天数 H-小时数 M-分钟数 S-现在的秒数 s-1970年1.1距今的秒数
+
+修改变量类型(顺带计算过程):
+declare -i total=$firstnu*$secnu  	declare -i定义后面的变量为int类型, 后面还执行了一个乘法运算
+declare -i date_dem=`date --date="$date2" +%s` #结束日期秒数
+declare -i date_now=`date +%s` #现在日期秒数 小写的s是以秒为单位直接算出1970年距今的时间
+
+以$开头的特殊变量:
+$?	最后命令的返回值,一般是0表示正常,其他表示有错误或特殊情况
+$0	脚本文件的名字
+$1-9(数字)	参数1,参数2.....参数9
+$$	脚本运行当前的PID号
+$!	
+$-
+$@	传给脚本所有参数的列表,表现为"参数1" "参数2" "参数3",传递了3个
+$*	以单个字符串显示所有向脚本传递的参数,与位置变量不同,参数可以超过9个,表现为"参数c参数2c参数3",传递了一个参数,c表示分割字符空格
+$#	传给到Shell的参数个数
+
+
+文件类型检测:
+-d 是否是文件夹
+-f 文档是否存在
+-e 是否存在这样名字的文件
+-L	是否是link file
+-p	是否是FIFO文件
+-S	是否是一个socket文件
+-b	是否是块设备文件
+-c	是否是字符设备文件
+
+-r
+-w
+-x
+-s	文件名是否存在且文件大小是否为0,为0是值为真
+-k	是否存在这样一个文件且具有sticky bit属性
+-g	是否存在这样一个文件且具有SGID属性
+-u	是否存在这样一个文件且具有SUID属性
+-t	文件描述符指定的设备为终端时为真
+
+字符串比较:
+int1 -eq int2　　　　两数相等为真
+int1 -ne int2　　　　两数不等为真
+int1 -gt int2　　　　int1大于int2为真
+int1 -ge int2　　　　int1大于等于int2为真
+int1 -lt int2　　　　int1小于int2为真
+int1 -le int2　　　　int1小于等于int2为真
+
+文件比较:
+-nt 比较文件新旧
+-ot	
+-ef	判断两个文件是否是同一个文件,主要在于判断两个文件是否指向同一个inode
+
+-z	判断字符串是否为0,若str是空字符串,则为真
+-n	判断字符串是否不为0,str不是空字符串时为真
+
+使用中括号[]作为一个判断基本单元,中括号前后要留一个空格,==(单等号,双等号都可以)的前后也要留空格,[ -d file -a $1 == $2 ]
+中括号内的常量和变量都最好用引号括起来,条件判断中多用这种以中括号为单位的判断
+
+多重条件判断连接:
+-a 表示and,连接两个条件判断 -r file -a -x file
+-o 表示or
+!	表示非, !-x file 当文件不可执行的时候值为真
+
+scripts执行方式的差异:source; ./ ; sh scripts.sh
+直接执行一个脚本会使用一个新的bash环境来执行,即子程序的bash,父进程是不能继承子进程里的一些变量的
+source执行的话,可以让该脚本文件在所有的bash内都生效,不需要重新启动设备更新~/.bashrc
+
+参量号偏移:
+shift number  从开头开始计算,偏移掉几个参数
+
+条件判断(if大概可以总结为3种):
+---------------------------
+if[];then
+	cmd
+	...
+	exit 0
+fi
+--------------------------
+if[];then
+	cmd
+	...
+else
+	cmd
+fi
+---------------------------
+if[];then
+	cmd
+elif[];then
+	cmd
+else
+	cmd
+fi
+---------------------------
+
+case
+---------------------------
+case $1 in 	#$1的获得方式一般是在执行的时候"sh xxx.sh para1 para2"直接指定;或者是由read -p "xxx" para1由用户输入
+"var1")	
+	cmd
+	;;		#每一种情况结尾处都是双分号
+"var2")
+	cmd
+	;;
+*)	
+	cmd		#一般就是没有默认的case对应的输出
+	;;
+esac
+---------------------------
+
+function
+---------------------------
+func func_name(){
+	code
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//ip addr:port
+几个常见的 port 相关网络服务的关系是：
+ 80: WWW
+ 22: ssh
+ 21: ftp
+ 25: mail
+ 111: RPC(进程过程调用)
+ 631: CUPS(打印服务功能)
+
+netstat -tuln``目前主机获得的网络服务的端口
+
+testing=$(netstat -tuln | grep ":80 ") 	#侦测看 port 80 在否？
+if [ "$testing" != "" ]; then
+echo "WWW is running in your system."
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

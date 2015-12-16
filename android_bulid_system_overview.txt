@@ -14,7 +14,7 @@
 		pdk_config.mk:
 		PDK的配置信息管理文件
 		dex_preopt.mk:
-		根据之前的优化开启？jar包? 除了"三除"普通话有些不标准 
+		根据之前的优化开启？jar包? 
 		Makefile：
 		被main.mk所包括，还有一些额外的内容由main.mk协助提供？/还是协助提供给main.mk
 		$(ONE_SHOT_MAKEFILE):
@@ -70,8 +70,6 @@
 		用于去配置硬件板？，其定义了硬件部分的特性，例如母板与相关信息，bootloader，内核的链接
 		vendorsetup.sh:
 		通过 add_lunch_combo 来加入菜单选项在lunch函数里，这个参数是$(product_name)-$(compile type)，例如"add_lunch_combo msm8909_LMT-userdebug"
-		
-			
 		
 	3.modules:
 	apk

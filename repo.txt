@@ -14,6 +14,7 @@ repo help command
 		repo start <newbranchname> [--all | <project>...]
 	repo upload 上传提交代码
 		repo upload [<project>] 接目录地址或者cd到目录下 直接用repo upload .
-	repo forall -c	
-		
+	repo forall -c cmd  对所有git仓库执行-c后面所接的cmd命令
+	repo forall -p -c git branch  遍历所有仓库并打印每个仓库的分支情况,-p参数是打印出每个仓库的路径
+	repo foreach -c cmd 对每一个project执行-c后面的cmd的命令
 	
