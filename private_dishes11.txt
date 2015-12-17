@@ -161,7 +161,7 @@ shell/Bash
 		find /home -name .bashrc > list_right 2> list_error 分开保存正确和错误的输出信息
 		... >/dev/null 垃圾桶，抛弃掉错误的信息，只显示正确的信息
 		... >list 2>&1 都输出到同一文件list，&将指令变为背景下工作
-		... &>list
+		... &>list	背景下输出
 		
 		cat > filename  此命令也可以建立文件
 		输入信息

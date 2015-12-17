@@ -14,5 +14,7 @@ c the programming lang	ready-to-go
 指纹识别			task-->cut
 firefox OS porting 	task-->ing
 
-征集SIOEYE品牌国内slogan
+gsm10 over
+sh over
+init.rc ing
 

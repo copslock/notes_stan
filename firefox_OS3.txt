@@ -86,15 +86,16 @@ Firefox OS porting
 
 6.Rebuild boot.img(project-name/system/core/rootdir/init.rc)
 	This isn't usually needed for the kernel itself, but to pick up the changes to init.rc.
-	你所使用的init.rc不是由B2G提供的,而是需要你自己从设备里pull出来,或者根据实际修改内容(去掉zygote,和一个和display相关的service)
+	你所使用的init.rc不是由B2G提供的,而是需要你自己从设备里pull出来,或者根据实际修改内容(去掉zygote,和一个和display相关的surfacefinger的service)
 6-1.import init.b2g.rc(都是在init.rc里修改?)
 	on early-init
-		start ueventd
+		start ueventd	#调用sbin/uventd链接所指的可执行程序，其源码位于system/core/init/ueventd.c，为设备赋予权限on init 
+						#源码位于system/core/init/init.c
 		import /init.b2g.rc
 6-2.fix permissions
 	修改下面这些目录的权限 /system/b2g/b2g, /system/b2g/updater, /system/b2g/plugin-container; 
 	当被成功挂载可以读/写之后执行/this should be done after the lines that mount the filesystem read/write:
-
+ 
 	chmod 0755 /system/b2g/b2g
 	chmod 0755 /system/b2g/updater
 	chmod 0755 /system/b2g/plugin-container

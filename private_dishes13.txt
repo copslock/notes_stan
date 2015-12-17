@@ -120,7 +120,7 @@ else
 fi
 ---------------------------
 
-case
+情况case
 ---------------------------
 case $1 in 	#$1的获得方式一般是在执行的时候"sh xxx.sh para1 para2"直接指定;或者是由read -p "xxx" para1由用户输入
 "var1")	
@@ -135,11 +135,51 @@ case $1 in 	#$1的获得方式一般是在执行的时候"sh xxx.sh para1 para2"
 esac
 ---------------------------
 
-function
+函数function
 ---------------------------
 func func_name(){
 	code
 }
+
+循环
+---------------------------
+while[判断式]
+do
+	code
+done
+---------------------------
+until[判断式]
+do	
+	code
+done
+---------------------------
+for var in var1 var2 ...	#每一次var带入code里面的值都不一样,直到用完所有的指定变量,循环结束
+do
+	code
+done
+---------------------------
+e.g:
+users=$(cut -d ':' -f1 /etc/passwd) 
+for username in $users # 开始循环
+	id $username		#显示用户的uid/gid等等信息(/etc/passwd)
+	finger $username	#列出该用户的帐号名称,真实姓名,用户专属目录,登入所用的Shell,登入时间,转信地址,电子邮件状态等
+done
+---------------------------
+for ((初始值;限制值;执行步阶))
+do
+	code
+done
+---------------------------
+
+
+脚本文件执行过程的追踪和debug
+sh -n xx.sh 当该脚本文件无语法错误的时候,则不会显示任何信息(测试脚本文件常用)
+sh -x xx.sh	列出全部的执行过程(一般不用)
+
+
+
+
+
 
 
 

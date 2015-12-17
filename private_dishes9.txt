@@ -21,7 +21,7 @@
 	tarfile和tarball
 	
 	一边打包，一边解压出来：-cvf后的小短线想象成一个缓存区
-	tar -cvf - /home/ckt/test | tar -xvf - 
+	tar -zcvf - /home/ckt/test | tar -zxvf - 
 	
 	P314
 	备份处理流程：
