@@ -36,7 +36,7 @@ option定义一个服务的相关参数,什么时候开始结束,运行方式
 		group <groupname> [ <groupname> ]*:在启动这个服务前改变该服务的组名。除了（必需的）第一个组名，附加的组名通常被用于设置进程的补充组（通过setgroups()）。此时默认为root。（？？？有可能的话应该默认为nobody）。
 		oneshot:服务退出时不重启
 		class <name>:指定一个服务类。所有同一类的服务可以同时启动和停止。如果不通过class选项指定一个类，则默认为"default"类服务
-		onrestart:当服务重启，执行一个命令（下详）
+		onrestart:当服务重启，执行下一个命令
 
 Triggers（触发器）是一个用于匹配特定事件类型的字符串，用于使Actions（行动）发生
        boot:	这是init执行后的第一个被触发的Triggers（触发器）。（在 /init.conf （启动配置文件）被装载之后）

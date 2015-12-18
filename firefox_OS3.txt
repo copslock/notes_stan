@@ -69,7 +69,7 @@ Firefox OS porting
 	GITREPO=${GITREPO:-"file:///home/yourname/b2g-manifest"}
 	BRANCH=${BRANCH:-master}
 
-5.Create a configuration tree for the new device
+*5.Create a configuration tree for the new device
 	在这个device/<manufacturer>/<device_id>目录里至少包括以下内容:
 	AndroidBoard.mk
 	AndroidProducts.mk
@@ -153,8 +153,19 @@ Add the new device to flash.sh; the specifics of how to do this will depend on w
 
 
 
+modem:
+
+git clone ssh://username@10.120.10.101:29418/msm8939-la-2-1 -b baseline
+
+android:
+
+repo init -u git://10.120.10.101/msm/platform/manifest.git --repo-url=git://10.120.10.101/msm/tools/repo.git -b ckt -m baseline_MSM8939.LA.2.1.xml
 
 
+modem:
+git clone ssh://username@10.120.10.101:29418/msm8939-la-2-1 -b Moden_mirage01a_s25a_2141_1
+android:
+repo init -u git://10.120.10.101/msm/platform/manifest.git --repo-url=git://10.120.10.101/msm/tools/repo.git -b ckt -m mirage01a_s25a_5_1_MSM8939.LA.2.1.xml
 
 
 
