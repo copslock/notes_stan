@@ -47,7 +47,7 @@ Firefox OS porting
 	第一个B2G仓库里的config.sh运行可以查看支持的的设备列表
 	重要!!:If your device isn't listed, you should stop right now and help port Firefox OS!
 2-2.正常的列表中有的设备,可以直接 ./config.sh [devices name]
-	e.g ./config.sh nexus-6-l
+	e.g ./config.sh nexus-5-l
 	
 	If you are doing this for a new device you could add it to config.sh and then hand it your local manifest file like so:
 	./config.sh <device> -m path/to/manifest.

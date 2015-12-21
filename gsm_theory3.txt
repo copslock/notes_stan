@@ -124,9 +124,9 @@ GSM主要信令过程分析
 		MSC收到三层业务请求后向VLR发出"PROCESS ACCESS",要求进行鉴权加密->\
 		鉴权加密完成后,VLR向MSC返回"PROCESS ACCESS ACCEPTED"-->\
 		MSC/VLR向MS发送"鉴权请求"AURHENTICATION REQUEST来触发鉴权加密过程,同时网络启动T3260-->\
-			鉴权请求消息包含RAND(128bit)和CKSN,MS向SIM卡发送一条包含RAND的"运行GSM算法"消息-->\
-			SIM上ki和这个传送来的RAND经过A3算法得到一个32bit的应答数SERS,经过A8计算出64bit的Kc值-->\
-			MS将计算出的SERS,Kc写入SIM卡适当位置,用于对比判断
+		鉴权请求消息包含RAND(128bit)和CKSN,MS向SIM卡发送一条包含RAND的"运行GSM算法"消息-->\
+		SIM上ki和这个传送来的RAND经过A3算法得到一个32bit的应答数SERS,经过A8计算出64bit的Kc值-->\
+		MS将计算出的SERS,Kc写入SIM卡适当位置,用于对比判断
 		RR连接存在时,MS随时响应"鉴权请求"消息,MS通过"鉴权响应"将SERS送回"系统"-->\
 		网络收到请求响应,终止T3260,对比返回的SERS和MSC/VLR中计算得到存储的SERS值,若相同则鉴权成功并允许接入网络,失败就拒绝MS继续接入.over
 		
