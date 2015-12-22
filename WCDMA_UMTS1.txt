@@ -1,0 +1,27 @@
+wcdma系统构成及接口:
+UE---(Uu)---NodeB---(lub)---RNC---(lur)---RNC---(lu)---CN(cs_domain/ps_domain/bc_domain)
+UTRAN(UMTS Terrestrial Radio Access Network/UTMS陆地无线接入网):RNC+NodeB
+
+Uu接口/协议栈结构:
+L1物理层:提供无线物理信道,由NodeB实现
+L2数据链路层:MAC(medium access control)/RLC/BMC/PDCP四个子层
+L3网络层:接入层的RRC和非接入层的MM,CC
+L1和L2的四个子层都由RCC来控制,RCC又由RNC来实现
+
+RCC功能:
+UE和UTRAN之间的无限资源管理控制
+广播各类信息
+设置/释放RB
+连接MM
+为高层PDU(protocol data unit)选择路由
+对请求的QoS服务质量进行控制
+UE测量上报和报告控制
+外环功率控制
+加密控制
+慢速动态信道分配
+寻呼
+空闲模式下初始小区选择和重选
+上行链路DCH上无线资源的仲裁
+RRC消息完整性保护
+CBS小区广播服务控制
+
