@@ -172,12 +172,15 @@ remove该小区的公共和专用信道,状态变为"not existing",nodeB撤除�
 ===小区建立全过程===
 综合上面的连续
 除了QAAL2 establish request/confirm是ALCAP协议下的,其他过程都是NCP协议
-公共传输信道建立-3次
-lub接口用户plane建立-6次
-公共测量初始化-3次
-measurement report-3次
 
+公共传输信道建立-3次	分别是三次申请信道(一条PRACH信道/分组随机接入信道,两条SCCPCH信道/辅助公共控制物理信道)
+lub接口用户plane建立-6次	分别是3条公共信道所要承载的服务;PRACH承载一个RACH,两条SCCPCH分别承载2条FACH+1条PCH和2条FACH,发起lub数据传输承载建立过程,消息中包含AAL2绑定ID,绑定lub数据传输承载和对应的信道
+公共测量初始化-3次	初始化3种需要nodeB测量的信息:周期报告形式的发射载波功率测量;周期报告形式的RTWP测量;事件E报告形式的发射载波功率测量
+measurement report-3次	分别汇报上述3种nodeB测量的数据
 
+RTWP:Received Total Wide band Power -- 接收总带宽功率
+
+==系统消息流程==
 
 
 
