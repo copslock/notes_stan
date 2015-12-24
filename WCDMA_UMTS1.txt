@@ -1,0 +1,205 @@
+==UTRAN接口协议及功能==
+
+===wcdma系统构成及接口:===
+UE---(Uu)---NodeB---(lub)---RNC---(lur)---RNC---(lu)---CN(cs_domain/ps_domain/bc_domain)
+UTRAN(UMTS Terrestrial Radio Access Network/UTMS陆地无线接入网):RNC+NodeB
+
+===Uu接口/协议栈结构:===
+L1物理层:提供无线物理信道,由NodeB实现
+L2数据链路层:MAC(medium access control)/RLC/BMC/PDCP四个子层
+L3网络层:接入层的RRC和非接入层的MM,CC
+L1和L2的四个子层都由RCC来控制,RCC又由RNC来实现
+
+*RCC功能:
+UE和UTRAN之间的无限资源管理控制
+广播各类信息
+设置/释放RB(radio beraers无线承载)
+连接MM
+为高层PDU(protocol data unit)选择路由
+对请求的QoS服务质量进行控制
+UE测量上报和报告控制
+外环功率控制
+加密控制
+慢速动态信道分配
+寻呼
+空闲模式下初始小区选择和重选
+上行链路DCH上无线资源的仲裁
+RRC消息完整性保护
+CBS小区广播服务控制
+
+*L1物理层功能:
+传输信道的信道交织/解交织,传输信道的复用
+CCTrcH的解复用,速率匹配,CCTrCH到物理信道的映射
+物理信道的调制/扩频与解调/解扩,物理信道的功率加权与组合
+向上层提供测量报告
+频率和时间同步
+闭环功率控制
+射频处理
+
+===lub接口/协议栈结构===
+RNC和NodeB之间的接口
+
+*NBAP(NodeB-application-part)功能:lub接口无线网络层控制面信令协议
+CRNC管理nodeB中小区配置信息,公共传输信道配置信息
+CRNC调度去广播系统消息
+NodeB通知CRNC有关nodeB的资源状态
+CRNC和NodeB之间的同步验证,允许NodeB上报公共信道/专用信道的测量结果
+CRNC管理/监控nodeB的专用资源无线链路,控制压缩模式的使用
+CRNC调整下行功率水平避免无线链路之间的下行功率漂移
+
+*NBAP行为流程:
+公共过程:对nodeB一个特定的UE上下文的初始化请求过程 / 和一个特定UE相关的请求过程
+小区配置管理(建立/重配置/删除)
+公共传输信道管理
+系统信息管理
+资源事件管理
+配置调整
+公共资源测量
+无线链路管理
+专用过程:和nodeB一个特定UE上下文相关联的过程
+无线链路管理
+无线链路监控
+压缩模式控制
+专用资源测量
+下行功率漂移校正
+
+===lur接口协议栈及规范===
+*两个RNC之间的接口
+*RNSAP是lur接口无线网络层的协议,由四个模块构成:MM,专用资源管理,公共资源管理,全局过程
+无线链路管理:SRNC管理利用DRNS（Drift RNS）专用资源建立的无线链路；
+物理信道重配置:RNC为无线链路重新分配物理信道资源；
+无线链路监视:DRNC报告一条无线链路的故障及恢复；
+压缩模式控制:SRNC控制DRNS中压缩模式的使用；
+专用资源测量:SRNC启动DRNS中专用资源的测量,同时DRNC报告测量结果
+下行链路功率漂移校正:SRNC校正一条或多条无线链路的下行链路功率级别,以避免无线链路间下行链路功率的漂移；
+CCCH信令传输:SRNC和DRNC在DRNS控制的CCCH信道上传输UE和SRNC之间的信息；
+寻呼:SRNC在DRNS的一个URA或一个小区中寻呼某UE；
+执行迁移:SRNC能够通过lur接口,完成已通过其它接口准备好的迁移,其它接口如lu接口；
+一般错误状态报告:报告一般错误的状态。
+
+*RNSAP-flow
+case1:request-->response/failure
+case2:无响应,始终认为消息成功
+
+===lu接口===
+*UTRAN和CN之间的接口,对于不同核心网(cs-domain/ps-domain/bc-domain)对应接口还有细分
+
+*RANAP功能:
+RAB(无线承载管理):建立,修改,释放,建立请求排队
+SRNS(服务无线网络子系统)迁移:RNC之间的
+所有lu接口连接资源的释放和释放请求
+转发SRNS上下文:在系统间前向切换时RNC向CN传输SRNS上下文,以免数据包的丢失
+lu接口过载控制:调整lu接口的负荷
+lu接口复位:复位lu接口
+向RNC发送UE公共识别号Common ID（永久的NAS UE识别号）
+寻呼用户:提供CN寻呼UE的能力
+UE跟踪控制:为一个给定的UE设定跟踪模式,该功能也允许解除以前设定的跟踪
+              UE与CN间NAS信息的传输,该功能分两类:一类是将初始的NAS信令消息从UE透明传输到CN,消息传输结束后,lu信令连接也建立起来。另一类是在UE与CN间传输NAS信令消息,这些消息是在已经存在的lu信令连接上透明传输
+UTRAN安全模式的控制:发送安全钥匙给UTRAN,并设置安全操作模式
+位置报告控制:允许CN执行UTRAN上报的UE位置模式
+位置报告:用于将实际的位置信息从RNC传输到CN
+数据流量报告:负责报告特定RAB在UTRAN上发送失败的的下行数据流量
+
+==小区相关信令流程(wcdma)==
+===小区建立方式===
+*操作维护台
+RNC发起,lub传输承载建立,伴随系统消息的更新和公共测量的初始化
+*nodeB审计响应触发小区建立
+RNC向nodeB发起资源审计过程,nodeB回应RNC后,由RNC发起小区建立过程,后面与case1相似
+
+===小区-信令流程===
+*触发资源状态指示的条件:
+1.增加/删除nodeB本地小区
+2.nodeB小区能力和资源运行状态发生变化
+3.NodeB的公共物理信道和/或公共传输信道能力发生改变时
+4.NodeB的通信控制端口资源运行状态发生改变时
+5.NodeB的本地小区组资源能力发生改变时
+
+6.nodeB--(resource status indication,包含触发原因和相关逻辑资源内容)-->CRNC
+
+*资源审计
+1.CRNC--(audit request)-->NodeB--(audit response)-->CRNC
+2.审计请求里的信息单元"start of audit sequence",若值为"start of audit sequence"则启动一个新的审计序列号;若值为"not start of audit sequence"则接着上一个审计序列报告剩余的审计信息
+3.审计响应消息包括逻辑小区的各种信息(公共物理信道,CCP信息,本地小区及小区组信息)
+审计响应中的消息单元"end of audit sequence indicator",值为"end of audit sequence"表示结束了一个审计序列,值为"not end of audit sequence"表示指示审计消息的一部分.
+
+*小区建立
+CRNC--(cell setup request)-->NodeB--(cell setup response)-->CRNC
+secondary CPICH info:nodeB接收并根据其配置激活SCPICH
+maximum transmission power:小区最大输出功率的上限
+closed loop timing adjustment mode:nodeB收到多个此信息单元,会用于DPCH信道闭环反馈模式分集
+nodeB保存消息中的"configuration generation ID"值,并返回响应
+小区配置成功后,该小区和信道状态都变为"enabled",配置失败返回"cell setup failure"
+
+*公共传输信道建立
+CRNC--(common transport channel setup request)-->NodeB--(common transport channel setup response)-->CRNC
+公共传输信道建立过程用于建立以下信道:SCCPCH,FACH,PCH,PICH,PRACH,RACH,AICH,PCPCH,AP_AICH,CD/CA-ICH,CPCH
+
+*lub接口用户面建立
+CRNC--(Q.AAL2 establish request)-->NodeB--(Q.AAL2 establish confirm)-->CRNC
+两者之间通过ALCAP协议传送请求和确认消息
+
+*系统消息更新
+CRNC--(system info update request)-->NodeB--(system info update response)-->CRNC
+包括BCCH信道上系统消息分段广播内容及调度信息
+
+*公共测量初始化
+CRNC--(common measurement initiation request)-->NodeB--(common measurement initiation response)-->CRNC
+测量请求包含测量对象类型(小区,RACH等),公共测量类型(发射载波功率,总接收宽带功率等),报告属性(立即报告,周期报告,事件报告等)等内容
+
+*配置报告
+在nodeB返回公共测量初始化响应之后,在多次返回measurement report给CRNC端
+
+----------------------------------一般小区建立的流程到这里就over了
+
+*小区重配置
+用于修改nodeB小区参数
+根据消息单元"primary sch info"中的"primary sch power"重配置小区PSCH功率
+根据"secondary sch info"中的"secondary sch power"配置SSCH功率
+根据"primary CPICH info"中的"primary CPICH power"配置PCPICH功率,nodeB根据PCPICH值调整小区发射功率
+根据”Secondary CPICH Information”中的”Secondary CPICH Power”配置SCPICH功率
+CPICH = Common Pilot Channel = 公共导频信道 
+根据”Primary CCPCH Information”中的"BCH Power"重配置小区BCH功率
+若有”Maximum Transmission Power”则NodeB将保存该值,NodeB的总体最大输出功率不大于该值
+若有”Synchronisation Configuration”,NodeB应根据其中消息单元值重配置所指示的参数。如果”Synchronisation Configuration”消息单元影响到无线链路集门限，NodeB应立即启用新的门限
+
+CRNC--(cell reconfiguration request)-->NodeB--(cell reconfiguration response)-->CRNC
+
+*小区删除
+CRNC--(cell deletion request)-->NodeB--(cell deletion response)-->CRNC
+remove该小区的公共和专用信道,状态变为"not existing",nodeB撤除小区中的无线链路和所有nodeB通信上下文,nodeB同时发起被删除小区专用和公共信道的传输承载释放.
+
+===小区建立全过程===
+综合上面的连续
+除了QAAL2 establish request/confirm是ALCAP协议下的,其他过程都是NCP协议
+公共传输信道建立-3次
+lub接口用户plane建立-6次
+公共测量初始化-3次
+measurement report-3次
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
