@@ -1,0 +1,3 @@
+==NAS(non-access stratum,非接入层)和AS==
+1.UMTS的协议栈分为NAS和AS。NAS协议处理UE和CN之间信息的传输，传输的内容可以是用户信息或控制信息（如业务的建立、释放或者移动性管理信息）。NAS消息一定程度上独立于下面的AS协议结构，与采样什么样的无线接入网无关（可以是GSM、GPRS、WCDMA）。控制平面的NAS消息有CM、MM、SM以及GMM等。用户平面的网络层NAS协议是IP（分组交换），电路交换业务不需要。
+2.NAS消息的传输要基于底层的AS协议。AS是无线接入网采用的协议。UMTS中的AS协议包括：无线接口Uu协议，Iub协议以及Iu协议。其中的无线接口协议是UE与UTRAN间的协议，协议的高层（包括MAC、RLC、RRC等）位于UE和RNC之间，而底层（PHY）位于UE和NodeB之间。

@@ -154,11 +154,8 @@ Add the new device to flash.sh; the specifics of how to do this will depend on w
 
 
 modem:
-
 git clone ssh://username@10.120.10.101:29418/msm8939-la-2-1 -b baseline
-
 android:
-
 repo init -u git://10.120.10.101/msm/platform/manifest.git --repo-url=git://10.120.10.101/msm/tools/repo.git -b ckt -m baseline_MSM8939.LA.2.1.xml
 
 
