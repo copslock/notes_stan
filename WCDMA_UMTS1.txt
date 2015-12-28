@@ -412,7 +412,7 @@ UMTS常见的移动性管理:前向切换,软切换,硬切换,系统间切换,�
 1.UE--(ura update)-->UTRAN--(ura update confirm)-->UE
 2.视情况返回信息或不返回任何信息
 
-===软切换=== ?= (小区切换?)
+===软切换=== ?= (小区内切换,无线链路切换?)
 无线链路的变化(增加/删除/替换)
 *非SRNC控制的nodeB的软切换流程
 
@@ -441,12 +441,140 @@ UE的无线链路数达到允许的宏分集最大支路数后,进行无线链�
 ===RL setup request===
 
 
-===active set update活动消息集更新===
+===active set update(活动集更新)===
 消息结构:
-P100......
+Message Type
+*UE information elements
+RRC transaction identifier
+Integrity check info
+Integrity protection mode info
+Ciphering mode info
+Activation time
+New U-RNTI
+*CN information elements
+CN Information info
+*RB information elements
+Downlink counter synchronisation info
+>RB with PDCP information list
+>>RB with PDCP information
+*Phy CH information elements
+*Uplink radio resources
+Maximum allowed ULTX power
+*Downlink radio resources
+Radio link addition information
+>Radio link addition information
+Radio link removal information
+>Radio link removal information
+TX Diversity Mode
+SSDT information
+
 实例:略
 
-===硬切换===
+===硬切换=== ?= (小区切换)
+UE先离开原小区,接入一个新小区,性能不如软切换,一般在软切换无法进行才采用,当切换的小区在不同RNC之间时,会伴随"迁移",这种"迁移"被叫做硬切换伴随迁移
+
+硬切换在Uu接口上的5个信令过程:
+物理信道重配置（PHYSICAL CHANNEL RECONFIGURATION）
+传输信道重配置（TRANSPORT CHANNEL RECONFIGURATION）
+RB建立（RADIO BEARER SETUP）
+RB释放（RADIO BEARER RELEASE）
+RB重配置（RADIO BEARER RECONFIGURATION）
+
+*压缩模式(由RNC判决启动)
+硬切换可以对未知小区直接硬切换,但失败率高,仅用于紧急情况,为UE能对异频/异系统目标小区进行测量,WCDMA引入了压缩模式
+打孔/扩频因子减半
+
+*lur接口硬切换
+cell_dch状态下UE进行的硬切换流程
+
+1.SRNC--(radio link setup request)-->DRNC-->nodeB-DRNC
+2.nodeB-DRNC--(radio link setup response)-->DRNC-->SRNC
+3.SRNC--(physical channel reconfigure)-->UE--(physical channel reconfigure response)-->SRNC
+4.SRNC--(radio link del request)-->nodeB-SRNC--(radio link del response)-->SRNC
+
+RNC内的硬切换比上面的情况少了DRNC和SRNC的交互过程,全部都由SRNC和nodeB交互
+
+*联合硬切换(RNC的切换)
+处于cell_dch状态的UE和CN同时有CS和PS域的连接,可以通过CN-domain在不同RNC之间进行联合硬切换,并伴随着SRNC迁移的信令流程
+	
+	SGSN:Service GPRS Support Node,服务GPRS支持节点
+	MSC:CS域支持节点?
+1.源RNC--(relocation required/两个节点收到迁移准备请求)-->SGSN/MSC(进行切换准备)
+2.SGSN/MSC--(relocation request/向切换目标请求链路资源)-->目标RNC
+3.ALCAP lu data transport bearer setup
+4.目标RNC--(radio link setup request/向nodeB请求分配链路资源)-->目标nodeB--(radio link setup response)-->目标RNC
+5.ALCAP lub data transport bearer setup
+6.目标RNC--(relocation request ACK/准备就绪,响应)-->MSC/SGSN
+7.SGSN/MSC--(relocation cmd)-->源RNC
+8.源RNC--(physical channel reconfiguration/通知UE新的物理信道重配置和参数)-->UE
+9.目标nodeB--(radio link restore indication/无线链路恢复指示触发迁移至目标)-->目标RNC
+10.目标RNC--(relocation detect/迁移监测)-->SGSN/MSC
+11.源nodeB--(radio link failure indication/切换到新RNC后,旧的无线链路监测到失去同步)-->源RNC
+12.UE--(physical channel reconfiguration complete)-->目标RNC
+13.目标RNC--(relocation complete/迁移完成)-->SGSN/MSC
+14.SGSN/MSC--(IU release cmd/源RNC的lu接口释放命令)-->源RNC
+15.ALCAP IU data transport bearer release
+16.源RNC--(IU release complete)-->SGSN/MSC
+
+===physical channel reconfiguration===
+消息结构:
+Message Type
+*UE Information Elements
+RRC transaction identifier
+Integrity check info
+Integrity protection mode info
+Ciphering mode info
+Activation time
+New U-RNTI
+New C-RNTI
+RRCState Indicator
+UTRAN DRX cycle length coefficient
+*CN Information Elements
+CN Information info
+*UTRAN mobility information elements
+URA identity
+*RB information elements
+Downlink counter synchronisation info
+>RB with PDCP information list
+>>RB with PDCP information
+*PhyCH information elements
+Frequency info
+*Uplink radio resources
+Maximum allowed ULTX power
+CHOICE channel requirement
+>Uplink DPCH info
+>CPCH SET Info
+>CPCH set ID
+*Downlink radio resources
+CHOICE mode
+>FDD
+>>Downlink PDSCH information
+>TDD
+Downlink information common for all radio links
+Downlink information per radio link list
+>Downlink information for each radio link
+
+实例:略
+
+===系统间切换流程=== ?= ()
+UE在WCDMA和GSM/GPRS系统间的切换:
+WCDMA<-->GSM:建立CS域业务,处于cell_dch状态切换到GSM系统,处于连接模式切换到WCDMA系统
+GSM/GPRS<-->WCDMA:小区重选过程
+
+*WCDMA-->GSM
+1.SRNC--(relocation required)-->CN--(MAP/E:prepare HO)-->GSM的MSC--(BSSMAP:ho request)-->GSM的BSC
+2.GSM的BSC--(ho request ACK)-->GSM的MSC--(prepare ho response)-->CN--(relocation cmd/发起迁移命令)-->SRNC
+3.SRNC--(ho from UTRAN cmd/通过已经存在的RCC连接向UE发起系统间的切换命令)-->UE
+4.GSM的BSC--(ho detect)-->GSM的MSC
+5.UE--(ho complete)-->GSM的BSC-->GSM的MSC
+6.GSM的MSC--(send end signal request/发送"结束信令"请求)-->CN--(IU release cmd/终止CN和GSM系统间的链路及承载资源)-->SRNC--(IU release complete)-->CN--(send end signal response)-->GSM的MSC
+
+*GSM-->WCDMA
+
+
+
+
+
 
 
 

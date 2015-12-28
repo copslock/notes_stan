@@ -25,3 +25,12 @@ C-RNTI:RRC连接临时标识;小区内唯一;由RNC分配;由MAC层使用
 U-RNTI:RRC连接临时标识;UTRAN内唯一;由RNC分配;由RRC层和MAC层使用
 C-RNTI是在空口上的公共信道消息中标示UE的
 U-RNTI是当手机存在RRC连接时第一次接入小区,和UTRAN发起包含有关响应消息的寻呼时,标示UE.
+
+==各接口的协议概述==
+rrc:UE
+NBAP:nodeB
+RNSAP:RNC之间
+RANAP:CN
+
+MAP/E:GSM/MSC
+BSSMAP:GSM/BSC

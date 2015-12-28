@@ -10,7 +10,7 @@ gsm原理			chapter-10
 程序员自我修养(文件的编译,链接)  ready-to-go
 c prime 		暂时放弃
 c the programming lang	ready-to-go
-WCDMA			P100
+WCDMA			Pwtf
 LTE白皮书		over
 qcom_UMTS_overview		P18
 
