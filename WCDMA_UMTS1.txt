@@ -66,7 +66,7 @@ CRNC调整下行功率水平避免无线链路之间的下行功率漂移
 ===lur接口协议栈及规范===
 *两个RNC之间的接口
 *RNSAP是lur接口无线网络层的协议,由四个模块构成:MM,专用资源管理,公共资源管理,全局过程
-无线链路管理:SRNC管理利用DRNS（Drift RNS）专用资源建立的无线链路；
+无线链路管理:SRNC管理利用DRNS(Drift RNS)专用资源建立的无线链路；
 物理信道重配置:RNC为无线链路重新分配物理信道资源；
 无线链路监视:DRNC报告一条无线链路的故障及恢复；
 压缩模式控制:SRNC控制DRNS中压缩模式的使用；
@@ -226,7 +226,8 @@ RRC连接-->UE和CN连接-->UE能力-->RAB(无线承载管理)建立-->RAB释放
 
 ===寻呼===
 *CN发起的寻呼:
-用于建立一条信令连接,分为协作和非协作寻呼,
+用于建立一条信令连接,分为协作和非协作寻呼
+
 非协作:
 RNC不检查UE是否存在寻呼域之外的其他CN域信令连接,直接在CN指定的寻呼域中通过PCCH信道下发寻呼消息
 协作:
@@ -290,35 +291,162 @@ UE能力信息-三种情况告诉网络：
 -2-/ UTRAN--(ue capability enquiry(ue能力查询))-->UE--(ue capability info)-->RNC
 -3-/ UE--(ue capability info)-->RNC--(ue capability info confirm)-->UE
 
-===RAB建立流程===
-在CN和UE之间信令连接建立之后.才能建立RAB无线承载管理,用于传送语音/数据/多媒体etc.
+===RAB(无线接入承载)建立流程===
+*在CN和UE之间信令连接建立之后.才能建立RAB无线承载管理,用于传送语音/数据/多媒体etc.
 一个UE可以建立多个RAB
 
-根据RAB建立前后的RRC的连接状态可以分为3类:(e.g 前面是DCH连接-后面是DCH连接)
+*根据RAB建立前后的RRC的连接状态可以分为3类:(e.g 前面是DCH连接-后面是DCH连接)
 DCH-DCH:指配的RAB只能建立在DCH上
 CCH-DCH
 CCH-CCH
 
-DCH-DCH 同步:
-1.CN--(RAB assignment request)-->SRNC-->CN_SRNC(ALCAP setup)
+*DCH-DCH 同步:
+1.CN--(RAB assignment request)-->SRNC-->CN_SRNC(ALCAP setup / lu接口的用户面传输承载过程的建立)
 2.SRNC--(radio link reconfiguration prepare/sync)-->nodeB--(radio link reconfiguration ready/sync)-->SRNC
-3.SRNC_nodeB(ALCAP setup and sync)-->SRNC
-4.SRNC--(RB setup)-->UE
+3.SRNC_nodeB(ALCAP setup and sync / lub接口用户面传输承载的建立)
+4.SRNC--(RB setup / 发送RRC协议的无线承载建立消息)-->UE
 5.SRNC--(radio link reconfiguration commit)-->nodeB
 6.UE--(RB setup complete)-->SRNC
 7.SRNC--(RAB assignment response)-->CN
 
-DCH-DCH 异步:
-没有上述的第5步骤
+*DCH-DCH 异步:(仅作了解)
+无线重配置不需要同步执行
+1.~
+2.SRNC--(radio link reconfiguration request)-->nodeB--(radio link reconfiguration response)-->SRNC
+3.SRNC_nodeB(ALCAP setup and sync)
+4.SRNC--(RB setup)-->UE--(RB setup complete)-->SRNC
+5.SRNC--(RAB assignment response)-->CN
 
-CCH-DCH:
-没有第5步骤
+*CCH-DCH:
+1.~
+2.SRNC--(radio link setup request)-->nodeB--(radio link setup response)-->SRNC
+3.SRNC_nodeB(ALCAP setup and sync)
+4.SRNC--(RB setup)-->UE--(RB setup complete)-->SRNC
+5.SRNC--(RAB assignment response)-->CN
 
-CCH-CCH:
+*CCH-CCH:
 1.~
 2.SRNC--(RB setup)-->UE--(RB setup complete)-->SRNC
 3.SRNC--(RAB assignment response)-->CN
 
+===业务释放信令流程===
+*高层释放请求分为由"UE发起"和"CN发起"两种,但都是由CN释放最终的资源
+
+CS/PS域(话音/数据域):两者分别对应不同的lu接口信令连接
+
+CS域释放流程:
+1.对于单个RAB连接,直接CN--(IU release cmd)-->RNC-->RNC自动释放lu接口信令连接和RAB
+(Iu / interface unit / 接口单元 -- CN和RNC之间的接口)
+2.SRNC判断RRC连接是否还有对应的lu信令连接,若没有,则执行下一步,发起RRC连接释放过程
+3.对于多个RAB连接,则只需要释放对应的RAB,而不需要对lu接口信令连接释放
+
+PS域:略
+
+*lu接口信令连接释放-flow
+请求可由RNC端请求,也可以由CN端直接执行cmd命令(跳过请求阶段)
+1.RNC--(IU release request)-->CN--(IU release cmd/包含释放原因)-->RNC--(IU release complete)-->CN
+
+*RAB释放信令流程
+和RAB建立相似,根据释放前后使用的信道是CCH还是DCH,分为3种情况:DCH之间,CCH之间,DCH-CCH
+RNC用户面异常时,RANAP也会向CN端发起RAB释放请求
+DCH-DCH 同步重配置无线链路:
+1.CN--(RAB assignment request/指明要释放RAB的id)-->SRNC
+2.SRNC--(radio link reconfiguration prepare/要求nodeB释放对应承载RAB的DCH)-->nodeB--(radio link reconfiguration ready)-->SRNC
+3.SRNC--(RB release)-->UE
+4.SRNC--(radio link reconfiguration commit/无线链路重配置执行)-->nodeB
+~5.SRNC_UE(apply new transport format set)
+6.UE--(RB release complete)-->SRNC
+7.SRNC_nodeB(ALCAP lub data transport bearer release/通过ALCAP协议释放lub接口的数据传输承载)
+8.SRNC_CN(ALCAP lu data transport bearer release/通过ALCAP协议释放lu接口的数据传输承载)
+9.SRNC--(RAB assignment response)-->CN
+
+*lu-CS和RAB联合释放流程
+只有一个RAB承载的情况,会将这一个RAB和lu接口信令连接一同释放
+1.CN--(IU release cmd)-->SRNC
+2.SRNC--(radio link reconfiguration prepare/要求nodeB释放对应承载RAB的DCH)-->nodeB--(radio link reconfiguration ready)-->SRNC
+3.SRNC--(RB release)-->UE
+4.SRNC--(radio link reconfiguration commit/无线链路重配置执行)-->nodeB
+~5.SRNC_UE(apply new transport format set)
+6.UE--(RB release complete)-->SRNC
+7.SRNC_nodeB(ALCAP lub data transport bearer release/通过ALCAP协议释放lub接口的数据传输承载)
+8.SRNC_CN(ALCAP lu data transport bearer release/通过ALCAP协议释放lu接口的数据传输承载)
+9.SRNC--(IU release complete)-->CN
+
+*RRC连接释放流程
+在RAB释放之后,若对应RRC承载都已经没有任何其他对应的lu接口信令连接和RAB,则可以将该RRC承载也释放掉
+UE和UTRAN之间的信令链路以及和UE有关的所有无线承载
+
+RRC释放只能发生在cell_fach或cell_dch状态下,如果在其他状态则需要先进行寻呼,再进行RRC连接释放
+
+释放也分为公共和专用两种情况,优先选择在DCCH信道上进行,若没有再选择在CCCH信道上发送释放信令
+
+*RRC连接在专用信道上的释放
+1.SRNC--(rrc connection release/多次发送此消息,发送次数和间隔由网络控制)-->UE--(rrc connection release complete)-->SRNC
+2.SRNC--(radio link deletion request/无线链路资源的撤除)-->nodeB--(radio link deletion response)-->SRNC
+3.ALCAP release(lub接口用户面传输承载的释放)
+
+*RRC连接在公共信道上的释放
+1.SRNC--(rrc connection release)-->UE
+因为用的是小区公共资源,所以只需要发出释放请求,UE会自动释放占用资源,也不需要经过nodeB去撤除特定分配的"资源"
+
+==MM流程分析==
+囊括在CM之中
+UMTS常见的移动性管理:前向切换,软切换,硬切换,系统间切换,迁移
+
+===前向切换=== ?= (LAC更新/小区更新?)
+更新UE信息,监视RRC连接,切换RRC连接状态,错误通报,传递信息
+*小区更新
+小区处于非空闲状态之外的其他四种连接模式状态都可以发生小区更新
+更新原因:小区重选/重进入服务区/周期性小区更新/无线链路失败/寻呼响应/上行数据传输/RLC发生不可恢复性错误
+1.UE--(cell update/包含更新原因和U-RNTI信息)-->UTRAN--(cell update confirm/包含网络侧为UE新分配的U-RNTI,C-RNTI信息)-->UE
+2.根据情况UE还可能返回下列的信令或不返回任何信息:
+	RB释放完成消息RADIO BEARER RELEASE COMPLETE；
+  RB重配置完成消息RADIO BEARER RECONFIGURATION COMPLETE；
+  传输信道重配置完成消息TRANSPORT CHANNEL RECONFIGURATION COMPLETE；
+  物理信道重配置完成消息PHYSICAL CHANNEL RECONFIGURATION COMPLETE；
+  UTRAN移动性信息确认消息UTRAN MOBILITY INFORMATION CONFIRM。
+
+*URA(UTRAN注册区域)更新 ?= lac
+只有在ura_pch状态下的才能进行此过程
+更新原因:ura(注册位置区)重选,周期性更新
+1.UE--(ura update)-->UTRAN--(ura update confirm)-->UE
+2.视情况返回信息或不返回任何信息
+
+===软切换=== ?= (小区切换?)
+无线链路的变化(增加/删除/替换)
+*非SRNC控制的nodeB的软切换流程
+
+*增加
+RNC内-软切换流程:
+1.UE测量邻近小区,测量结果上报给RNC
+2.SRNC决定建立新的无线链路RL--(radio link setup request/新无线链路的申请)-->DRNC-->nodeB
+3.nodeB--(radio link setup response)-->DRNC-->SRNC
+4.ALCAP lub RB setup && ALCAP lur RB setup
+5.SRNC--(active set update/通过DCCH信道向UE发送活动集更新消息[通告无线链路增加])-->UE--(active set update complete/UE在活动集添加新的RL信息)-->SRNC
+
+*删除
+1.~
+2.SRNC决定删除某条无线链路RL--(active set update)-->UE--(active set update complete/UE在活动集删除某个RL信息)-->SRNC
+3.SRNC--(RL deletion request/提出删除某一链路请求)-->DRNC-->nodeB--(RL deletion response/确认删除)-->DRNC-->SRNC
+4.ALCAP lub RB release && ALCAP lur RB release
+
+*替换(增加和删除的综合)
+UE的无线链路数达到允许的宏分集最大支路数后,进行无线链路替换的软切换过程
+1-5.过程和"增加"一样(SRNC决定增加一条RL,同时删除一条RL)
+6-10.和"删除"相似
+(在SRNC向UE发送"active set update活动集更新"消息包括了删除和增加两条RL的信息,UE也对应进行删除和增加两个操作)
+(没有lur接口的数据传输承载释放)
+(释放请求和响应是在SRNC和SRNC-nodeB之间进行而不是在SRNC和DRNC-nodeB之间进行)
+
+===RL setup request===
+
+
+===active set update活动消息集更新===
+消息结构:
+P100......
+实例:略
+
+===硬切换===
 
 
 
@@ -337,14 +465,5 @@ CCH-CCH:
 
 
 
-
-
-
-
-
-
-
-
-
-
+池余洋
 

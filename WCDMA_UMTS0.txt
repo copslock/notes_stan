@@ -1,3 +1,27 @@
 ==NAS(non-access stratum,非接入层)和AS==
-1.UMTS的协议栈分为NAS和AS。NAS协议处理UE和CN之间信息的传输，传输的内容可以是用户信息或控制信息（如业务的建立、释放或者移动性管理信息）。NAS消息一定程度上独立于下面的AS协议结构，与采样什么样的无线接入网无关（可以是GSM、GPRS、WCDMA）。控制平面的NAS消息有CM、MM、SM以及GMM等。用户平面的网络层NAS协议是IP（分组交换），电路交换业务不需要。
-2.NAS消息的传输要基于底层的AS协议。AS是无线接入网采用的协议。UMTS中的AS协议包括：无线接口Uu协议，Iub协议以及Iu协议。其中的无线接口协议是UE与UTRAN间的协议，协议的高层（包括MAC、RLC、RRC等）位于UE和RNC之间，而底层（PHY）位于UE和NodeB之间。
+1.UMTS的协议栈分为NAS和AS.NAS协议处理UE和CN之间信息的传输,传输的内容可以是用户信息或控制信息(如业务的建立、释放或者移动性管理信息).NAS消息一定程度上独立于下面的AS协议结构,与采样什么样的无线接入网无关(可以是GSM、GPRS、WCDMA).控制平面的NAS消息有CM、MM、SM以及GMM等.用户平面的网络层NAS协议是IP(分组交换),电路交换业务不需要.
+2.NAS消息的传输要基于底层的AS协议.AS是无线接入网采用的协议.UMTS中的AS协议包括：无线接口Uu协议,Iub协议以及Iu协议.其中的无线接口协议是UE与UTRAN间的协议,协议的高层(包括MAC、RLC、RRC等)位于UE和RNC之间,而底层(PHY)位于UE和NodeB之间.
+
+==CS和PS的概念==
+核心网分为电路交换域(CS域,Circuit SwitchedDomain)和分组交换域(PS域,Packet SwitchedDomain).
+1.CS域为用户提供“电路型业务”或相关信令连接路由;
+2.PS域为用户提供“分组型数据业务”.PS域源于通用无线分组业务(GPRS,General Packet RadioService),在GPRS(2.5G技术)的基础上实现了功能扩展和增强,其最终目的是提供高速的分组数据业务.
+3.IMS以IP分组网络作为承载,可以通过GPRS接入,为3G用户服务还可以有其他接入方式如WLAN、xDSL等,为非3G用户服务.IMS作为融合IP网络中的统一的呼叫控制核心,促进了网络融合.
+ 
+从功能上来说,IMS作为新的子系统,和电路域、分组域有着并列关系,即3G核心网在3GPPR5版本以后可以分为CS域、PS域和 IMS.通过PS域接入IMS服务,对PS域提出了新要求,如Go接口、P-CSCF发现机制、基于流的计费等.对于基本的语音呼叫和视频呼叫,可以通过 IMS和CS域互通实现.在业务发展上,CS域和IMS是业务互补、网络互通、融合替代的关系.
+
+LTE中没有CS域的概念,话音是通过voIP协议实现的.
+voIP(voice over internet protocol)
+
+==连接模式和空闲模式==
+连接模式:cell_fach, cell_dch, cell_pch, ura_pch(国内好像是只开了cell_fach和cell_dch模式?)
+
+==U-RNTI/C-RNTI==
+UTRAN Radio Network Temporary Identifier -- UTRAN无线网络临时标识
+CELL Radio Network Temporary Identifier -- 小区无线网络临时标识
+
+RNTI是UE在UTRAN中的身份标识，同时也是UE和RNC之间信令交互的标识
+C-RNTI:RRC连接临时标识;小区内唯一;由RNC分配;由MAC层使用
+U-RNTI:RRC连接临时标识;UTRAN内唯一;由RNC分配;由RRC层和MAC层使用
+C-RNTI是在空口上的公共信道消息中标示UE的
+U-RNTI是当手机存在RRC连接时第一次接入小区,和UTRAN发起包含有关响应消息的寻呼时,标示UE.
