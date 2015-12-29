@@ -34,3 +34,9 @@ RANAP:CN
 
 MAP/E:GSM/MSC
 BSSMAP:GSM/BSC
+
+==消息结构里各类消息的存在形式==
+MD Mandatory(强制的) default	默认存在的
+MP Mandatory present			强制必须显示出来的信息
+OP Optional						可选额外的附加信息
+CH Conditional on history		根据情况条件可能存在的

@@ -393,7 +393,7 @@ RRC释放只能发生在cell_fach或cell_dch状态下,如果在其他状态则�
 囊括在CM之中
 UMTS常见的移动性管理:前向切换,软切换,硬切换,系统间切换,迁移
 
-===前向切换=== ?= (LAC更新/小区更新?)
+===前向切换=== ?= (LAC更新/小区更新?/小区切换?)
 更新UE信息,监视RRC连接,切换RRC连接状态,错误通报,传递信息
 *小区更新
 小区处于非空闲状态之外的其他四种连接模式状态都可以发生小区更新
@@ -410,7 +410,7 @@ UMTS常见的移动性管理:前向切换,软切换,硬切换,系统间切换,�
 只有在ura_pch状态下的才能进行此过程
 更新原因:ura(注册位置区)重选,周期性更新
 1.UE--(ura update)-->UTRAN--(ura update confirm)-->UE
-2.视情况返回信息或不返回任何信息
+2.视情况UE返回相应信息或不返回任何信息
 
 ===软切换=== ?= (小区内切换,无线链路切换?)
 无线链路的变化(增加/删除/替换)
@@ -513,7 +513,7 @@ RNC内的硬切换比上面的情况少了DRNC和SRNC的交互过程,全部都�
 12.UE--(physical channel reconfiguration complete)-->目标RNC
 13.目标RNC--(relocation complete/迁移完成)-->SGSN/MSC
 14.SGSN/MSC--(IU release cmd/源RNC的lu接口释放命令)-->源RNC
-15.ALCAP IU data transport bearer release
+15.ALCAP lu data transport bearer release
 16.源RNC--(IU release complete)-->SGSN/MSC
 
 ===physical channel reconfiguration===
@@ -562,14 +562,169 @@ WCDMA<-->GSM:建立CS域业务,处于cell_dch状态切换到GSM系统,处于连�
 GSM/GPRS<-->WCDMA:小区重选过程
 
 *WCDMA-->GSM
-1.SRNC--(relocation required)-->CN--(MAP/E:prepare HO)-->GSM的MSC--(BSSMAP:ho request)-->GSM的BSC
-2.GSM的BSC--(ho request ACK)-->GSM的MSC--(prepare ho response)-->CN--(relocation cmd/发起迁移命令)-->SRNC
+1.SRNC--(relocation required)-->CN--(MAP/E:prepare HO)-->GSM/MSC--(BSSMAP:ho request)-->GSM/BSC
+2.GSM/BSC--(ho request ACK)-->GSM/MSC--(prepare ho response)-->CN--(relocation cmd/发起迁移命令)-->SRNC
 3.SRNC--(ho from UTRAN cmd/通过已经存在的RCC连接向UE发起系统间的切换命令)-->UE
-4.GSM的BSC--(ho detect)-->GSM的MSC
-5.UE--(ho complete)-->GSM的BSC-->GSM的MSC
-6.GSM的MSC--(send end signal request/发送"结束信令"请求)-->CN--(IU release cmd/终止CN和GSM系统间的链路及承载资源)-->SRNC--(IU release complete)-->CN--(send end signal response)-->GSM的MSC
+4.GSM/BSC--(ho detect)-->GSM/MSC
+5.UE--(ho complete)-->GSM/BSC-->GSM/MSC
+6.GSM/MSC--(send end signal request/发送"结束信令"请求)-->CN--(IU release cmd/终止CN和GSM系统间的链路及承载资源)-->SRNC--(IU release complete)-->CN--(send end signal response)-->GSM/MSC
+
+ho from UTRAN cmd消息结构:
+Message Type
+*UE information elements
+RRC transaction identifier
+Integrity check info
+Activation time
+*RB information elements
+RAB information list
+>RAB info
+*Other information elements
+CHOICE System type
+>GSM
+>>Frequency band
+>>GSM message
+>>>Single GSM message
+>>>GSM message List
+>cdma2000
+>>cdma2000MessageList
+>>>MSG_TYPE(s)
+>>>cdma2000Messagepayload(s)
 
 *GSM-->WCDMA
+1.GSM/BSC--(ho required)-->GSM/MSC--(prepare ho)-->CN--(relocation request)-->SRNC
+2.SRNC--(relocation request ACK)-->CN--(prepare HO response)-->GSM的MSC--(ho cmd)-->GSM的BSC
+3.BSC--(RR:ho cmd)-->UE
+4.SRNC--(relocation detect/迁移检测)-->CN
+5.UE--(DCCH:ho to UTRAN complete)-->SRNC
+6.SRNC--(relocation complete)-->CN
+7.CN--(send end signal request)-->GSM/MSC--(clear cmd)-->GSM/BSC--(clear complete)-->GSM/MSC--(send end signal response)-->CN
+
+ho to UTRAN complete消息结构:
+New U-RNTI
+Ciphering algorithm
+CHOICE specification mode
+>Complete specification
+*RB information elements
+>>Signalling RB information to setup list
+>>>Signalling RB information to setup
+>>RAB information to setup list
+>>>RAB information for setup
+*Uplink transport channels
+>>UL Transport channel information common for all transport channels
+>>Added or Reconfigured TrCH information
+>>>Added or Reconfigured UL TrCH information
+*Downlink transport channels
+>>DL Transport channel information common for all transport channels
+>>Added or Reconfigured TrCH information
+>>>Added or Reconfigured DL TrCH information
+*Uplink radio resources
+>>Uplink DPCH info 
+>>CHOICE mode
+>>>FDD
+>>>>CPCH SET Info
+*Downlink radio resources
+>>>>Downlink PDSCH information
+>>>TDD
+>>Downlink information common for all radio links
+>>Downlink information per radio link
+>>>Downlink information for each radio link
+>Preconfiguration
+>>CHOICE Preconfiguration mode
+>>>Predefined configuration 
+>>>Default configuration
+>>>>Default configuration mode
+>>>>Default configuration identity
+>>RAB info
+>>Uplink DPCH info 
+*Downlink radio resources
+>>Downlink information common for all radio links
+>>Downlink information per radio link
+>>>Downlink information for each radio link
+>>CHOICE mode
+>>>FDD
+>>>TDD
+>>>>Primary CCPCH Tx Power
+Frequency info
+Maximum allowed ULTX power
+
+*GSM/GPRS-->WCDMA
+1.UE在GSM的小区中通过广播的SI得知WCDMA小区的信息,根据小区重选参数判决是否需要进行重选
+2.判决重选到一个WCDMA的小区,读取SI,在WCDMA系统中注册,过程和"位置更新"相同.(小区更新:小区更新的原因之一小区重选)
+
+*WCDMA-->GSM/GPRS
+idle:空闲状态
+此种系统切换的小区重选的情况:
+
+1.UE处于idle模式,进行小区重选
+UE通过WCDMA的小区广播的系统消息得知GSM/GPRS系统小区的参数,判决重选至GSM/GPRS中一小区,读取SI,发起注册过程
+
+2.UE处于cell_fach/cell_pch/ura_pch状态
+UE在WCDMA中建立PS域的业务,处于上述3种状态之一,UE发起了系统间的小区重选
+
+UE(cell reselection triggered/选中GSM/GPRS系统的一个小区,读取SI,发起UE和GPRS信令连接的建立过程)
+CN--(IU release cmd)-->SRNC--(IU release complete)-->CN
+
+3.UE处于cell_dch/cell_fach状态
+在WCDMA中建立PS域的业务,处于上述2种状态之一,网络侧发起系统间的小区重选
+
+SRNC--(cell change order from UTRAN/进行UE-GPRS连接建立)-->UE
+CN--(UI release cmd)-->SRNC--(UI release complete)-->CN
+
+===迁移===
+RNC的迁移是指SRNC的变化
+根据UE和DRNC的连接是否在迁移中建立可分为"UE不涉及/UE not involved"和"UE涉及"两种情况
+根据触发原因可分为4种情况:静态迁移/硬切换伴随迁移/前向切换伴随迁移/系统间切换伴随迁移
+
+*静态迁移(UE不涉及)
+DRNC增加RL后导致的迁移过程,UE已在DRNC中且仅在DRNC建立了无线链路,DRNC取代原SRNC的功能位置,释放lur接口的连接
+UE向MSC(CS域)和SGSN(PS域)
+
+1.SRNC--(relocation required)-->SGSN/MSC--(relocation request)-->DRNC
+2.ALCAP lu(DRNC和CN) setup
+3.DRNC--(relocation request ACK)-->SGSN/MSC--(relocation cmd)-->SRNC
+4.SRNC--(relocation commit/迁移触发,启动数据转移,迁移RAB)-->DRNC--(relocation detect)-->SGSN/MSC
+5.DRNC--(UTRAN mobility info/包含新的U-RNTI等信息)-->UE--(UTRAN mobility info confirm)-->DRNC
+6.DRNC--(relocation complete)-->SGSN/MSC--(release cmd)-->SRNC
+7.ALCAP lu(SRNC和CN) release
+8.SRNC--(IU release complete)-->SGSN/MSC
+
+*硬切换伴随迁移(UE涉及)
+和硬切换中的"联合硬切换"部分非常相似,只有部分流程有所变化删减
+是本来就没有还是省略了?联合硬切换中的nodeB相关的信令流程,没有向nodeB请求资源和中间和UE交互的信令流程
+
+1.源RNC--(relocation required/两个节点收到迁移准备请求)-->SGSN/MSC(进行切换准备)
+2.SGSN/MSC--(relocation request/向切换目标RNC请求链路资源)-->目标RNC
+3.ALCAP lu setup
+4.目标RNC--(relocation request ACK/准备就绪,响应)-->MSC/SGSN--(relocation cmd)-->源RNC
+*5.SRNC--(forward srns context/如果支持无损转移RAB才有这一步)-->SGSN--(forward srns context)-->目标RNC
+6.源RNC--(physical channel reconfiguration/通知UE新的物理信道重配置和参数)-->UE
+7.UE--(physical channel reconfiguration complete)-->目标RNC
+8.目标RNC--(relocation complete/迁移完成)-->SGSN/MSC
+9.SGSN/MSC--(IU release cmd/源RNC(两个域)的lu接口释放命令)-->源RNC
+10.ALCAP lu(lu-PS,lu-CS) release
+11.源RNC--(IU release complete)-->SGSN/MSC
+
+*前向切换伴随迁移(UE不涉及)
+UE在SRNC已建立RRC连接,进入DRNC小区中发生了前向切换(小区更新或URA更新),导致了迁移
+
+1.UE--(cell update)-->DRNC--(uplink signalling transfer indication)-->SRNC
+2.SRNC--(relocation required)-->SGSN--(relocation request)-->DRNC--(~ ACK)-->SGSN
+3.SGSN--(relocation cmd)-->SRNC--(relocation commit)-->DRNC-(relocation detect)-->SGSN
+4.DRNC--(cell update confirm)-->UE--(physical channel reconfiguration complete)-->DRNC
+5.DRNC--(relocation complete)-->SGSN
+6.SGSN--(IU release cmd)-->SRNC--(IU release complete)-->SGSN
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
