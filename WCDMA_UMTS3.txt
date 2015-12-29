@@ -1,0 +1,10 @@
+由GSM发展而来的WCDMA
+NAS非接入层构成:MM,GMM(GPRS-MM),CM(CC,SMS,SS(CS-domain)/SM-session management(PS-domain))
+在SIM基础上发展的USIM
+
+UTMS(universal mobile telecommunications system)
+*3G,基于CDMA无线接入网络,频率3.84Mcps
+*基于GSM/GPRS系统网络发展起来的,应用标准一致
+*频分双工\时分双工,如果是频分双工模式需要成对的频段
+*支持大量新兴服务,高传输速率(PS域可达 1.96Mbps, CS域最大可达384kbps)
+

@@ -1,0 +1,22 @@
+==谈谈指令集==
+Reduced Instruction Set Computer-RISC
+Complex Instruction Set Computer-CISC
+type				CISI					RISC
+指令系统			复杂庞大 				简单精简 
+指令数目			一般大于200 			一般小于100 
+指令格式 			一般大于4 				一般小于4 
+寻址方式 			一般大于4 				一般小于4 
+指令字长 			不固定 					等长 
+可访存指令 			不加限制 				只有LOAD/STORE指令 
+各种指令使用频率 	相差很大 				相差不大 
+各种指令执行时间 	相差很大 				绝大多数在一个周期内完成 
+优化编译实现 		很难 					较容易
+程序源代码长度		较短					较长
+控制器实现方式		绝大多数为微程序控制 	绝大多数为硬布线控制
+软件系统开发时间	较短 					较长
+
+==所有SW的基础-硬件==
+CPU-内存-I/O控制器
+
+频率的极限之后兴起的SMP(symmetrical multi-processing/对称多核处理器)热潮
+

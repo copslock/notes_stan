@@ -4,20 +4,18 @@ java-call
 
 hall-sensor
 
-鸟哥		    p445
+鸟哥		    p477
 大话通信	    over
-gsm原理			chapter-10
-程序员自我修养(文件的编译,链接)  ready-to-go
+gsm原理			chapter7和11未看
+程序员自我修养(文件的编译,链接)  P31
 c prime 		暂时放弃
 c the programming lang	ready-to-go
-WCDMA			Pwtf
+WCDMA			summary
 LTE白皮书		over
 qcom_UMTS_overview		P18
+
 
 指纹识别			task-->cut
 firefox OS porting 	task-->ing
 
-gsm10 over
-sh over
-init.rc ing
 
