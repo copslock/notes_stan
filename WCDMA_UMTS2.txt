@@ -1,6 +1,99 @@
 WCDMA summary:
-典型流程汇总:
 
-主叫流程:	RRC连接建立->信令连接->RAB建立->信令连接释放->RAB释放->RRC释放
-被叫流程比主叫多一个第一步的寻呼过程
+*主叫流程:	RRC连接建立->信令连接->RAB建立->通话ing->信令连接释放->RAB释放->RRC释放
+
+DT==direct transfer直传消息
+DL/UL==down link/up link
+RL==radio link无线链路
+
+1.UE--(CCCH:rrc connection request)-->SRNC--(RL setup request)-->nodeB
+2.nodeB--(RL setup response)-->SRNC
+3.ALCAP lub setup
+4.SRNC--(CCCH:rrc connection setup)-->UE--(DCCH:rrc connection setup complete)-->SRNC
+--------------------------------------------
+5.UE--(DCCH:initial DT)-->SRNC--(initial UE Message/CM service request)-->CN--(DT/CM service accpect)-->SRNC--(DCCH:DL DT)-->UE
+6.UE--(DCCH:UL DT)-->SRNC--(DT/setup)-->CN--(DT/call proceeding)-->SRNC--(DCCH:DL DT)-->UE
+7.UE--(DCCH:UL DT)-->SRNC
+--------------------------------------------
+8.CN--(RAB assignment request/establish)-->SRNC
+9.ALCAP lur setup
+10.SRNC--(RL reconfiguration prepare)-->nodeB--(RL reconfiguration ready)-->SRNC
+11.ALCAP lub setup
+12.SRNC--(DCCH:RB setup/RL reconfiguration commmit)-->UE/nodeB
+~.apply new transport format set
+13.UE--(DCCH:RB setup complete)-->SRNC
+14.SRNC--(RAB assignment response/establish)-->CN
+--------------------------------------------
+主叫端:
+15.(滴滴响铃声)CN--(DT/alerting)-->SRNC-->UE
+16.(通话ing)CN--(DT/connect)-->SRNC-->UE--(DT/connect ACK)-->SRNC-->CN
+17.(主叫端挂断)UE--(DT/disconnect)-->SRNC-->CN
+--------------------------------------------
+18.CN--(DT/release)-->SRNC-->UE--(DT/release complete)-->SRNC-->CN
+19.CN--(IU release cmd)-->SRNC
+20.ALCAP lu release
+21.SRNC--(IU release complete)-->CN
+22.SRNC--(DCCH:rrc connection release)-->UE--(DCCH:rrc connection release complete)-->SRNC
+23.SRNC--(RL deletion)-->nodeB--(RL deletion complete)-->SRNC
+24.ALCAP lub release
+
+*被叫流程:	寻呼过程->RRC连接建立->信令连接->RAB建立->通话ing->信令连接释放->RAB释放->RRC释放
+
+--------------------------------------------
+0.CN--(paging)-->SRNC--(paging type1/2)-->UE
+--------------------------------------------
+1.UE--(CCCH:rrc connection request)-->SRNC--(RL setup request)-->nodeB
+2.nodeB--(RL setup response)-->SRNC
+3.ALCAP lub setup
+4.SRNC--(CCCH:rrc connection setup)-->UE--(DCCH:rrc connection setup complete)-->SRNC
+--------------------------------------------
+5.UE--(DCCH:initial DT)-->SRNC--(initial UE Message/paging response)-->CN
+--------------------------------------------
+6.CN--(DT/setup)-->SRNC--(DCCH:DL DT)-->UE
+7.UE--(DCCH:UL DT)-->SRNC--(DT/call confirm)-->CN
+--------------------------------------------
+8.CN--(RAB assignment request/establishment)-->SRNC
+9.ALCAP lur setup
+10.SRNC--(RL reconfiguration prepare)-->nodeB--(RL reconfiguration ready)-->SRNC
+11.ALCAP lub setup
+12.SRNC--(DCCH:RB setup/RL reconfiguration commmit)-->UE/nodeB
+~.apply new transport format set
+13.UE--(DCCH:RB setup complete)-->SRNC
+14.SRNC--(RAB assignment response/establish)-->CN
+--------------------------------------------
+被叫端:
+15.(滴滴响铃声)UE--(DT/alerting)-->SRNC-->CN
+16.(通话ing)UE--(DT/connect)-->SRNC-->CN--(DT/connect ACK)-->SRNC-->UE
+17.(主叫端挂断/从主叫端UE到主叫端CN再到被叫端CN)CN--(DT/disconnect)-->SRNC-->UE
+--------------------------------------------
+18.(收到主叫端挂断后,被叫端UE判断需要释放资源,向上汇报该情况)UE--(DT/release)-->SRNC-->CN--(DT/release complete)-->SRNC-->UE
+19.CN--(IU release cmd)-->SRNC
+20.ALCAP lu release
+21.SRNC--(IU release complete)-->CN
+22.SRNC--(DCCH:rrc connection release)-->UE--(DCCH:rrc connection release complete)-->SRNC
+23.SRNC--(RL deletion)-->nodeB--(RL deletion complete)-->SRNC
+24.ALCAP lub release
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

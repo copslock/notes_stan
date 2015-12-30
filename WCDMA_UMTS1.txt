@@ -273,7 +273,7 @@ RNC--(rrc connection reject)-->UE
 ===直传消息===
 UE和CN之间的信令交互NAS信息(CM,MM,鉴权),经过RNC但不需要其来处理
 
-需要继续建立UE和CN之间的信令连接
+出现原因:需要继续建立UE和CN之间的信令连接
 
 *flow
 !*如果UE处于cell_pch或ura_pch等状态,为了进行直传必须要先"小区更新"进入cell_fach状态,更新理由"uplink data transmission",更新成功后再继续初始化直传

@@ -176,3 +176,9 @@ $ git rebase --abort
 
 git pull --rebase 也可以起到这样的作用,先取消本地所有commit早于origin的,同步之后,再把本地的以patch形式打在已同步的仓库里
 
+e.g.
+git clone ssh://xuan.he@10.120.10.101:29418/ProjectTest && scp -p(保留文件修改时间,访问时间,权限模式) -P(指定远程主机端口号) 29418 xuan.he@10.120.10.101:hooks/commit-msg ProjectTest/.git/hooks/
+
+scp(支持上传或下载)和rsync
+scp -r(递归传输文件) 源/目标地址 目标/源地址 
+ftp 10.120.10.101	服务器登录

@@ -5,7 +5,7 @@
 ==CS和PS的概念==
 核心网分为电路交换域(CS域,Circuit SwitchedDomain)和分组交换域(PS域,Packet SwitchedDomain).
 1.CS域为用户提供“电路型业务”或相关信令连接路由;
-2.PS域为用户提供“分组型数据业务”.PS域源于通用无线分组业务(GPRS,General Packet RadioService),在GPRS(2.5G技术)的基础上实现了功能扩展和增强,其最终目的是提供高速的分组数据业务.
+2.PS域为用户提供“分组型数据业务”.PS域源于通用无线分组业务(GPRS,General Packet Radio Service),在GPRS(2.5G技术)的基础上实现了功能扩展和增强,其最终目的是提供高速的分组数据业务.
 3.IMS以IP分组网络作为承载,可以通过GPRS接入,为3G用户服务还可以有其他接入方式如WLAN、xDSL等,为非3G用户服务.IMS作为融合IP网络中的统一的呼叫控制核心,促进了网络融合.
  
 从功能上来说,IMS作为新的子系统,和电路域、分组域有着并列关系,即3G核心网在3GPPR5版本以后可以分为CS域、PS域和 IMS.通过PS域接入IMS服务,对PS域提出了新要求,如Go接口、P-CSCF发现机制、基于流的计费等.对于基本的语音呼叫和视频呼叫,可以通过 IMS和CS域互通实现.在业务发展上,CS域和IMS是业务互补、网络互通、融合替代的关系.
