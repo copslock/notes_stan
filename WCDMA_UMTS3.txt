@@ -96,7 +96,39 @@ core network:PS domain(SGSN,GGSN(GGSN类比于PS域里的"GMSC"))---(internet); 
 对于WCDMA制式的系统,CN实际就是GSM/GPRS系统的演化升级,UTRAN的接口是新加的东西,不同于以往的Um无线接口,nodeB和RNC也和BTS,BSC有差异.
 PS和CS domain共享同一个auc和HLR,UE可以再GSM和WCDMA之间切换,GSM系统通过A/Gb接口和MSC/SGSN两个域相连,UTRAN通过对应的lu接口互连.
 
+USIM:universal subscriber identity module/manage UE subscription info and authentication functions
+include a universal integrated circuit card(UICC)
 
+===网络结构===
+cell/Route Areas/URA/Location Areas
+传统nodeB一般会包含3个cell,在CS域cell都在被LA控制,
+在PS域里,路由和移动性管理MM由RA控制,
+小区,路由区,位置区都属于URA内部结构,被用来管理处于连接模式下的UE的位置情况,
+RA只对应一个LA,一个LA可以对应多个RA,URA一般比LA和RA要小(不绝对限制),URA是UTRAN网络的一部分.
+
+===信令协议栈===
+域			CS domain					PS domain
+NAS:		CM(SMS短消息服务,CC,SS)		SMS/SM(session management/处理PS域的call的建立和释放)
+			MM							G(GPRS)MM
+AS:	layer3	RRC							RRC
+	layer2	RLC							RLC
+			MAC							MAC
+	layer1	Physical layer				Physical layer
+
+UMTS的非接入层和GSM的相似,主要的不同点在于WCDMA接入层协议栈和各个接口
+
+控制面的协议栈:展示信令协议如何起始结束,CS域的call怎么运行在专用的物理信道上
+CM:负责UE和MSC之间的呼叫建立和释放
+MM:负责UE和MSC之间的移动性管理
+RRC:UE和RNC之间的无线资源的建立,释放,配置
+RLC:在UE和RNC之间提供segmentation,re-assembly,重新检测,layer 2的信令传输
+MAC:UE和RNC之间-多路复用-用户面和控制面的数据
+物理层:UE和nodeB/nodeB和RNC之间传输数据所需要的无线链路的连接Uu,它们之间的物理层的接口处理组合和拆分两个工作
+
+用户面协议栈:展示用户协议如何起始终止
+NAS:一个包含了很多layers的application,处于远程用户/MSC和UE之间,通过两端都设置有的话音编码器发出或接受信号,传输通过无线方式或者数字线路
+RRC:用户面协议栈没有RRC
+RLC/MAC/物理层:功能和控制面的一样
 
 
 

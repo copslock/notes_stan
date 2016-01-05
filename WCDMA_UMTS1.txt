@@ -82,7 +82,7 @@ case1:request-->response/failure
 case2:无响应,始终认为消息成功
 
 ===lu接口===
-*UTRAN和CN之间的接口,对于不同核心网(cs-domain/ps-domain/bc-domain)对应接口还有细分
+*UTRAN和CN之间的接口,对于不同核心网(cs-domain/ps-domain/bc-domain)
 
 *RANAP功能:
 RAB(无线承载管理):建立,修改,释放,建立请求排队
