@@ -1,10 +1,11 @@
-==UTMS和WCDMA到底是什么==
+==UMTS和WCDMA到底是什么==
 Wideband-CDMA
 WCDMA是由GSM发展而来的一种新的制式"名"
 WCDMA仍旧保留着很多GSM中已有的东西,例如:NAS非接入层构成:MM,GMM(GPRS-MM),CM(CC,SMS,SS(CS-domain)/SM-session management(PS-domain))
+AS接入层:RRC;layer1;layer2
 在SIM基础上发展而来的USIM
 
-UTMS(universal mobile telecommunications system)
+UMTS(universal mobile telecommunications system)
 *3G,基于CDMA无线接入网络,频率3.84Mcps
 *基于GSM/GPRS系统网络发展起来的,应用标准一致
 *频分双工\时分双工,如果是频分双工模式需要成对的频段
@@ -23,7 +24,7 @@ release 99/specifications(specs)完整规格协议列表 21.101
 
 ==UMTS-standard==
 release 99 features:
-新的无线接口(UTRAN),码片速率=3.84Mcps
+新的无线接口(UTRAN),码片速率=3.84Mcps(M chip per second)
 //码片速率＝符号速率×扩频因子 
 //符号速率＝（业务速率＋校验码）×信道编码×重复或打孔率 
 多媒体消息
@@ -61,8 +62,39 @@ WCDMA是FDD物理层和协议栈所支持的
 UTRAN归属于WCDMA的无线接入网络
 WCDMA意味着"NTT DOCOMO"? WCDMA代表着在UMTS中采用FDD制式的无线接入网络(由3gpp定义)
 
-==UMTS的重要技术概念==
+==UMTS的重要技术概念(concepts)==
+===编码方式的变化===
+FDMA:每个用户指定一个特定频点(一个呼叫过程中不能改变),允许系统的多接入,第一代模拟系统就是使用的单频分多址系统.
+TDMA:一个频带分为多个频点,一个频点再时分为多个"时间片","跳频"允许用户接入这个频带内任一频点的任一"时间片"内.
+CDMA:多用户占用同样的频带和时间片,通过唯一的分配码来区分彼此,在接收处信号是通过相关器只接受信号能量来自于指配码信道的,所有在该频带的其他信号都只会被认为是"噪声",CDMA2000和WCDMA都是使用的这个基础CDMA调制概念.
 
+类似于一个大房间里很多人同时用不同的语言交谈,你只会识别你"认识"的语言而过滤掉其他的信息,无线网络也是如此,根据特定的分配码,识别对应的信息,同时还会进行power control过程(对于微弱的信号请求加强,对于"嘈杂"的信号请求减弱),减小互相干扰,但也不影响正常识别.
+
+===频带分配===
+UMTS FDD:
+uplink: 	1920-1980Mhz; 1850-1910Mhz
+downlink:	2110-2170Mhz; 1930-1990Mhz
+频带宽度:	60Mhz
+频带间隔:	190Mhz/80Mhz
+频点间隔:	200Khz
+
+===信道特点===
+UMTS信道带宽空间名义是5Mhz,但是可以根据特殊的应用优化调整,信道的间隔是200Khz,意味着每个信道的中心频率值(频点)一定是200Khz的整数倍,信道编号即"UTRFCN".
+频点号"UARFCN(UTRA absolute radio frequency channel number)" x 200Khz = 所在频点的频值大小
+UTRA = UMTS Terrestrial(地面) Radio Access
+
+===功率控制===
+根据收到功率的大小来发出需要增强或减弱的请求,平衡路径不同带来的损耗差异,形成一个闭环的功率调整系统.
+
+===切换===
+WCDMA系统中,软切换使用优于硬切换,软切换可以先确定目标切换小区后再决定如何处理与原服务小区的连接,UE和多个小区的连接之间不会互相影响,且也可以同时连接多个小区.
+
+===UMTS系统的网络拓扑结构===
+UE:USIM和mobile端
+Access network:一个或多个nodeB---RNC
+core network:PS domain(SGSN,GGSN(GGSN类比于PS域里的"GMSC"))---(internet); CS domain(MSC/VLR,GMSC(MSC之间的汇接))--(PSTN/ISDN)
+对于WCDMA制式的系统,CN实际就是GSM/GPRS系统的演化升级,UTRAN的接口是新加的东西,不同于以往的Um无线接口,nodeB和RNC也和BTS,BSC有差异.
+PS和CS domain共享同一个auc和HLR,UE可以再GSM和WCDMA之间切换,GSM系统通过A/Gb接口和MSC/SGSN两个域相连,UTRAN通过对应的lu接口互连.
 
 
 
