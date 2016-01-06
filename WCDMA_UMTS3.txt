@@ -72,8 +72,9 @@ CDMA:多用户占用同样的频带和时间片,通过唯一的分配码来区�
 
 ===频带分配===
 UMTS FDD:
-uplink: 	1920-1980Mhz; 1850-1910Mhz
-downlink:	2110-2170Mhz; 1930-1990Mhz
+上行			下行
+1920-1980Mhz 	2110-2170Mhz
+1850-1910Mhz 	1930-1990Mhz	(GSM1900?)
 频带宽度:	60Mhz
 频带间隔:	190Mhz/80Mhz
 频点间隔:	200Khz
@@ -101,10 +102,7 @@ include a universal integrated circuit card(UICC)
 
 ===网络结构===
 cell/Route Areas/URA/Location Areas
-传统nodeB一般会包含3个cell,在CS域cell都在被LA控制,
-在PS域里,路由和移动性管理MM由RA控制,
-小区,路由区,位置区都属于URA内部结构,被用来管理处于连接模式下的UE的位置情况,
-RA只对应一个LA,一个LA可以对应多个RA,URA一般比LA和RA要小(不绝对限制),URA是UTRAN网络的一部分.
+传统nodeB一般会包含3个cell,在CS域cell都在被LA控制,在PS域里,路由和移动性管理MM由RA控制,小区,路由区,位置区都属于URA内部结构,被用来管理处于连接模式下的UE的位置情况,RA只对应一个LA,一个LA可以对应多个RA,URA一般比LA和RA要小(不绝对限制),URA是UTRAN网络的一部分.
 
 ===信令协议栈===
 域			CS domain					PS domain
@@ -129,6 +127,36 @@ MAC:UE和RNC之间-多路复用-用户面和控制面的数据
 NAS:一个包含了很多layers的application,处于远程用户/MSC和UE之间,通过两端都设置有的话音编码器发出或接受信号,传输通过无线方式或者数字线路
 RRC:用户面协议栈没有RRC
 RLC/MAC/物理层:功能和控制面的一样
+
+接入层:
+RRC:整个接入层的控制器,负责配置提供AS所有层面向NAS层的信令接口
+BMC(boardcast/multicast control):小区广播消息的存储,调度,传输,发送,请求无线资源
+PDCP(packet data convergence protocol):分组数据的压缩和解压
+RLC:加密;segmentation,re-assembly,重新检测......
+MAC:映射和多路复用逻辑信道到传输信道;UE认证;随机接入信道;加密;处理数据流的优先级
+physical layer:前向纠错编码/解码;传输信道上的错误删除;软切换和宏分集的分配/组合;交织/反交织;多路复用/解多路复用;rate匹配;调制/解调;频率和时间(chip,bit,slot,frame)同步;闭环功率控制;RF进程;spreading(扩展)/despreading......
+
+future channels(not exist in release 99):
+Common Packet Channel (CPCH) – Uplink Transport Channel
+Physical Common Packet Channel (PCPCH) – Uplink Physical Channel
+Common Traffic Channel (CTCH) – Downlink Logical Channel
+Downlink Shared Channel (DSCH) – Downlink Transport Channel
+Physical Downlink Shared Channel (PDSCH) – Downlink Physical Channel
+
+寻呼信道PCH和PICH,UTRAN不间断在PCH上播放广播信息,UE只监测对应PICH,PICH指示着一组移动端的信息是否传输到对应的SCCPCH上,all的UE分配给一个特定的PICH,而且PICH的指示器会解码联合的SCCPCH信道内容去判断哪一个UE的信息是需要被寻址/寻呼的.
+
+BCCH逻辑信道携带系统消息,驻留在WCDMA小区,UTRAN广播无间断发送消息,在一个系统配置的重复频率重复发送系统消息,UE在进入一个小区或开机后读取该信道,确保UE获得了正确的最新的系统消息
+
+FACH和RACH:
+携带UTRAN到空闲模式下的UE的消息,用于UE没有一个专用信道的时候,RACH有一个接入协议,UE会传送一个协议头去提高发射功率直到UTRAN在AICH做出响应,收到响应之后,UE会发送剩下的RACH信道的信息.
+当UTRAN全部收到来自UE的RACH信道消息,它会对在FACH上发出响应,前向传送信道映射在SCCPCH上,这可能是和搭载过PCH的同一个物理信道.
+
+专用信道携带着信令和用户信息数据,这些信道在呼叫被发起时或分组数据传输时才会被指配,通常来说DCCH被指配去负载RRC和NAS的信令,这也被叫做SRB(信令的无线承载).两个SRB去负载RRC信令,其中一个配置响应模式,另一个配置unack模式;如果SRB被指配去负载NAS信令,两个分别去负载高优先级和低优先级的信息.
+专用业务信道DTCH由所使用的应用服务类型来指配,对于话音,可适应的多频声码器使用3个DTCH去承载不同的编码话音信号;DCCH和DTCH在DCH传输信道上实现多路复用,每一个都指配给一个独立的DCH;所有DCH传输信道可以multiplexed在一个单独的DPDCH上,未来还会支持多路的DPDCH;DPCCH携带着去更新物理层的控制信息,例如导频信息,功率控制,rate bit......
+
+
+
+
 
 
 
