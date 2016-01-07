@@ -129,10 +129,10 @@ RRC:用户面协议栈没有RRC
 RLC/MAC/物理层:功能和控制面的一样
 
 接入层:
-RRC:整个接入层的控制器,负责配置提供AS所有层面向NAS层的信令接口
+RRC:整个接入层的控制器,负责配置提供AS所有层面向NAS层的信令接口,管理无线资源(分配,逻辑配置,传输,物理信道等等)
 BMC(boardcast/multicast control):小区广播消息的存储,调度,传输,发送,请求无线资源
 PDCP(packet data convergence protocol):分组数据的压缩和解压
-RLC:加密;segmentation,re-assembly,重新检测......
+RLC:无线接入链路的控制;加密;segmentation;re-assembly;重新检测;提供ACK/UNACK响应;transparent的数据传输模式
 MAC:映射和多路复用逻辑信道到传输信道;UE认证;随机接入信道;加密;处理数据流的优先级
 physical layer:前向纠错编码/解码;传输信道上的错误删除;软切换和宏分集的分配/组合;交织/反交织;多路复用/解多路复用;rate匹配;调制/解调;频率和时间(chip,bit,slot,frame)同步;闭环功率控制;RF进程;spreading(扩展)/despreading......
 
@@ -145,7 +145,7 @@ Physical Downlink Shared Channel (PDSCH) – Downlink Physical Channel
 
 寻呼信道PCH和PICH,UTRAN不间断在PCH上播放广播信息,UE只监测对应PICH,PICH指示着一组移动端的信息是否传输到对应的SCCPCH上,all的UE分配给一个特定的PICH,而且PICH的指示器会解码联合的SCCPCH信道内容去判断哪一个UE的信息是需要被寻址/寻呼的.
 
-BCCH逻辑信道携带系统消息,驻留在WCDMA小区,UTRAN广播无间断发送消息,在一个系统配置的重复频率重复发送系统消息,UE在进入一个小区或开机后读取该信道,确保UE获得了正确的最新的系统消息
+BCCH逻辑信道携带系统消息,驻留在WCDMA小区,UTRAN广播持续发送消息,在一个系统配置的重复频率重复发送系统消息,UE在进入一个小区或开机后读取该信道,确保UE获得了正确的最新的系统消息
 
 FACH和RACH:
 携带UTRAN到空闲模式下的UE的消息,用于UE没有一个专用信道的时候,RACH有一个接入协议,UE会传送一个协议头去提高发射功率直到UTRAN在AICH做出响应,收到响应之后,UE会发送剩下的RACH信道的信息.
@@ -156,10 +156,53 @@ FACH和RACH:
 
 ==接入信令层==
 ===UE识别鉴定/呼叫状态===
+编号计划:IMSI/IMEI/C-RNTI/U-RNTI/TMSI(VLR分配,CS域临时id)/P-TMSI(由SGSN分配,PS域临时id)
+C-RNTI在UE建立RRC连接时被分配,用于保持UE在公共信道上的连接.
+U-RNTI在UE建立RRC连接时被分配,用于小区更新/URA更新/RRC连接的重建/UTRAN发起寻呼
+
+UE call states:
+1.idle mode
+只有下行的PCH.
+空闲模式可以分为"驻留在UTRAN的cell中"或"GSM/GPRS的cell中",当没有CS/PS域的呼叫时UE会处在空闲模式,UE会在它的寻呼周期检测PCH和PICH,以便UE可以做出回应,UE也可以自己主动发起呼叫过程,直接通过RACH向UTRAN(RNC)发起RRC连接请求.
+移动性管理:空闲模式下,对于CS域服务,UE表现为"位置区的更新",当UE进入一个新的位置区,UTRAN会向该位置区内的所有小区发起对UE的寻呼;对于PS域服务,表现为"routing area(路由区)的更新".
+addressing:空闲模式下,UTRAN对UE进行寻址通过IMSI,TMSI或者P-TMSI进行.
+call types:空闲模式下,没有活动呼叫被允许,然而一个PS域的呼叫应该处于"上下文保留"的状态.
+
+2.cell_DCH
+上下行都是通过DCH.
+UTRAN的4种连接状态的状态转换,可以由cell_FACH状态下建立DPCH(专用物理信道)来转换到DCH状态,也可以在空闲模式下通过RRC的建立和释放达到互相转换.
+移动性管理:UTRAN在UE更换了小区时发起"切换"过程,相应小区的新信道建立替换旧的.
+addressing:因为都在专用信道上,所以不需要寻址,对应的RNTI(无线网络临时识别码)会在RRC建立时分配.
+call types:CS(总是)/PS域(可能)的呼叫运行在在cell_DCH状态下,CS域需要稳定的专用信道用于传输;PS域的呼叫需要高速的数据传输条件,网络也需要保证稳定性.
+
+3.cell_FACH
+下行FACH,上行RACH.
+状态转换:空闲模式通过RRC连接建立;cell_DCH状态通过释放专用信道;cell_pch和ura_pch状态下UE发起需求信令传输或用户数据传输;在fach状态下,UE持续监测FACH,避免错过UTRAN端发送来的数据或者信令.
+移动性管理:UTRAN在UE发生小区变换时发起"小区的更新".
+addressing:在前向接入信道中,UTRAN通过C-RNTI或U-RNTI(RRC连接建立时被分配)来寻址.
+call types:PS域呼叫可能运行在此状态,?突发性的分组数据服务可以忍受公共信道的低吞吐量.
+
+4.cell_PCH
+只有PCH的下行.
+可通过RACH响应寻呼或者UE自己发起寻呼从cell_PCH转换到cell_FACH状态;当UTRAN监测到UE在PS域呼叫过程中缺少activity,可以由cell_DCH或cell_FACH转换到cell_PCH状态.
+移动性管理:当UE位置小区变换,UTRAN发起"小区更新".(需要先切换到cell_FACH状态下在进行更新)
+addressing:根据U-RNTI来寻址.
+call types:PS域呼叫可能因为低活动性进入到cell_PCH状态,当发起任何数据传输后又会变成cell_FACH状态.
+
+5.ura_PCH
+只有下行的PCH.
+和cell_PCH变换形式一样,从DCH/FACH因为低活动性变换到PCH,从PCH因为响应寻呼/UE发起寻呼变换到FACH状态.
+移动性管理:当UE的RA(路由区)变化时,发起"URA的更新过程",UTRAN在RA内的所有小区发起对UE的寻呼.
+addressing:和cell_PCH一样,根据U-RNTI来寻址.
+call types:PS域呼叫可能因为低活动性进入到ura_PCH,特别是低活动性对应着高移动性的时候,而当发起任何数据传输后又会变成cell_FACH状态.
 
 ===接入层/协议栈===
 
 ===RRC===
+整个接入层的控制器,负责配置提供AS所有层面向NAS层的信令接口,管理无线资源(分配,逻辑配置,传输,物理信道等等)
+1.(BCH)系统消息的广播:由CS/PS-CN发到RNC在变成"SIB/MIB"发给UE,系统消息包含接入层和非接入层的系统消息元素.
+2.
+
 
 ===RLC===
 
