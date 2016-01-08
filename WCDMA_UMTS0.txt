@@ -40,3 +40,19 @@ MD Mandatory(强制的) default	默认存在的
 MP Mandatory present			强制必须显示出来的信息
 OP Optional						可选额外的附加信息
 CH Conditional on history		根据情况条件可能存在的
+
+==IMT-2000(International Mobile Telecom System-2000)==
+主要指第三代通信系统,预计通信速率可以达到2000kbit/s,工作在2000Mhz频段,预计2000年左右投入使用,一开始被称为"未来公众陆地移动通信系统(FPLMTS)",后来易名为IMT-2000,和UMTS是不同名称的同一概念;第三代移动通信网络最后采用的三种制式分别是WCDMA/TD-SCDMA/cdma2000.
+
+==ANSI-41==
+核心网的角度看,主要采用了在第二代两大核心网GSM MAP和ANSI-41的基础上演进的路线.
+WCDMA和CDMA(TDD)主要是采用的第一种,CDMA2000用的是第二种,目前这两种核心网标准经过hooks和扩展协议部分,已经完成了相互的接入.
+
+
+
+
+
+
+
+
+

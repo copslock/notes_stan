@@ -75,7 +75,7 @@ CRNC调整下行功率水平避免无线链路之间的下行功率漂移
 CCCH信令传输:SRNC和DRNC在DRNS控制的CCCH信道上传输UE和SRNC之间的信息；
 寻呼:SRNC在DRNS的一个URA或一个小区中寻呼某UE；
 执行迁移:SRNC能够通过lur接口,完成已通过其它接口准备好的迁移,其它接口如lu接口；
-一般错误状态报告:报告一般错误的状态。
+一般错误状态报告:报告一般错误的状态.
 
 *RNSAP-flow
 case1:request-->response/failure
@@ -91,10 +91,10 @@ SRNS(服务无线网络子系统)迁移:RNC之间的
 转发SRNS上下文:在系统间前向切换时RNC向CN传输SRNS上下文,以免数据包的丢失
 lu接口过载控制:调整lu接口的负荷
 lu接口复位:复位lu接口
-向RNC发送UE公共识别号Common ID（永久的NAS UE识别号）
+向RNC发送UE公共识别号Common ID(永久的NAS UE识别号)
 寻呼用户:提供CN寻呼UE的能力
 UE跟踪控制:为一个给定的UE设定跟踪模式,该功能也允许解除以前设定的跟踪
-              UE与CN间NAS信息的传输,该功能分两类:一类是将初始的NAS信令消息从UE透明传输到CN,消息传输结束后,lu信令连接也建立起来。另一类是在UE与CN间传输NAS信令消息,这些消息是在已经存在的lu信令连接上透明传输
+              UE与CN间NAS信息的传输,该功能分两类:一类是将初始的NAS信令消息从UE透明传输到CN,消息传输结束后,lu信令连接也建立起来.另一类是在UE与CN间传输NAS信令消息,这些消息是在已经存在的lu信令连接上透明传输
 UTRAN安全模式的控制:发送安全钥匙给UTRAN,并设置安全操作模式
 位置报告控制:允许CN执行UTRAN上报的UE位置模式
 位置报告:用于将实际的位置信息从RNC传输到CN
@@ -161,7 +161,7 @@ CRNC--(common measurement initiation request)-->NodeB--(common measurement initi
 CPICH = Common Pilot Channel = 公共导频信道 
 根据”Primary CCPCH Information”中的"BCH Power"重配置小区BCH功率
 若有”Maximum Transmission Power”则NodeB将保存该值,NodeB的总体最大输出功率不大于该值
-若有”Synchronisation Configuration”,NodeB应根据其中消息单元值重配置所指示的参数。如果”Synchronisation Configuration”消息单元影响到无线链路集门限，NodeB应立即启用新的门限
+若有”Synchronisation Configuration”,NodeB应根据其中消息单元值重配置所指示的参数.如果”Synchronisation Configuration”消息单元影响到无线链路集门限，NodeB应立即启用新的门限
 
 CRNC--(cell reconfiguration request)-->NodeB--(cell reconfiguration response)-->CRNC
 
@@ -194,24 +194,24 @@ SIB由性质相近的系统消息单元IE组成,动态参数/静态参数的IE�
 包含静态参数的SIB:1-6,10-13,15,16,18;"值标签"(某一类型包含静态参数的SIB)作为调度信息的一部分,包含在MIB或SB中,UE检测这些"值标签"就可以知道对应某一个类型的静态参数有无变化
 
 ===SIB分类(18种)===
-SIB1：包含NAS系统信息（如CN信息）和以及UE在空闲和连接模式下使用的各类定时器和计数器。范围是PLMN。
-SIB2：包含URA(UTRAN的注册区域)信息。
-SIB3：包含小区选择和重选参数。
-SIB4：包含UE在连接模式下的小区选择和重选参数。
-SIB5：包含小区公共物理信道的配置参数。
-SIB6：包含UE在连接模式下的小区公共和共享物理信道的配置参数。
-SIB7：包含快速变化的参数（上行干扰和动态坚持水平（Dynamic persistence level））。
-SIB8：包含小区中静态的CPCH信息。仅用于FDD。
-SIB9：包含小区中CPCH信息。仅用于FDD。
-SIB10：包含UE的DCH由DRAC过程控制的信息。仅用于FDD。
-SIB11：包含小区中测量控制信息。
-SIB12：包含连接模式下UE测量控制信息。
-SIB13：包含ANSI-41有关信息。
-SIB14：包含公共和专用物理信道上行外环控制参数。仅用于TDD。
-SIB15：包含基于UE的或者UE辅助的定位方法的有关信息。
-SIB16：包含无线承载、传输信道和物理信道参数，这些参数将存储在UE（无论空闲还是连接模式）中，在UE切换到UTRAN时使用。范围是PLMN。
-SIB17：包含连接模式下配置共享物理信道的快速变化参数。仅用于TDD。
-SIB18：包含邻近小区的PLMN标识。
+SIB1：包含NAS系统信息(如CN信息)和以及UE在空闲和连接模式下使用的各类定时器和计数器.范围是PLMN.
+SIB2：包含URA(UTRAN的注册区域)信息.
+SIB3：包含UE在空闲模式下小区选择和重选参数.
+SIB4：包含UE在连接模式下的小区选择和重选参数.
+SIB5：包含小区公共物理信道的配置参数.
+SIB6：包含UE在连接模式下的小区公共和共享物理信道的配置参数.
+SIB7：包含快速变化的参数.(上行干扰和动态坚持水平(Dynamic persistence level)).
+SIB8：包含小区中静态的CPCH信息.仅用于FDD.
+SIB9：包含小区中CPCH信息.仅用于FDD.
+SIB10：包含UE的DCH由DRAC过程控制的信息.仅用于FDD.
+SIB11：包含小区中测量控制信息./小区重选邻表信息.
+SIB12：包含连接模式下UE测量控制信息.
+SIB13：包含ANSI-41有关信息.
+SIB14：包含公共和专用物理信道上行外环控制参数.仅用于TDD.
+SIB15：包含基于UE的或者UE辅助的定位方法的有关信息.
+SIB16：包含无线承载、传输信道和物理信道参数，这些参数将存储在UE(无论空闲还是连接模式)中，在UE切换到UTRAN时使用.范围是PLMN.
+SIB17：包含连接模式下配置共享物理信道的快速变化参数.仅用于TDD.
+SIB18：包含邻近小区的PLMN标识.
 
 ===系统消息SI的广播和更新===
 UTRAN--(system info)-->UE
@@ -390,7 +390,6 @@ RRC释放只能发生在cell_fach或cell_dch状态下,如果在其他状态则�
 因为用的是小区公共资源,所以只需要发出释放请求,UE会自动释放占用资源,也不需要经过nodeB去撤除特定分配的"资源"
 
 ==MM流程分析==
-囊括在CM之中
 UMTS常见的移动性管理:前向切换,软切换,硬切换,系统间切换,迁移
 
 ===前向切换=== ?= (LAC更新/小区更新?/小区切换?)
@@ -404,9 +403,9 @@ UMTS常见的移动性管理:前向切换,软切换,硬切换,系统间切换,�
   RB重配置完成消息RADIO BEARER RECONFIGURATION COMPLETE；
   传输信道重配置完成消息TRANSPORT CHANNEL RECONFIGURATION COMPLETE；
   物理信道重配置完成消息PHYSICAL CHANNEL RECONFIGURATION COMPLETE；
-  UTRAN移动性信息确认消息UTRAN MOBILITY INFORMATION CONFIRM。
+  UTRAN移动性信息确认消息UTRAN MOBILITY INFORMATION CONFIRM.
 
-*URA(UTRAN注册区域)更新 ?= lac
+*URA(UTRAN注册区域)更新
 只有在ura_pch状态下的才能进行此过程
 更新原因:ura(注册位置区)重选,周期性更新
 1.UE--(ura update)-->UTRAN--(ura update confirm)-->UE
@@ -474,11 +473,11 @@ SSDT information
 UE先离开原小区,接入一个新小区,性能不如软切换,一般在软切换无法进行才采用,当切换的小区在不同RNC之间时,会伴随"迁移",这种"迁移"被叫做硬切换伴随迁移
 
 硬切换在Uu接口上的5个信令过程:
-物理信道重配置（PHYSICAL CHANNEL RECONFIGURATION）
-传输信道重配置（TRANSPORT CHANNEL RECONFIGURATION）
-RB建立（RADIO BEARER SETUP）
-RB释放（RADIO BEARER RELEASE）
-RB重配置（RADIO BEARER RECONFIGURATION）
+物理信道重配置(PHYSICAL CHANNEL RECONFIGURATION)
+传输信道重配置(TRANSPORT CHANNEL RECONFIGURATION)
+RB建立(RADIO BEARER SETUP)
+RB释放(RADIO BEARER RELEASE)
+RB重配置(RADIO BEARER RECONFIGURATION)
 
 *压缩模式(由RNC判决启动)
 硬切换可以对未知小区直接硬切换,但失败率高,仅用于紧急情况,为UE能对异频/异系统目标小区进行测量,WCDMA引入了压缩模式

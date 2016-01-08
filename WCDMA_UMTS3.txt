@@ -26,7 +26,7 @@ release 99/specifications(specs)完整规格协议列表 21.101
 release 99 features:
 新的无线接口(UTRAN),码片速率=3.84Mcps(M chip per second)
 //码片速率＝符号速率×扩频因子 
-//符号速率＝（业务速率＋校验码）×信道编码×重复或打孔率 
+//符号速率＝(业务速率＋校验码)×信道编码×重复或打孔率 
 多媒体消息
 GSM/GPRS协同工作
 支持多个来电
@@ -200,9 +200,65 @@ call types:PS域呼叫可能因为低活动性进入到ura_PCH,特别是低活�
 
 ===RRC===
 整个接入层的控制器,负责配置提供AS所有层面向NAS层的信令接口,管理无线资源(分配,逻辑配置,传输,物理信道等等)
-1.(BCH)系统消息的广播:由CS/PS-CN发到RNC在变成"SIB/MIB"发给UE,系统消息包含接入层和非接入层的系统消息元素.
-2.
 
+1.(BCH)系统消息的广播:系统消息包含接入层和非接入层的系统消息元素,MIB主消息块每80ms发送一次,包含信息有MCC/MNC/SIBs.
+CS_CN/PS_CN--(CS_CN/PS_CN broadcast information)-->RNC--(MIB/SIB)-->UE
+系统消息类型部分可以参考WCDMA_UMTS1文件---#196
+
+2.RRC连接管理:
+RRC连接的建立和释放流程可以参考WCDMA_UMTS1文件---#255/#383
+RRC连接出现的原因:用户发起主叫/被叫去响应寻呼/位置区或路由区的更新
+
+3.RB的管理
+大致分为3个信令流程部分:UE和UTRAN之间的RB的建立/确认;RB的重配置/确认;RB释放/确认完成
+RB的建立和重配置包含的信息:映射逻辑信道到物理传输信道/RLC层参数(模式,大小,优先级,逻辑信道数)/MAC层参数(物理传输信道类型和UE认证信息)/物理传输信道参数(传输时间间隔,扩展因子,wcrambling code number,传输信道结合集)
+物理信道和传输信道可能通过不同信息来分别配置.
+
+4.mobility
+移动性管理主要包含:活动集的更新/小区更新/ura信息更新
+在空闲模式下,RRC层负责初始化小区选择和小区重选,广播消息也会携带相关的选择和重选参数.
+在连接模式下,保持RRC的连接,跟踪UE的位置区/路由区/URA信息.
+在cell_DCH状态下,UE-RRC向UTRAN发送测量报告,UTRAN做出响应的切换判决,在软切换中因为无线链路的增加/删除/替换导致UTRAN会发起活动集的更新信息.
+cell_FACH和cell_PCH状态下,RRC持续监测小区信息,在UE改变服务小区时提醒UTRAN发起小区更新过程.
+URA_PCH状态下,在UE变换到新URA时,提醒UTRAN发起URA更新过程.
+*ura_PCH/cell_PCH和idle状态下UE做的事基本都一样,监听PCH和PICH的寻呼信息,关键区别在UE和UTRAN之间有没有建立RRC的连接.
+
+5.寻呼和提醒
+两种寻呼消息类型:type 1(idle/cell_pch/ura_pch状态);type 2(cell_dch/fach状态);类型1般用于在建立RRC连接去传输一个呼叫,或者在分组数据中RB已经建立的情况下去重启用户数据传输过程;类型2一般用于二次呼叫的发起,利用已经建立的条件在第一个呼叫的同时发起另一个呼叫.
+下行由PCH信道承载寻呼消息,上行DCH或FACH承载UE对于寻呼消息的回应.
+
+6.NAS层信息的路由/信令直传连接的建立
+下行的DCH/FACH,上行的RACH
+NAS--(CM services request)-->UE.RRC--(DCCH:initial DT/CM services request)-->RNC.RRC--(CM service request)-->CS.CN;
+CS.CN--(MM auth request)-->RNC.RRC--(DCCH:DL DT/MM auth request)-->UE.RRC--(MM auth request)-->NAS;
+NAS--(MM auth response)-->UE.RRC--(DCH/RACH:UL DT/MM auth response)-->RNC.RRC--(MM auth response)-->CS.CN;
+NAS层之间,UTRAN和UE.RRC层的路由信息通过AS的协议使用直传方式传输(初始化直传建立RNC到CN的连接),RRC层会为NAS消息提供一个"保护罩",包含消息类型,完整的保护信息,额外的RACH测量信息,不会改变原NAS消息的内容,RRC层会把接收到的消息路由到"发起该信息请求"的NAS层的核心网络中去.
+
+7.加密控制和完善的保护机制
+RNC--(DCH/FACH:security mode cmd)-->UE--(DCH/RACH:security mode complete)-->RNC
+RRC可能会需要启动的的加密或者保护机制,加密会需要配置MAC/RLC层.
+完整的保护机制会让RRC去为每一个传输信息计算一个鉴权码MAC-I(Message authentication code),鉴权码是使用当前统一的密钥计算得来,这会为每条信息提供一个在UE和UTRAN之间信息交换的鉴权等级,避免错误和不合法的信息阻碍用户数据的传输.
+
+8.测量报告及控制
+RNC--(DCH/FACH:measurement control(携带需要测量UE和邻小区的信息类型))-->UE--(DCH/RACH:measurement report)-->RNC
+只有当UE处于cell_FACH/cell_DCH状态下才能进行测量信息的控制和上报,UTRAN负责发出测量控制,UE测量相应的信息并在触发时间点将测量报告上报.
+测量控制:测量建立/测量修改modify/测量释放
+可以测量的信息类型:
+频内测量(Intra-frequency measurement):测量与激活集相同频率的下行物理信道.测量对象为一个小区.
+频间测量(Inter-Frequency measurement):测量与激活集不同频率的下行物理信道.测量对象为一个小区.
+Inter-RAT 测量(Inter-RAT measurement):测量其他无线接入系统(如GSM)的下行物理信道.测量对象为一个小区.
+业务量测量(Traffic volume measurement):测量上行链路的业务量.测量对象为一个小区.(RLC缓冲负荷量)
+质量测量(Quality measurement):测量下行链路专用传输信道的质量参数有两种.(block error rate)
+UE内部测量(UE internal measurement):测量UE的发射功率,接收信号强度及TADV.
+UE定位测量(UE positioning measurement):测量UE的位置.
+*测量报告上报后可能引起的其他过程:切换,RB重配置,物理信道重配置,传输信道重配置...
+
+下行BLER:测量对象为一个下行传输信道.
+下行SIR(TDD):测量对象为下行专用(或共享)CCTrCH所对应各个时隙.
+
+9.功率控制
+功率控制基本是在物理层上,调整SIR目标去保持要求传输信道的BLER
+物理信道建立时,UE设置一个初始化下行目标SIR(signal to interface)值基于接收到的"DCH quality target"信息,
 
 ===RLC===
 
