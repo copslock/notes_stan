@@ -386,17 +386,111 @@ TFCI就是一个关于某一个传输信道的所包括的所有有效的TF的�
 同样也是属于接入层AS的一部分,不过主要是在UE和nodeB之间的无线信道的基础,没有涉及信令传输的部分.
 
 ===orthogonal codes(正交编码/序列)===(25.213 spreading and modulation扩展和调制)
-正交函数之间的零相关性,两个二进制序列正交的结果大致如下:
--1	-1	1	1
--1	1	-1	1
-1	-1	-1	1
+正交函数之间的零相关性,两个二进制序列正交(经过异或过程?)的结果大致如下(3个数之中任意2个的异或结果等于第3个数):
+输入:		-1	-1	1	1
+正交序列:	-1	1	-1	1
+结果:		1	-1	-1	1
+WCDMA的正交码通常被称为OVSF码(orthogonal variable spreading factor正交可变扩展因子)
 
+orthogonal spreading/正交扩展:
+用户的单一字符输入与对应的"扩展因子"进行异或操作后,就可以得到多个字符的输出数据,例如输入1,扩展因子是-1 1 1 -1,则得到的结果就是-1 1 1 -1.
+通常 码片速率=扩展因子*符号速率,WCDMA的码片速率是3.84Mcps,所以扩展因子的选取会影响到符号速率的大小.
 
+Recovery of spreading symbols:
+扩展的还原也很简单,因为都是互相正交,将输出结果和同一个"扩展因子"再进行一次异或操作,即可得到用户的原输入数据.
+WCDMA系统中应用了FEC(foward error correct前向纠错)技术去减小了"噪声"对于还原过程中的干扰,增强了系统的总体性能.
 
+如果使用和扩展过程中不一致的"扩展因子"去还原原信号,得到的结果就会错误,结果会出现-1和1一样多的情况,且平均值一直为0的情况.
 
+复合模拟信号是已经经过正交码多工处理的结果,将其再与一个"扩展因子"进行异或操作,通常称之为"相关",即也是我们之前提到的"还原",根据异或操作的结果得到原信号的值,这样的过程常发生在CDMA移动制式的还原信号过程中.
 
+===PN codes===
+1.Pseudorandom noise codes伪随机噪声编码
+*M-序列(最大长度的伪随机二进制序列)
+*gold codes(使用M-序列创造得到)
 
+[1]M-序列:伪随机(fate机制)/二进制/最大长度(最大可以达到生成的长度,不是任意长度)
+特性:
+*balance:输出序列中的0和1的数量几乎相等.(2^r个1; 2^r-1个0)
+*run-length:在任何时候,0或者1的连续长度不超过一半,四分之一长度的连续数不超过2次,八分之一长度的连续数不超过3次,十六分之一长度连续数不超过4次,以此类推下去......
+*shift and add:The chip-by-chip sum of the output sequence Ck and any shift of itself Ck+t is a time-shifted version of the same sequence.
+*autocorrelation:自动关联?
 
+[2]Gold codes
+gold codes序列的更新长度是 (2^5)-1-->31
+
+2^r的gold codes的产生过程:在第一个生成器处有一个非0的"种子",将第二个生成器的"种子"从0到(2^r)-1进行变化,然后两个"种子"进行异或操作得到.(wtf......
+
+只是成对的M-序列不能生成gold codes,只有被称为"preferred pairs"的成对M序列才能生成gold codes,它拥有三值自动关联和互相关功能函数.
+
+下行gold codes序列长度为 (2^18)-1; 上行gold codes序列长度是 (2^25)-1.
+
+2.Cross correlation of DL PN codes
+WCDMA的下行gold codes:
+干扰码(scrambling code)由两个输出的M序列异或操作得到,这里有512个可能生成的用于下行链路的干扰码,当结合其他的信道去完全的验证识别UE正在监听的小区.
+
+gold codes的关联:
+P117
+
+===Generic physical layer procedures/通常的物理层程序===
+25.101 UE Radio Transmission and Reception
+25.104 BS Radio Transmission and Reception
+25.211 Physical Channels and Mapping of Transport/Channels Onto Physical Channels (FDD)
+25.212 Multiplexing and Channel Coding
+
+•Coding
+•Interleaving/交织?
+•Mapping data onto physical channels
+•Spreading using OVSF Channel codes
+•PN Scrambling/PN干扰
+•QPSK Modulation
+
+一般物理层程序流程(从第三步开始):
+[1]Data from L2, Transport Data in TTI frames
+[2]Add CRC to Transport Block
+[3]Channel Coding:Convolutional or Turbo
+[4]rate matching
+[5]1st Interleaving
+[6]Radio frame segmentation 10 ms chunks
+[7]Transport channel multiplexing
+[8]2nd Interleaving
+[9]Map to Physical Channels
+[10]Spreading using Channelization(OVSF)
+[11]PN scrambling
+[12]QPSK Modulation
+
+物理层需要去将传输数据然后将其承载到物理信道上,在上面的流程里,它加了一个额外的CRC并且传输数据使用了convolutional和turbo的其中一种编码方式,接下来它进行了数据交织过程和数据分段(以适应10ms的无线帧大小),采用速率匹配和传输信道多工复用去构建一个复合编码的传输信道,使其更容易去映射多个传输信道到一个物理信道上.
+第二次交织提供更好的健壮性去减小在移动环境中长距离传输造成的信号损耗,应用相应的OVSF码去完成扩展过程,加扰过程使用相应的PN序列让信号处理之后看起来像是普通的热噪声信号.
+
+这些程序流程主要是面对下行链路来分析的,但是上行链路对应的程序流程也与其相差不大.
+
+1.FEC(foward error correction)	
+对应流程[3]channel coding:convolutional or turbo
+
+[1]convolutional卷积编码:
+使用公共和专用信道; 
+数据传输率<=32kbps; 
+K=9,rate 1/2 or 1/3, 1bit become 2 or 3 symbols; 
+Frames是zero-tailed.
+
+[2]turbo编码:
+使用专用信道; 
+数据传输率>32kbps.
+
+卷积编码对应使用Viterbi解码方式;turbo编码方式大量使用开始于90年代初,现在被大量使用,turbo编码本身也是卷积编码的一种类型,另外turbo的解码方式是使用迭代的方法直到结果在一个数上产生收敛.
+
+卷积编码者有一个限制的长度(K=9),这个值大小是基于复杂度和性能的综合考虑得出的,数据的"zero-tailing"即是在数据流上加0来让编码器和解码器发送和接收格式相同的信息.
+
+turbo编码者使用一个parallel concatenated(并行连接)的卷积编码方式,伴随着两个有8种状态的组合编码器,turbo编码在"大尺寸数据块"编码中是最有效的,大约比单一symbols的编码高效1000倍.
+
+编码是在代码块上完成的,这些代码块由传输块组合形成,传输块以TTI的形式承载在传输信道上,传输块通过分段/组合的方式来适应最大的代码块大小,最大的代码块大小取决于传输信道采用的哪一种信道的编码方式.(卷积还是turbo?)
+
+2.Interleaving/交织
+对应流程[4]到[7]:
+[4]rate matching
+[5]1st Interleaving
+[6]Radio frame segmentation 10 ms chunks
+[7]Transport channel multiplexing
 
 
 
