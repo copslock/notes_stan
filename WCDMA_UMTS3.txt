@@ -11,7 +11,7 @@ UMTS(universal mobile telecommunications system)
 *频分双工\时分双工,如果是频分双工模式需要成对的频段
 *支持大量新兴服务,高传输速率(PS域可达 1.96Mbps, CS域最大可达384kbps)
 
-提供wireline的话音质量,提高容量和频带利用率,利用AMR适应多种频率的发声器在EFR增强型全速率编码方式上面
+提供wireline的话音质量,提高容量和频带利用率,利用AMR(适应多种频率的发声器)在EFR增强型全速率编码方式上面
 
 P19	各类模块/layer的协议标准
 acronyms名词英文缩写表 21.905
@@ -154,7 +154,7 @@ FACH和RACH:
 专用信道携带着信令和用户信息数据,这些信道在呼叫被发起时或分组数据传输时才会被指配,通常来说DCCH被指配去负载RRC和NAS的信令,这也被叫做SRB(信令的无线承载).两个SRB去负载RRC信令,其中一个配置响应模式,另一个配置unack模式;如果SRB被指配去负载NAS信令,两个分别去负载高优先级和低优先级的信息.
 专用业务信道DTCH由所使用的应用服务类型来指配,对于话音,可适应的多频声码器使用3个DTCH去承载不同的编码话音信号;DCCH和DTCH在DCH传输信道上实现多路复用,每一个都指配给一个独立的DCH;所有DCH传输信道可以multiplexed在一个单独的DPDCH上,未来还会支持多路的DPDCH;DPCCH携带着去更新物理层的控制信息,例如导频信息,功率控制,rate bit......
 
-==接入信令层==
+==接入层的-信令层==
 ===UE识别鉴定/呼叫状态===
 编号计划:IMSI/IMEI/C-RNTI/U-RNTI/TMSI(VLR分配,CS域临时id)/P-TMSI(由SGSN分配,PS域临时id)
 C-RNTI在UE建立RRC连接时被分配,用于保持UE在公共信道上的连接.
@@ -256,13 +256,156 @@ UE定位测量(UE positioning measurement):测量UE的位置.
 下行BLER:测量对象为一个下行传输信道.
 下行SIR(TDD):测量对象为下行专用(或共享)CCTrCH所对应各个时隙.
 
-9.功率控制
+9.功率控制(outer loop power control)
 功率控制基本是在物理层上,调整SIR目标去保持要求传输信道的BLER
-物理信道建立时,UE设置一个初始化下行目标SIR(signal to interface)值基于接收到的"DCH quality target"信息,
+物理信道建立时,UE设置一个初始化下行目标SIR(signal to interface)值基于接收到的"DCH quality target"信息,这个目标会调整去保持质量目标,质量的测量方式可能是BER(误码率)或者BLER(块错误率),取决于传输块是否有一个CRC循环校验方式.
 
 ===RLC===
+1.RLC架构
+传输L3层和MAC之间的用户数据和信令,数据以数据块形式传输进入RLC被称为SDU(service data units),数据以数据块形式从RLC传出被称为PDU(protocol data units).
+3种数据传输模式:
+TM(transparent mode):PDU以没有额外头文件信息来传输.
+UM(unack mode):PDU上会加上包含长度和序列号域的头文件之后再进行传输.
+AM(ack mode):PDU根据一个包含流程控制,错误检测,in-sequence delivery,duplicate detection的双向协议来传输.
+数据流程在L3层和RLC之间被称为RB(可能携带信令数据SRB或者用户数据RAB),在MAC和RLC之间被称为logical channel.
 
-===MAC===
+2.RLC的TM(传输模式)
+UE:RB-->transmitting TM RLC entity(transmission buffer-->segmentation)-->\
+logical channel-->\
+UTRAN:Receiving TM RLC entity(reception buffer-->reassembly)-->RB
+
+在TM模式下,PDU的传输会受到RLC的交互影响.
+segmentation and reassembly:如果SDU尺寸太大不适合放在一个PDU里,它会在发射端被分段在接收端再被重新组合在一起.
+SDU discard:TM传输实体可能配置去表现为基于定时器的SDU丢弃,一个SDU不会在"时间丢弃配置"之后进行传输.
+
+标记出传输模式下MAC层的逻辑信道的加密,话音和一些信令信道使用TM传输模式.
+
+3.RLC的unack mode
+UE:RB-->transmitting UM RLC entity(transmission buffer-->segmentation&connection-->add RLC header-->ciphering)-->\
+logical channel-->\
+UTRAN:Receiving UM RLC entity(deciphering-->reception buffer-->remove RLC header-->reassembly)-->RB
+
+比TM模式提供更多可靠的信息和服务,一个小头文件,包含分段-连接-组合信息,序列号都附着在每一个PDU上.
+segmentation and reassembly:如果SDU尺寸太大不适合放在一个PDU里,它会在发射端被分段在接收端再被重新组合在一起.
+concatenation/padding:多个SDU可能被组合成一个PDU去填满一个可用的PDU容量大小,也可以用padding bits(无用的数据)去填满.
+sequence number check:头文件中包含的序列号,可用于接收端分段数据重新组合时验证对应的SDU数据单元.
+ciphering:RLC可以使能UM逻辑信道数据流的加密.
+SDU discard:TM传输实体可能配置去表现为基于定时器的SDU丢弃,一个SDU不会在"时间丢弃配置"之后进行传输.
+
+4.RLC的ack mode
+流程太复杂,详细流程参考记录本.
+AM模式协议是一个复杂的协议,提供了很多可靠的服务支持,包括积极的和消极的应答方式.
+segmentation and reassembly:如果SDU尺寸太大不适合放在一个PDU里,它会在发射端被分段在接收端再被重新组合在一起.
+concatenation/padding:多个SDU可能被组合成一个PDU去填满一个可用的PDU容量大小,也可以用padding bits(无用的数据)去填满.
+error correction:PDU接收到错误信息时,接收器会循环去提示传送器发送一个回应状态报告.
+in-sequence delivery:PDU向上层的传输顺序和向RLC侧的传输顺序一致.
+duplicate detection:一个PDU只有在对上层时才被传送.
+flow control:配置发送和接收"窗口"的大小.
+protocol error detection and recovery:AM模式的RLC可以从协议错误中恢复重置.
+ciphering:RLC可以使能UM逻辑信道数据流的加密.
+SDU discard:TM传输实体可能配置去表现为基于定时器的SDU丢弃,一个SDU不会在"时间丢弃配置"之后进行传输.
+
+===MAC(medium access control:介质访问控制/媒质接入控制)===
+1.MAC层架构
+MAC层主要负责映射逻辑信道到传输信道,根据映射在TTI(传输时间间隔)配置而在两种信道之间传输数据.
+MAC-b;MAC-d;MAC-c/sh:分别控制BCH/DCH/公共信道/的接入;在L1层和RLC之间的逻辑信道和传输信道的管理.
+其他功能:传输标准格式选择;传输模式信道加密;RACH的接入服务类型选择;公共信道上的UE识别;多重复用/多重逻辑信道;业务量监测......
+
+2.逻辑信道--(映射)-->公共传输信道
+BCCH-->BCH:UTRAN系统消息广播.
+BCCH-->FACH:系统消息改变,UTRAN发送消息在BCCH上映射到FACH.
+PCCH-->PCH:UTRAN下行寻呼消息.
+CCCH-->RACH:UE发起一个上行RACH连接,可能有很多UE共用这个信道.
+	-->FACH:UTRAN响应UE发起的下行连接,将公共控制信道映射在FACH上.
+DCCH-->RACH:当UE处于cell_fach状态,拥有映射在FACH和RACH上的专用逻辑信道,用于传输信令信息.
+	-->FACH:
+DTCH-->RACH:映射在FACH和RACH上的专用业务逻辑信道,用于传输用户数据.
+	--<FACH:
+
+3.逻辑信道--(映射)-->专用传输信道
+DCCH-->DCH:多个DCCH映射到同一个DCH传输信道.
+DTCH-->DCH:一一对应.
+DCH-->CCTrCH(Coded Composite Transport Channel编码复合传输信道),CCtrch可以映射到多个物理信道上;专用的CCtrch可以对应于一个或多个DCH的编码和复用结果,公共的只能对应一个公共信道的编码和复用结果.
+CCtrch再对应到一个DPDCH(专用物理数据信道)
+
+4.逻辑信道-多路复用/多工
+多个不同类型的逻辑信道映射到一个传输信道上,SDU的头文件中的TCTF域会指示了这些被映射的逻辑信道的类型,因此接收端MAC可以将"SDU"分别路由至正确的逻辑信道.如果是多个同类型的逻辑信道映射到一个传输信道上,例如4个DCCH映射到DCH上,这种情况下,头文件里的C/T域会指示出被映射的该种逻辑信道的数量.
+CCCH/DCCH/DTCH-->RACH/FACH
+DCCH/DTCH-->DCH
+
+MAC header(TCTF;UE-id-type;UE-id;C/T)---MAC SDU
+TCTF:Target Channel Type Field逻辑信道的类型
+C/T:Logical Channel Number该种逻辑信道的数量
+
+5.UE 认证
+UE-id type: U-RNTI 32bits/C-RNTI 16bits
+一个专用逻辑信道映射到公共传输信道(DCCH/DTCH-->RACH/FACH),MAC头文件里UE-id-filed有RRC连接建立时分配的RNTI,映射过程中可能需要验证使用?
+当一个公共逻辑信道映射到公共传输信道时,UE-id-field就不是必要的了,因为UE的认证包含在RRC信令消息中,之前已经在addressing matching/寻址匹配里验证过了?
+
+6.RB的信道映射实例
+1个SRB+3个RAB-->RLC PDU/逻辑信道-->transport block/传输信道-->CCTrCh(编码复合传输信道,位于物理层,多工承载上面的传输块)
+在一个典型DCH配置中会有4个SRB,RAB在这个例子中携带了3组由AMR(自适应多速率)话音编码器编码的的话音帧,注意话音帧的大小是否需要分段/组合操作(一般不需要),通常在RLC中以TM模式进行传输.
+4 SRB-->4 DCCH-->1 DCH(有头文件)
+3 RAB-->3 DTCH-->3 DCH(无头文件)
+对于信令DCH,MAC会加上头文件去识别数据发送的目标逻辑信道是哪一个;对于话音的DCH,和它的逻辑信道都是一一对应的,并不需要头文件.
+
+7.传输标准格式
+Transport Block
+• Basic data unit exchanged between Physical Layer and MAC
+Transport Block Set
+• A set of Transport Blocks exchanged between the Physical Layer and MAC at the same time instance using the same transport channel
+Transport Format (TF)
+• A format offered by the Physical Layer to MAC for the delivery of a Transport Block Set during a transmission time Interval on a transport channel
+Transport Format Combination (TFC)
+• The combination of currently valid Transport Formats on all transport channels used by a UE
+Transport Format Combination Set (TFCS)
+• A set of transport format combinations used by an UE
+Transport Format Combination Indicator (TFCI)
+• An index into the TFCS
+MAC层和物理层之间"传输块"的在各种类型传输信道上允许的大小,数量;
+选择传输信道的"传输格式TFC"的时候可以参考一下的因素:逻辑信道的缓冲状态,逻辑信道的相关优先级,服务质量参数
+根据逻辑信道的情况分析,MAC可能会采取不同的方式对应不同的分组,或许不会在特殊的TTI(传输时间间隔)的边界点的时候发送信息,非实时的数据会进行排队延后传输,"流媒体/直播"数据传输或许会被放弃掉.
+
+TFCS传输格式合集-集
+在每一个最小的TTI中(3种传输信道TTI分别是80/20/10ms,这里每10ms选择一次),TFC会决定每一个传输信道的传输格式(传输块大小,传输块数量);当"传输块"被送至物理层,MAC选择相应的TFC,它用TFCI索引来展示可选的TFC,通过DPCCH传输TFCI.
+TFC被选择以后,在该信道的这个TTI期间,TF是不能改变的.
+TFCI就是一个关于某一个传输信道的所包括的所有有效的TF的索引,用一个个数字对应一个个TF,方便选择也方便引用.
+
+"TFC选择时间线"类似于"时序图",随着时间推进,不同传输信道根据不同TFCI值,在该信道该TTI已结束情况下,选择不同的TF并应用.
+
+8.RACH操作流程
+在UE侧,MAC层控制着RACH的传输流程.
+[1]persistence check:在RACH上数据传输之前,MAC会进行持久性检测,通过生成的一个0到1之间的随机变量,对比随机变量和接入服务类型的持久性值,当检测通过后,物理层上的随机接入程序才开始启动.
+[2]物理层的随机接入程序:在功率等级上升时(preamble ramping cycle),持续发送一个序文,直到AICH上出现一个积极或消极的指示消息才停止.
+[3]最大的序文循环?/序文斜坡循环的编号/number of preamble ramping cycle:如果AICH没有出现ack信息,MAC会重新开始可持续性检测过程[1],当通过可持续性检测后,MAC会请求L1启动物理层的随机接入程序[2],序文循环也有最大循环数限制,达到最大限制后即认为传输过程失败,强行结束RACH流程,该循环最大限制数由系统指定大小.
+[4]backoff interval timer/撤销间隔定时器:如果AICH上出现一个消极的ack信息,MAC会等待一个"随机时间"的撤销间隔,然后再一次回到可持续性检测阶段[1].
+
+如果UTRAN的PRACH资源已经被分配掉,UTRAN可能向申请接入的系统的UE都发送消极的"捕获指示";或者是如果当UTRAN探测到多个UE都意图发起接入系统的请求,它可能只会向其中一个发送积极的指示,其余的都是消极指示.(保护当前接入系统的UE的资源稳定性/避免多个UE抢占资源)
+
+==物理层L1==
+同样也是属于接入层AS的一部分,不过主要是在UE和nodeB之间的无线信道的基础,没有涉及信令传输的部分.
+
+===orthogonal codes(正交编码/序列)===(25.213 spreading and modulation扩展和调制)
+正交函数之间的零相关性,两个二进制序列正交的结果大致如下:
+-1	-1	1	1
+-1	1	-1	1
+1	-1	-1	1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
