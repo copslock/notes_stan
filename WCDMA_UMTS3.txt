@@ -437,6 +437,11 @@ P117
 25.104 BS Radio Transmission and Reception
 25.211 Physical Channels and Mapping of Transport/Channels Onto Physical Channels (FDD)
 25.212 Multiplexing and Channel Coding
+25.213 Spreading and Modulation
+25.214 Physical Layer Procedures
+25.215 Physical Layer Measurements
+25.304 UE Procedures in Idle Mode and Procedures for Cell Reselection in Connected Mode
+25.331 Radio Resource Control (RRC)
 
 •Coding
 •Interleaving/交织?
@@ -597,16 +602,13 @@ DL:SCH; PCCPCH; SCCPCH; PICH; AICH; CPICH; DPCH(DPCCH+DPDCH)
 UL:PRACH; DPCH(DPCCH+DPDCH)
 
 1.SCH和PCCPCH
-Timeline------------------------------------------------------->
-PCCPCH:					data(2304chips)				data
-SCH:	code(256chips)						code
-Timeline------------------------------------------------------->
 同步信道和主公共控制物理信道两者有很多不同的性质,但他们在时域上多工复用的(正好错开,没有交集,不是同时传输的).
 
 PCCPCH性质:
 [1]30kbps,SF 256;
 [2]当传输完成后,第一个"块"的"前256chips"和P-SCH/S-SCH进行时域上的多工复用;
-Tx OFF(2bits)---Data(18bits)
+PCCPCH:	TX off(2bits)---data(2304chips/18bits)---Tx off---data
+SCH:	code(256chips)--空白---------------------code-----空白-----------------
 1 TTI=1无线帧=10ms=15 slots; 1 slot=0.67ms=2560chips=20bits(前2bits对应用于时间上多工复用的256chips,后面18bits是数据部分)
 [3]PCCPCH上可承载BCH传输信道;
 BCH携带着系统侧的广播消息播向覆盖范围内的所有小区,BCH映射在PCCPCH上.
@@ -692,7 +694,7 @@ DPCH上有50种可用的slot模式,不同模式对应着不同的数据速率,�
 L1层消息只会在第一条下行DPCH上传输,在其他DPCH的控制时间段内没有东西会被传输,符合3GPP release99的相同的扩展因子会被一直请求.
 
 9.DPCH(UL)/上行专用物理信道
-[1]和下行一样也分为传输数据和传输控制信息的两种专用物理信道,DPDCH在I分支上发送,DPCCH在Q分支上被发送.
+[1]和下行一样也分为传输数据和传输控制信息的两种专用物理信道,DPDCH可以在Q分支或者I分支上发送,如果只有一条DPDCH则在I分支上,DPCCH总是在在Q分支上被发送.专用信道包含了大部分的用户数据.
 DPDCH:	---Data---
 DPDCH:	1 TTI=1无线帧=10ms=15 slots; 1 slot=0.67ms=2560chips=10 * 2^k bits(k=0..6)
 DPCCH:	Pilot---TFCI---FBI---TPC
@@ -709,11 +711,50 @@ FBI				|	0-2
 [3]一个DPCCH,DPDCH数量任意
 [4]数据和控制专用物理信道的扩展因子不一样
 [5]随着扩展因子从256变化到4,信道速率从15 kbps变化到960 kbps
+[6]DPCCH包含了一个pilot信号,用于同步和TPC,TFCI用于指示传输格式和FBI bits.UTRAN会分辨UE是否必须要传输TFCI信息.FBI(反馈信息)用于闭环传输分集和SSDT(选址分集传输).以前大多在一个小区里使用双天线,现在大多使用多个小区.
+上行DPCCH传输在DPDCH传输的前面;DPCCH功率控制的报头用于初始化DCH,该报头的长度由UTRAN决定.
 
+===Physical layer procedures(additional)===
+1.Acquisition/捕获:捕获到系统的存在
+[1]slot 同步
+使用P-SCH/主同步信道决定slot对应的时间,256chips长度的同步.每一个slot都有一个对应的相同的256chips来同步.
+[2]帧同步和代码组认证
+使用S-SCH/辅助同步信道去为代码组认证信息和帧时间进行加扰处理.
+[3]代码认证的加扰处理
+捕获CPICH:每一个加扰代码组有 8个 PSCs/主加扰码.
+解决10ms 广播传输信道上的不清晰问题.
+BCH's TTI=20ms
+在解决完不清晰问题后,系统和小区的具体数据可以在BCH上读出.
 
+[2--]在SCH/同步信道上的捕获过程:
+捕获系统是在终端上电或者丢失服务的时候进行的,三步程序简单的进行了范围为512x38400(512中主干扰码,38400种辅助干扰码/即PSC偏移量)的搜索.
+UE的捕获开始于SCH上,在SCH上时,主干扰码和辅助干扰码会被同时发送,两个信道的编码是不同的.P-SCH使用Cp编码的主同步代码,它在系统的每个小区都是一样的存在,因此UE很容易就能找到主同步信道的信号;辅助同步信道使用Cs编码的辅助同步代码,对应的辅助同步信道对应相关的代码组认证,这里有64种不同的代码组.
+在第二步中,UE需要识别slot number从而可以去实现帧同步和决定代码组.
+a是用来表示基于传输天线分集(STTD)的空间时间块的编码是present还是absent,a可以是-1(absent)或者1(present).
 
+[3--]捕获过程:
+一旦代码组确定以后,PSC主干扰码也会在CPICH上确定下来,CPICH携带一个已知的被PSC加扰过的符号序列,这里每个代码组有8个PSC,UE尝试这8种组合,一旦PSC被验证发现之后,UE还需要去解决BCH的10ms模糊问题.最后UE可以开始解调,或者read,BCH也实际的承载在了PCCPCH上.
+recall 这里有一共512种不同的PSC,一个PSC对应一个小区.
+对于小区选择过程,如果网络端发送了邻小区时间信息并且没有要求SFN被read,过程1到3都可以被跳过,只需要一个能寻找邻小区的小窗口.
 
+2.randon access/随机接入:获得接入系统的通道
+[1]接入过程开启了slot边界
+[2]使用16个签名中的一个当做报头(1ms 4096chips=长度为16chips的一个签名的256次重复)发送
+[3]等待在AICH上的AI/捕获指示的发送,如果没有任何响应,会重复发几次报头,并提高发送报头的功率.
+[4]准确接收到积极的ack以后发送RACH信息
+[5]open loop PC only
 
+3.page/寻呼
+当UTRAN想和UE建立联系发起寻呼,UE"醒来"去监听PICH.
+[1]PICH和PCH混合在一起,一同承载在SCCPCH上,SCCPCH 3 slots 在PICH之上.
+[2]UE"睡眠"时为减低功耗采用"DRX不连续发送/接收",UTRAN设置了PI/寻呼指示在PICH上.当UE"醒来"后,开始监听映射在SCCPCH上的PICH上PI和PCH.
+这里有一个时间偏移量t-pich,在PICH帧SCCPCH帧之间,大约有3个slots的宽度(7680chips),这个时延正好可以让UE顺利开始读取PCH的信息.
+[3]当网络端需要在PCH上发送寻呼消息时寻呼会指示FSN
+寻呼时机-值 = {(IMSI / K)mod DRX循环长度} + n*DRX循环长度
+K=SCCPCH的信道数(最大为16),由SIB-5携带此信息,当然"寻呼时机-值"始终小于SFN的最大值(即4095).
+
+4.measurement/测量
+go!!
 
 
 
