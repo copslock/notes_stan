@@ -467,13 +467,13 @@ P117
 1.FEC(foward error correction)	
 对应流程[3]channel coding:convolutional or turbo
 
-[1]convolutional卷积编码:
+*convolutional卷积编码:
 使用公共和专用信道; 
 数据传输率<=32kbps; 
 K=9,rate 1/2 or 1/3, 1bit become 2 or 3 symbols; 
 Frames是zero-tailed.
 
-[2]turbo编码:
+*turbo编码:
 使用专用信道; 
 数据传输率>32kbps.
 
@@ -486,11 +486,234 @@ turbo编码者使用一个parallel concatenated(并行连接)的卷积编码方�
 编码是在代码块上完成的,这些代码块由传输块组合形成,传输块以TTI的形式承载在传输信道上,传输块通过分段/组合的方式来适应最大的代码块大小,最大的代码块大小取决于传输信道采用的哪一种信道的编码方式.(卷积还是turbo?)
 
 2.Interleaving/交织
-对应流程[4]到[7]:
-[4]rate matching
-[5]1st Interleaving
-[6]Radio frame segmentation 10 ms chunks
-[7]Transport channel multiplexing
+对应流程[4]到[8]:
+[4]rate matching:在传输信道多工复用以后得到正确的传输信道速率
+[5]1st Interleaving:在行中写,在列中读,TTI/10ms
+[6]Radio frame segmentation 10 ms chunks:分段以适应TTI的10ms无线帧大小
+[7]Transport channel multiplexing:多个传输信道多工复用承载到CCtrCh(编码复合传输信道)上
+[8]2nd Interleaving:在10ms的帧下进行块交织
+
+不同传输信道有不同的速率,所以需要rate matching过程,传输信道的速率可以在不同TTI时改变,因此为了传输信道能对应到正确速率的物理信道,需要通过速率匹配将传输信道们多工复用.每一个传输信道都会对应被上层标记为一个RMA属性(rate matching attribute).一个传输信道伴随着一个高的RMA(有很多重复的bit/位或者说有很少punctured的bit/位).速率匹配属性用于传输信道一起去计算重复和puncturing的因子.
+
+第一次交织参数:
+列=TTI/10ms;
+行=传输信道每10ms传输的数据位数(bits)
+permute(交换/置换) 列
+read by 列
+
+传输信道多工复合让多个传输信道"变为"一个单独信道-->CCTrCh.
+
+第二次交织参数:
+每一行中写入30个 列 的内容,对于物理信道,每一个参数即是在每一个"10ms无线帧"中的内容
+permute 列
+read by 列
+
+3.映射至物理信道
+对应流程[9]map to physical channels
+
+一个10ms无线帧=15个"磁格"
+下行链路中一个"磁格"的结构:
+data1---TPC/传输功率控制位---TFCI/传输模式集合索引---data2---pilot/导向
+
+10ms的编码复用传输信道经过第二次交织后,映射在专用物理数据信道上/DPDCH.TFCI会在专用物理控制信道/DPCCH上被发送,TFCI决定了当前的CCtrCh在10ms时间段内传输信道的传输模式.另外pilot位信息,用于同步导向和传输功率命令去实现功率控制,导向位还可用于功率的估算以实现信道的功率控制.传输功率命令即对应着用于闭环功率控制中的上/下行的命令.
+1500Hz=(15 slots/无线帧) * (100 无线帧/s)
+
+上行链路中一个"磁格"的结构:
+data
+pilot---TFCI---FBI/反馈指示位---TPC
+反馈指示用于提供在用户设备和无线接入网的接入点之间的反馈信息,通知UTRAN之前的UE的工作模式,包括闭环模式的发射分集和基站选择分集计划/方案.
+
+当没有数据传输在DPDCH上时,DPCCH依旧保持"活动"状态,DPCCH会被发送一个单独的通道化代码......
+
+4.扩展(spreading)和加扰(scrambling)
+对应流程[10]-[11]
+[10]spreading using channelization(OVSF)
+[11]PN scrambling
+
+物理信道(除去SCH/共享信道)都是利用扩展因子去扩展和还原,利用加扰码/PN码/gold codes去加扰.
+在下行链路上,每一个DPCH(包含专用物理控制信道和专用物理数据信道)都会多工复用在一起.对于每一对symbols,分别发送到两个分支上,分别在两个分支上会进行"扩展过程"和"加扰过程",两个都经过相同的"码"进行扩展和加扰,两个结果再次相加合并在一起,结果再和一个"n-th 下行干扰码(n取值是2^13种代码之一)"进行运算处理.将所有这样的计算结果相加后,再和P-SCH/S-SCH(主要和辅助同步信道)的结果相加,最后的结果送往"调制".
+
+在上行链路中,DPCCH一直处于Q分支,DPDCH可以处于I分支或Q分支,如果只有一条DPDCH信道则它处于I分支上,两个分支上的信道都会经过"通道化代码"处理和"上行权重计算",两分支计算结果之和还要经过和"n-th 上行干扰码(n取值是2^24种代码之一)"的运算处理,得到的结果送往"调制".
+
+OVSF:
+保证不同速率和使用不同扩展因子的下行信道之间的正交性;
+在上行链路上从一个单独UE去通道化多个信道;
+在下行链路上去通道化多个UE;
+256种上行信道代码,512中下行信道代码;
+
+C(ch,SF,k)即是--> C(ch)通道化代码---SF扩展因子---k/code number  0<=k<=(SF-1)
+例如C(ch,2,0)表示选用的是索引为2的扩展因子且k=0.
+OVSF码用于在上下行扩展片速率.在上行上,同一个UE的不同的专用信道都使用着不同的OVSF码;在下行上,UE中的每一个小区都使用着不同OVSF码,对于上/下行链路,OVSF树使用着同一个加扰码.
+
+OVSF会给出"numbers of chips/symbols(单符号单位下的码片数)"
+码片速率 = 符号速率 * 扩展因子
+扩展因子(每个符号单位下的码片数) = 码片速率 / 符号速率
+
+OVSF tree:
+码片速率前提确定的情况下,扩展因子越大,对应着越小的数据传输速率.
+并且当选择了较小的扩展因子的分支以后,就不能选择索引号不同的其他扩展因子分支,例如选择C(ch,2,0),就只能用C(ch,2,0)和C(ch,2,1),而不能再选择诸如C(ch,4,0)这种OVSF码,因为它们之间不是正交关系.
+
+长/短加扰序列:
+通道化信号被用PN码(gold codes)加扰,gold codes因为它的低相关性,低相关性让它们之间互相"不认识".序列长度被设置为每10ms无线帧对应着38400chips,即3.84Mcps.在短加扰码MUD(multi-user detection/多用户探测)中有一定的使用.
+下行链路里,加扰码区分小区,每个小区有它自己的主加扰码PSC(有512种PSC),辅助码SC(SC有7680种,常用于当前没有可用通道化代码时,伴随着当前加扰使用的PSC).
+上行链路里(DCH),加扰码有2^24种,UE会被告知(在RB建立消息里)DCCH即将会应用的加扰码是什么.
+
+5.QPSK调制
+对应流程[12]QPSK modulation
+经过通道化/加扰/扩展后的结果再进入到4相相移键控调制阶段,分为了实部和虚部计算,分别都经过一个脉冲整形器(这个脉冲整形器是一个root-raised cosine filter/升根余弦滚降过滤器,用于修正波形,减弱码间串扰),再经过同相信号和正交信号的混合(实部乘上"cos(wt)",虚部乘上"-sin(wt)",结果相加输出).
+
+===Timing===
+传输时间间隔/传输块/TTI:10-80ms,可能包含1-8个无线帧
+radio frame无线帧:10ms,每个无线帧包含15个slots
+slots(15个slot/磁格对应一个无线帧):0.67ms,每个磁格包含5-640个symbols,每个磁格有"2560"个chips
+symbols:每一个符号包含4-512个chips,当磁格包含的symbols变多,对应每一个symbols包含的chips就变少,保持每个slot的chips不变,chips/symbols即是"OVSF扩展因子",即OVSF取值从4-512.
+
+码片速率(chips/slot) = 符号速率(symbols/slot) * 扩展因子(chips/symbols)
+
+===AMR自适应多速率-实例===P133-P135
+34.108 Common Test Environments for User Equipment (UE) Conformance Testing
+
+3DTCH + 4 DCCH Logical Channels ---> 3 DCH + 1 DCH Physical channel
+• 12.2 kbps AMR maps 3 DTCH to 3 DCH Transport Channels. Class A,B,C bits.
+– Coding
+ Class A has CRC
+ Rate 1/3 for Tr Ch A and B
+ Rate 1/2 for Tr Ch C
+– TTI 20 ms
+• 4 DCCH Signaling Channels are mapped to 1 DCH Transport Channel.
+– Coding: CRC and Rate 1/3
+– TTI 40 ms
+
+对于标准AMR配置来说,4条DCCH,两条用于RRC,两条用于NAS,它们在MAC层再经过多工复用承载到一条DCH上.
+
+(DL 下行链路)
+传输块-->CRC添加-->尾比特添加-->卷积编码(速率=1/3 or 1/2)-->速率匹配-->第一次交织-->无线帧分段(每段10ms)-->多传输信道多工复用到一条DL物理信道(DPCH=DPCCH+DPDCH)-->第二次交织.
+传输SID(silence indicator)/NULL(无数据)/正常话音(全速率)三种类型的帧,对应的传输信道模式都不相同,这三个都可以组成一个TFCS.相应的TFCI会在DPCCH上发送.
+
+P135:多工复用将多个传输信道复用到了CCTrCh上,因此在CCTrCh上的第一个"块"包含了一部分A,B,C三个数据信道的内容和DCCH信道上的一些信令信息,第二次交织完成后,算上CRC的添加,尾比特的添加,卷积编码的扩展,和rate matching后,每个无线帧有600symbols.
+
+===物理 信道===
+DL:SCH; PCCPCH; SCCPCH; PICH; AICH; CPICH; DPCH(DPCCH+DPDCH)
+UL:PRACH; DPCH(DPCCH+DPDCH)
+
+1.SCH和PCCPCH
+Timeline------------------------------------------------------->
+PCCPCH:					data(2304chips)				data
+SCH:	code(256chips)						code
+Timeline------------------------------------------------------->
+同步信道和主公共控制物理信道两者有很多不同的性质,但他们在时域上多工复用的(正好错开,没有交集,不是同时传输的).
+
+PCCPCH性质:
+[1]30kbps,SF 256;
+[2]当传输完成后,第一个"块"的"前256chips"和P-SCH/S-SCH进行时域上的多工复用;
+Tx OFF(2bits)---Data(18bits)
+1 TTI=1无线帧=10ms=15 slots; 1 slot=0.67ms=2560chips=20bits(前2bits对应用于时间上多工复用的256chips,后面18bits是数据部分)
+[3]PCCPCH上可承载BCH传输信道;
+BCH携带着系统侧的广播消息播向覆盖范围内的所有小区,BCH映射在PCCPCH上.
+对于切换,首先要知道邻小区的SFN(system frequency number)频点号.SFN被BCH上的消息所携带,是系统消息2(SI-2)的参数.
+BCH包含的系统和小区信息:1个MIB(由SB和SIB组成)和多个SIBs.
+
+2.SCCPCH
+承载了寻呼传输信道PCH和前向接入传输信道FACH
+TFCI---Data---Pilot
+1 TTI=1无线帧=10ms=15 slots; 1 slot=0.67ms=2560chips=20bits * 2^k (k=0..6)
+
+SCCPCH性质:
+[1]PCH和FACH可以映射到相同或者不同的SCCPCH上,SCCPCH支持多传输信道模式集的使用,比如说TFCI.在SCCPCH信道上的信息都比较短.
+[2]PCH携带着发向UE端的呼叫和信令提醒,该信道用于UE处于空闲态/cell_pch/ura_pch状态下.
+[3]FACH携带着发向UE端的控制信息和用户数据信息,在UE处于cell_fach状态下使用,例如发起一个呼叫(RRC的建立过程从PCH上面的三种状态转移到cell_fach状态).
+
+3.CPICH/公共导频信道
+[1]30kbps,SF 256;
+[2]预定义symbols-sequence/符号序列;
+---Pre-defined symbols sequence---
+1 TTI=1无线帧=10ms=15 slots; 1 slot=0.67ms=2560chips=20bits=10symbols(pre-defined symbols sequence)
+[3]在小区内可分为P-CPICH(每个小区只有一个)和S-CPICH(可以有多个).
+P-CPICH属性:
+	P-CPICH的通道化代码一直为C(ch,256,0)不变
+	P-CPICH信道由主干扰码进行加扰处理
+	一个小区只有一个
+	广播消息向整个小区发送
+S-CPICH属性:
+	S-CPICH的通道化代码是任意的(前提是SF还是为256)
+	S-CPICH信道可以由主干扰码或者辅助干扰码进行加扰处理
+	S_CPICH的数量可以是0,1,任意多个
+	广播消息可以面向整个小区发送也可以只面向小区的一部分发送
+[4]小区选择/重选中,目标小区会向CPICH值更大的小区偏移.
+	
+4.PICH/寻呼指示信道
+[1]携带寻呼指示/PIs;PI指示UE端系统侧已经开始在PCH信道上下行发送寻呼消息,PI实际上时和PCH一同来告知寻呼已经产生.
+[2]SF 256; 10ms frame;
+[3]18,36,72,or 144 page 指示;
+288bits(只有288bit的有效信息)---Tx off(12bits)
+1 TTI=1无线帧=10ms=300bits(288有效位,最后12位是无效位)
+[4]PICH用于UE睡眠操作中很有效,UE"醒来"后回去监听PICH上的PI信息,如下的hash函数计算出需要被UE监听的PI是哪些:
+PI = IMSI / 8192 mod Np 
+Np={18,36,72,144}
+这些PI没有在PICH帧中定义位置,位置的定义取决于PI,Np和SFN值.
+
+6.AICH/捕获指示信道
+[1]携带着捕获信道指示ACIs,AI去提醒UE侧,系统侧已经收到UE发送的RACH的报头信息,可以开始传输RACH信息,网络可以选择发送三种类型的AI:"-1"(消极ack,已经收到RACH报头,但是不触发RACH消息传输);"0"(无效信传输);"1"(收到RACH报头,可以开始发送RACH信道消息传输).
+[2]SF 256; 20ms frame;
+AI part 4096chips---Tx off(1024chips)
+1 TTI=2无线帧=20ms=15 slots; 1 slot=1.33 ms=32 symbols=5120 chips(Tx off为无用信息)
+[3]AICH自己有16种signatures,AICH上发送的签名一定要在PRACH信道上发送的签名保持一致.(保证是同一个UE)
+
+7.PRACH/物理随机接入信道(UL)
+[1]头文件长度 1ms; 消息长度10 or 20 ms;
+[2]控制信息部分 SF 256; pilot部分用于信道"估算";
+[3]接入信息包括数据和控制信息
+Data:		---data---
+control:	pilot---TFCI(传输格式集的索引)
+1 TTI=1无线帧=10ms=15 slots; 1 slot=0.67ms=2560chips=10 * 2^k bits(k=0..3)
+[4]承载着RACH传输信道,RACH用于UE向系统发起连接申请,PRACH携带了RACH的头文件和RACH的消息.
+头文件通过小区的RACH干扰码进行加扰处理,一共有16种不同的头文件签名(联系上一个AICH),头文件一共有4096chips长,大约是1.067ms的长度.
+RACH消息可以是10 or 20ms长度,可以在TF上有所不同.例如,数据传输速率限制如下:{15,30,60,120}kbps,因为可以多种传输格式复用,所以在控制消息部分有一个TFCI.
+
+8.DPCH(DL)/下行专用物理信道
+[1]可分为DPDCH和DPCCH,两者是在时域上多工复用的关系.(不同时发生,正好错开,无交集).
+L1的控制信息包括:TPC,TFCI,Pilot在DPCCH上.
+L2层的数据传输在DPDCH上.
+Data1---TPC---TFCI---Data2---Pilot
+1 TTI=1无线帧=10ms=15 slots; 1 slot=0.67ms=2560chips=10 * 2^k bits(k=0..7)
+----------------|------------
+control info	|	of bits
+----------------|------------
+TPC				|	2-16
+TFCI			|	0-16
+Pilot			|	2-32
+----------------|------------
+[2]随着扩展因子从512到4变化,信道速率从15 kbps变化到1920 kbps.
+[3]专用信道上包含了大部分的用户数据信息.
+DPCH上有50种可用的slot模式,不同模式对应着不同的数据速率,数据类型,压缩方式.
+[4]在DPCCH上,Pilot用于同步信息和TPC传输功率的控制命令;TFCI索引指示在无线帧中采用的传输格式,当TFCI被确定后,再发向所有的15个slots.
+传输功率命令即对应着用于闭环功率控制中的上/下行的命令:1500Hz=(15 slots/无线帧) * (100 无线帧/s).
+如果没有TFCI存在,传输模式探测会被触发去申请一些已知的可选用的TF集.
+L1层消息只会在第一条下行DPCH上传输,在其他DPCH的控制时间段内没有东西会被传输,符合3GPP release99的相同的扩展因子会被一直请求.
+
+9.DPCH(UL)/上行专用物理信道
+[1]和下行一样也分为传输数据和传输控制信息的两种专用物理信道,DPDCH在I分支上发送,DPCCH在Q分支上被发送.
+DPDCH:	---Data---
+DPDCH:	1 TTI=1无线帧=10ms=15 slots; 1 slot=0.67ms=2560chips=10 * 2^k bits(k=0..6)
+DPCCH:	Pilot---TFCI---FBI---TPC
+DPCCH:	1 TTI=1无线帧=10ms=15 slots; 1 slot=0.67ms=2560chips=10 bits
+----------------|------------
+control info	|	of bits
+----------------|------------
+TPC				|	1-2
+TFCI			|	0-4
+Pilot			|	3-8
+FBI				|	0-2
+----------------|------------
+[2]DPDCH物理信道承载着传输信道DCH
+[3]一个DPCCH,DPDCH数量任意
+[4]数据和控制专用物理信道的扩展因子不一样
+[5]随着扩展因子从256变化到4,信道速率从15 kbps变化到960 kbps
+
+
+
+
+
 
 
 
