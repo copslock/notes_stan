@@ -1,0 +1,105 @@
+==其他的-课题==
+
+===小区重选和切换===
+[1]concept:
+重选:(无专用信道)UE提出,UTRAN通过系统消息(WCDMA中是SIB-3/4/11)提供重选控制参数,UE自行读取判决是否进行重选.
+切换:(专用信道)UE和UTRAN共同参与的程序,提供专用无线资源去让UE切换到更理想的小区中去.UE向UTRAN提供测量报告,UTRAN进行判决.
+
+[2]种类:
+频内:以小区为测量单位,频点相同的; 测量报告可以随时被取走; 不打断当前小区连接的情况下,测量其他小区的信号强度.
+频间:以小区为测量单位,不同频点的; 测量报告数据一定要在频点远离当前服务小区后才能被取走,以免丢失数据; 不同小区的不同频点,UE一定要远离当前服务小区频点后再调整到邻小区的频点上进行测量.
+inter-RAT/不同通信系统间的小区重选或切换:例如在这些系统(radio access technologies)之间(GSM,WCDMA,TD-SCDMA,CDMA2000...); 测量报告数据一定要在频点远离当前服务小区后才能被取走,以免丢失数据; 这种系统间的切换或重选需要在UE上进行很重要的软/硬件的重配置.
+
+[3]测量-
+需要测量的场景:
+UE"sleeping"之间的在空闲/cell_pch/ura_pch状态下的寻呼时机;
+UE在cell_fach状态下的直传发送消息时机;
+UE在DCH上发送和接收消息之间的在cell_DCH状态下的"压缩模式下的时机";
+-------------------------
+UE的邻小区pilot强度数据表明了什么时候/什么情况下会进行重选或切换,测量数据的类型和UE的状态决定了在什么时候哪些测量数据会被上报.当能从服务小区接收到数据则频内的测量会一直上报,而频间和系统间的测量只有在要求UE重新调整无线频点才上报,因此也避免了UE在上报测量数据的同时又接收到服务小区的数据.
+
+[4]重选标准:
+WCDMA:CPICH RSCP and Ec/No(公共导频信道的接收信号码功率和Ec/No值)
+GSM:RX level(C1/C2值)
+判断当前服务小区和邻小区间的测量数据,进行信号强度的排序.
+S-标准:suitable;	R-标准:Ranking;
+UE通过SIB-11/12来进行相应的测量操作,对于每一个小区,小区的"合适度"和"级别"都会被计算出来,然后进行排序.
+
+S-标准定义:
+Srxlev > 0 and Squal > 0
+-------------------------
+Srxlev = Qrxlevmeas – Qrxlevmin(CPICH-RSCP的最小值) – Pcompensation
+Squal = Qqualmeas – Qqualmin(CPICH-Ec/Io的最小值)
+-------------------------
+Pcompensation = max (UE_TX_PWR_MAX_RACH(小区内允许的UE最大发射功率) – P_MAX(UE的最大发射功率), 0)
+-------------------------
+主要测量值即CPICH上的RSCP,Ec/Io.
+小区的前提条件:小区是已经在PLMN上注册了的; 没有被禁止接入; 小区没有处于禁止的LAC位置区.
+
+R-标准定义:
+服务小区Rs = Qmeas(s) + Qhyst(s)("时延"应用到服务小区的CPICH的RSCP和Ec/Io测量上去)
+邻小区Rn = Qmeas(n) - Qoffset(s,n)(偏移量也应用到邻小区的CPICH的RSCP和Ec/Io测量上去)
+
+[5]小区重选flow:
+1.小区的rank用CPICH的RSCP和Rxlev(Qrxlevmeas),时延和偏移量对应(Qhyst1和Qoffset1);
+2.GSM小区是rank最大的小区,结束rank阶段则进入阶段A
+3.WCDMA小区是rank最大的,"Cell_Selection_and_Reselection_Quality_Measure"由UTRAN启用,需要验证.
+	如果这个参数设置给RSCP的则rank阶段结束
+	使用Ec/Io值(Qqualmeas)给WCDMA小区排序,时延值和偏移量值被Qhyst2,Qoffset2使用.
+4.有小区rank高于当前服务小区-->在服务小区已经驻留了一定的时间(15s)-->满足其他的S-标准-->重选至新小区
+
+[6]软切换
+
+
+
+
+===USIM应用===
+
+
+
+===Security features/安全性特点===
+
+
+
+===呼叫类型===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
