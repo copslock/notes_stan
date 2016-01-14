@@ -98,7 +98,7 @@ core network:PS domain(SGSN,GGSN(GGSN类比于PS域里的"GMSC"))---(internet); 
 PS和CS domain共享同一个auc和HLR,UE可以再GSM和WCDMA之间切换,GSM系统通过A/Gb接口和MSC/SGSN两个域相连,UTRAN通过对应的lu接口互连.
 
 USIM:universal subscriber identity module/manage UE subscription info and authentication functions
-include a universal integrated circuit card(UICC)
+on a universal integrated circuit card(UICC)
 
 ===网络结构===
 cell/Route Areas/URA/Location Areas

@@ -82,34 +82,241 @@ softer切换建立和软切换的建立流程相似,用活动集更新和测量�
 物理信道重配置; 例如帧偏移量改变,这可能会包含nodeB或小区的改变,但是会要求先破坏无线链路并撤除.
 RNC之间的切换; 如果RNC之间lur接口不支持,则会建立"一个nodeB"到"两个不同RNC"的连接(硬切换过程,nodeB作为交换点).
 
-在建立一条新链路之前,所有存在的无线链路都被"丢弃".这会导致短暂的话音/数据交流中断,先退出原链路,再建立新链路进入.
+在建立一条新链路之前,所有存在的无线链路都被"丢弃".即先退出原链路,再建立新链路进入,这会导致短暂的话音/数据交流中断.
 
-硬切换消息:
-UE和UTRAN之间的硬切换消息类型取决于硬切换的原因(切换的发起方是UTRAN还是UE/物理信道重配置/传输信道重配置/Rb建立/RB释放/RB重配置).
+硬切换消息:UE和UTRAN之间的硬切换消息类型取决于硬切换的原因(切换的发起方是UTRAN还是UE/物理信道重配置/传输信道重配置/Rb建立/RB释放/RB重配置).
 
+[9]频内的测量报告
+事件类型:
+Event 1a – A Primary CPICH enters the Reporting Range/一个主导频信道进入到测量范围内.
+Event 1b – A Primary CPICH leaves the Reporting Range.
+Event 1c – A Nonactive Primary CPICH becomes better than an active Primary CPICH/一个不活跃的主导频信道测量报告质量高于一个活动的主导频信道.
+Event 1d – Change of best cell.
+Event 1e – A Primary CPICH becomes better than an absolute threshold.
+Event 1f – A Primary CPICH becomes worse than an absolute threshold.
+UTRAN向UE发送测量控制信息去告知同频上的小区,异频上的小区,GSM上的邻小区等等.
+对于每一个小区来说,UTRAN指定了一系列情况,当发生这些情况时,UE会在测量报告中上报相应的Event类型.
 
+其他控制信息:
+periodical reporting:定义两次报告的时间间隔
+time to trigger:定义"检测到事件发生时间点"和"实际发送测量报告"之间的时间间隔
+amount of reporting:最大测量报告数量
+Hysteresis:当事件触发之后,指示应用到"方程式"中的时延值大小
+其他参数也会对于一些情况有特别的对应,例如事件1a和1b使用了"报告范围"常量,取值在0到14.5dB,这个常量一般用在"相对于活动的测量引导来说的一个伴随着确定范围的测量引导"的方程式里,
+
+[10]频间测量报告
+Event 2a – Change of best frequency.
+Event 2b – 估算当前在门限值以下的使用频点的质量,估算当前没有使用的高于门限值的频点的质量.(Event 2c+2d)
+Event 2c – The estimated quality of a nonused frequency is above a certain threshold.
+Event 2d – The estimated quality of the currently used frequency is below a certain threshold.
+Event 2e – The estimated quality of a nonused frequency is below a certain threshold.
+Event 2f – The estimated quality of the currently used frequency is above a certain threshold.
+
+[11]系统间测量报告
+Event 3a – 估算当前低于门限值的使用UTRAN系统频点的质量,估算其他系统的低于门限值的测量质量.
+Event 3b – The estimated quality of the other system is below a certain threshold.
+Event 3c – The estimated quality of the other system is above a certain threshold.
+Event 3d – Change of best cell in the other system.
+
+[12]压缩模式
+concept:
+只用于DCH;
+在数据没传输的时间段创造一个"间隔/缺口";
+"gap"用在频间和系统间的测量中;
+通过减小扩展因子,打孔,高层调度,来创造出"gap"
+
+实现方法:
+1.减小扩展因子:将扩展因子减半,让同样的数据在之前一半的时间里传输,提升传输功率去保证帧质量不会受扩展因子减小的影响.这种方法只用于扩展因子的长度大于4的时候,对上下行作用相同.
+2.打孔:传输间隔的产生,是因为额外的打孔或少量的在速率匹配的重复.需要足够的物理信道位被打孔(减少了纠错码的速率),打孔仅限用于下行链路.
+3.高层调度:数据呼叫中,上层可以通过"限制数据传输速率组合"有效的创造一个"gap",多用于分组数据中,该方法同样适用于上下行链路.
+
+作用:
+在重叠覆盖的地区,覆盖区之间,边缘处可能发生的频间或系统间的切换过程都需要压缩模式(相同时间里更高的数据传输速率,更大的传输功率),应用压缩模式的UE才可以在切换时不丢失任何在专用信道上发送的数据.
+
+应用:
+UTRAN发送给UE一条信息来配置和激活压缩模式,"gap"可能需要多条不同的信息(RB创建,RRC连接创建,各类信道和RB的重配置信息)才能成功配置.
+为了能完成WCDMA到GSM之间的系统间切换,UE必须测量目标GSM小区中FCCH需要的信号强度,同时还要定期的去解码该小区的SCH的信息,以便确定"BSIC/基站识别码"的值.
+UTRAN去判断压缩模式需要的时机,当GSM的邻小区FCCH和SCH最终重叠时.
+短gap可以用GSM-RSSI(接收信号强度指示)去测量,长gap需要BSIC去认证.
 
 ===USIM应用===
+21.111 USIM and IC Card Requirements
+31.101 UICC Physical and Logical Characteristics
+31.102 USIM Application --> 属于" TS 11.11 "的一部分
 
+[1]concept:
+USIM就是在UICC(universal integrated circuit card/全球化的集成电子卡片)上的一个应用,用于管理UE的认证信息和鉴权函数.应用可以在这个卡片上进行适当的安全的注册操作.
 
+[2]UICC的结构:
+Master File(MF) – UICC对应一个MF,整个文件结构的根文件.
+Elementary File(EF) – 包含一个头文件和数据内容.
+Dedicated File(DF) – 一些文件的组合,作为下一层EF,DF文件的父节点.
+Application Dedicated File(ADF) – 一个专用的文件,包含了所有应用类型的DF,EF文件.应用的选择会通过使用AID(应用认证)来进行,AID一般存储在EF-DIR文件之中.
+
+EF-PL:偏用语言(prefer language)的一个列表.
+EF-ICCID:Integrate circuit card identity 集成电路卡识别码,唯一识别码
+DF-GSM: 包含GSM操作里的EF文件.
+DF-TELECOM:包含和交流消息相关服务的EF文件,例如缩减后拨打的号码.
+EF-DIR:包含了用于认证应用文件的"AID"
+USIM-ADF:包含了诸如"IMSI/加密/集成密钥/偏爱的PLMN/位置区信息/短消息/电话薄/呼叫定时器等等"这样的EF文件.
+
+[3]USIM应用
+用于read和更新USIM的EF文件的协议;包括电话薄输入/短消息服务信息/用户控制参数
+安全性程序; 鉴权/加密和完整密钥/用户验证(通过PINs/Personal Identification Number 个人识别号)
+
+其他涉及在内的安全性程序:
+安全密钥K的存储; 保持计数器SQN(ms); 鉴权中需要的RES值计算; 加密密钥CK和完整密钥IK的计算;
+用户用两个PINs去验证用户信息; 全球性的个人识别号; UMTS到GSM里鉴权和加密参数的转换;
 
 ===Security features/安全性特点===
+[1]UMTS的主要安全性特点
+1.鉴权:用户和网络的鉴权
+2.完整性保护:完整性的算法/完整的密钥/信令数据的完整性(通过接受器以非鉴权方式接受到的没有被修改过的数据来验证)
+3.加密:加密算法/加密密钥/用户和信令数据的安全性(避免数据在无线链路上被监听)
 
+21.133 Threats and Requirements
+25.331 RRC Protocol
+33.102 Security Architectures
+33.120 Principles and Objectives
 
+[2]AKA(鉴权和密钥协议)
+1.是什么:UE和CN之间使用一个共享的密钥,两边都可以去"鉴权".
+2.为什么需要:在后面的加密或者完整性保护功能中的密钥都是在鉴权过程中被计算出来的,同样也是为了避免被不对应UE接入.
+3.什么时候做:需要加密或完整性保护时; CS或PS域核心网络连接建立时;
+
+AKA程序中会用到的参数和函数:
+K - 鉴权密钥,存储在UE和网络中,用于AKA计算的程序在USIM卡里.
+RAND - 网络端生成的一个随机数.
+AUTN - 网络端生成的一个鉴权标志,UE使用它去让网络有效.
+RES - UE计算后返回给网络的值.
+XRES - 由网络端计算生成的响应值,用于和RES进行对比.
+CK - UE生成的加密密钥,AKA程序执行完后的输出之一.
+IK - UE生成的完整性密钥,AKA程序执行完后的输出之一.
+F1-F5 - USIM里存储的各个密钥的计算和鉴权函数.
+
+AKA 流程:
+1.VLR/SGSN--(authentication data request)-->Auth Center(AUC)
+2.AUC--(authentication data response/携带了计算后的RAND,XRES,AUTN,CK,IK值)-->VLR/SGSN
+3.VLR/SGSN--(user authentication request/携带了RAND,AUTN)-->UE
+验证AUTN信息,计算RES,IK,CK
+4.UE--(user authentication response/携带了RES)-->VLR/SGSN
+RES和XRES的对比,相同则鉴权通过,相应计算出的CK,IK值也可以用于后来的程序中.
+
+[3]Integrity protection/完整性保护
+1.是什么:UE和UTRAN之间将鉴权应用在了所有的信令消息传输中.
+2.为什么需要:保护敏感的信号信息不被修改(短消息,dialed digits拨号位数)
+3.什么时候做:RRC连接建立时; 安全模式建立程序执行后; RRC/MM/GMM/SM/CC层消息需要被保护时;
+
+所有的信令消息,除去下面的这些,都是完整性保护的.
+HANDOVER TO UTRAN COMPLETE
+PAGING TYPE 1
+PHYSICAL SHARED CHANNEL ALLOCATION
+RRC CONNECTION REQUEST
+RRC CONNECTION SETUP
+RRC CONNECTION SETUP COMPLETE
+RRC CONNECTION REJECT
+RRC CONNECTION RELEASE (CCCH only)
+SYSTEM INFORMATION (BROADCAST INFORMATION)
+SYSTEM INFORMATION CHANGE INDICATION
+TRANSPORT FORMAT COMBINATION CONTROL (TM DCCH only)
+
+IK匹配过程:
+1.对于每条发送的消息,Message authentication code(MAC-I)会被发送端计算出来并附在该消息上,接收器端会使用相同的输入参数和加密函数去计算出一个XMAC-I值,当两个值匹配,数据的完整性验证就算是成功通过,如果不匹配则消息被"丢弃".
+2.IK匹配中的输入数据(输出为一个MAC-I或XMAC-I):
+IK - 128位的IK由AKA过程中产生.
+COUNT-I - 32位的计数器,每个信令无线承载都只有一个,包含了28位的RRC hyperframe number(HFN)和4位的RRC序列号
+MESSAGE - 伴随无线承载的ID的信令消息(63 bits?)
+DIRECTION - 1位方向数据,1表示下行,0表示上行.
+FRESH - 32位的随机数,由RNC生成,在security mode cmd消息中发给UE.
+算法是F9
+
+[4]加密
+1.是什么:UE和RNC之间专用信道的数据和信令加密,适用于所有无线承载的信息.
+2.为什么需要:避免各种信息被监听.
+3.什么时候做:专用信道上启用了安全模式的建立程序; 
+
+当无线承载使用在一个封闭的RLC模式(AM或UM),加密表现在RLC层.
+当无线承载使用在透明公开的RLC模式(TM),加密表现在MAC层.
+
+输入的参数如下:(输出是一个"密钥流块")
+CK – 128位的加密码,AKA程序中计算得到.
+COUNT-C – 32位的计数器,每个信令无线承载都只有一个,包含了28位的HFN(hyperframe number),还包含了4位的"RLC序列号"或"CFN(Connection frame number)"两者其中之一.
+BEARER – 5位的RB的id.
+DIRECTION – 1位方向数据,1表示下行,0表示上行.
+LENGTH – 16位的"密钥流块"长度,仅用于决定流的长度.
+加密算法是F8,计算过程即在发送端原数据"plaintext block"和"key stream block/密钥流块"进行异或运算?,得到加密后的"ciphertext block",接收端将加密数据和相同的"key stream block"进行异或?(高通原文件写的进行逐位二进制的加法,明显是不对的..)计算,完成数据解密.
+
+[5]security summary
+鉴权的重同步;
+RRC hyperframe number,count-I和count-C的初始化规则;
+在CS+PS域同时发生的完整性保护;
+CK和IK的重使用和终止;
+加密和完整性模式的协作;
+GSM和UMTS系统间的互操作和切换;
 
 ===呼叫类型===
+26.071 AMR Speech Codec
+26.101 AMR Speech Codec Frame Structure
+21.060 GPRS Service Description Stage 1
+23.060 GPRS Service Description Stage 2
+22.002 Circuit Bearer Services
 
+[1]呼叫类型:
+1.话音呼叫:UMTS使用的是AMR自适应多速率编码器,这种编码支持8种速率的话音编码,加上一个"silence descriptor rate"和一个0bit.帧大小是20ms,支持其他标准的声音编码器.
+2.分组交换数据PS-data:基本参考的GPRS标准,GPRS的RLC和MAC层被UMTS的RLC和MAC替换了,并且GPRS的自网络独立转换协议(SNDCP)层被UMTS的分组数据转换协议(PDCP)层替换了;NAS层服务基本和GPRS中一样(SM和GMM).
+3.电路交换数据CS-Data:同步/异步传输的数据; 包含group 3 FAX; 协议和GSM中的CS域相同;
 
+[2]AMR 话音编码/解码器
+AMR_12.20 	12.20 kbit/s(GSM-EFR)
+AMR_10.20 	10.20 kbit/s
+AMR_7.95 	7.95 kbit/s
+AMR_7.40 	7.40 kbit/s(IS-641)
+AMR_6.70 	6.70 kbit/s(PDC-EFR)
+AMR_5.90 	5.90 kbit/s
+AMR_5.15 	5.15 kbit/s
+AMR_4.75 	4.75 kbit/s
+AMR_SID 	1.80 kbit/s
 
+AMR的模式决定网络传输话音的质量和网络的容量,一个呼叫会被建立在一种模式下并在此呼叫过程中AMR-mode不会改变."Tandem free operation"模式是一个例外,当一个UMTS的移动端和一个GSM的移动端进入到一个呼叫过程,这种情况下,AMR mode会基于GSM链路质量在进行自动调整,调整频率大概是20ms一次.
 
+有三种模式被设计用来适应,GSM EFR(增强型全速率)/IS-641(北美的TDMA标准)/PDC-EFR(Association of Radio Industries and Businesses/日本无线工业及商贸联合会-标准).
 
+当没有提供"舒适的噪声"时,"Silence Descriptor frame"每160ms发送一次.
+当在"silence"状态时没有数据或空白帧会被发送("silence"即当SID(Silence Des criptor/静寂描述帧)没有被发送时).
+唯一的SID模式定义是为了GSM EFR, IS-641, and PDC-EFR这些模式.
 
+[3]移动终端的话音呼叫-流程/P201 /不夸张的说这个流程有点垃圾...不够详细,释放部分也没有.
+1.呼叫路由向移动用户的GMSC或H(home)MSC
+2.GMSC向HLR/AUC寻求用户信息(位置区,所在小区,移动台漫游号码(MSRN)分配)
+3.呼叫被路由至用户的漫游目标的MSC
+4.MSC向VLR寻求用户在该区域的注册信息,向RNC申请服务(建立到用户位置区的连接)
+5.RNC(通过一个或多个nodeB)向UE寻呼(UE此时正在监听PCH和PICH信道)
+6.UE发送接入报头,nodeB响应积极的ACK(AICH上的AI捕获指示)
+7.UE发送接入消息"RRC connection request",RNC回应"RRC connection setup",UE再回应"RRC connection complete".
+8.MM和CC连接在UE和MSC之间建立,用于鉴权和呼叫控制的信令.
+9.HLR/AUC存储着密钥,用于在需要鉴权的时候
+10.呼叫中断.
+......
 
+[4]PS域数据-协议栈
+详细见记录本.
+PPP 	Point-to-Point Protocol 点对点协议
+GTP-U 	GPRS Tunneling Protocol – User Plane 用户面的GPRS调整协议
+UDP 	User Datagram Protocol 用户数据报协议
+AAL5 	ATM Adaptation Layer type 5 异步传输模式适配层5
+ATM 	Asynchronous Transfer Mode 异步传输模式
 
+[5]PS域的数据呼叫-流程
+1.呼叫建立总是发生在RRC连接建立时,在RRC connection 的request/setup/complete之后完成UE和RNC之间的链路建立.(DCH或者FACH/RACH)
+2.GMM指明服务的期望,第一次需要UE进行鉴权.UE和PS-cn之间的直传消息,分别初始化/下行/上行发出相应的GMM申请/鉴权加密请求/鉴权加密响应消息.
+3.结束鉴权后,加密和完整性保护伴随和"security mode cmd"到来.
+4.UE到PS-cn的上行直传消息"激活 PDP context request",PS-cn的SM服务向RNC发送"request to establish RAB"激活PDP context.
+5.RB携带着用户数据被建立,UE和RNC之间的RB的setup/complete流程.
+6.PS-CN的SM服务向UE发送下行直传消息"activate PDP context accept",即PDP context激活后,高层的数据协议栈可能需要协作或者建立"允许数据开始传输"的请求.
 
-
-
-
+PDP(packet data protocol) context preserved和无线承载重建立
+如果这里有一段不活跃的时期,数据RB可能会废弃掉,RRC连接也可能被释放掉.
+分组数据协议保持在一个"preserved"状态,可能因为"RRC连接的重新建立去恢复用户数据的无线承载"而被重新建立.
 
 
 

@@ -12,8 +12,7 @@ c prime 		暂时放弃
 c the programming lang	ready-to-go
 WCDMA			summary
 LTE白皮书		over
-qcom_UMTS_overview		P181
-
+qcom_UMTS_overview		P206
 
 
 指纹识别			task-->cut
