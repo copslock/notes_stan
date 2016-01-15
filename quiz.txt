@@ -1,18 +1,13 @@
-@hide
-
-java-call 
-
-hall-sensor
-
 鸟哥		    p477
 大话通信	    over
 gsm原理			chapter7和11未看
 程序员自我修养(文件的编译,链接)  P31
 c prime 		暂时放弃
 c the programming lang	ready-to-go
-WCDMA			summary
+WCDMA协议和信令	over
 LTE白皮书		over
-qcom_UMTS_overview		P206
+qcom_UMTS_overview		over
+UE_config_pics_mapping 	P25
 
 
 指纹识别			task-->cut

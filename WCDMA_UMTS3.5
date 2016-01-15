@@ -84,7 +84,8 @@ RNC之间的切换; 如果RNC之间lur接口不支持,则会建立"一个nodeB"�
 
 在建立一条新链路之前,所有存在的无线链路都被"丢弃".即先退出原链路,再建立新链路进入,这会导致短暂的话音/数据交流中断.
 
-硬切换消息:UE和UTRAN之间的硬切换消息类型取决于硬切换的原因(切换的发起方是UTRAN还是UE/物理信道重配置/传输信道重配置/Rb建立/RB释放/RB重配置).
+硬切换消息:UE和UTRAN之间的硬切换消息类型取决于硬切换的原因(切换的发起方是UTRAN还是UE//
+Uu口以下的5个信令过程都会引发硬切换:物理信道重配置/传输信道重配置/Rb建立/RB释放/RB重配置).
 
 [9]频内的测量报告
 事件类型:
@@ -309,18 +310,44 @@ ATM 	Asynchronous Transfer Mode 异步传输模式
 [5]PS域的数据呼叫-流程
 1.呼叫建立总是发生在RRC连接建立时,在RRC connection 的request/setup/complete之后完成UE和RNC之间的链路建立.(DCH或者FACH/RACH)
 2.GMM指明服务的期望,第一次需要UE进行鉴权.UE和PS-cn之间的直传消息,分别初始化/下行/上行发出相应的GMM申请/鉴权加密请求/鉴权加密响应消息.
-3.结束鉴权后,加密和完整性保护伴随和"security mode cmd"到来.
-4.UE到PS-cn的上行直传消息"激活 PDP context request",PS-cn的SM服务向RNC发送"request to establish RAB"激活PDP context.
-5.RB携带着用户数据被建立,UE和RNC之间的RB的setup/complete流程.
+3.结束鉴权后,加密和完整性保护伴随和"security mode cmd"到来,UE响应"security mode complete".
+4.UE到PS-cn的上行直传消息"activate PDP context request"..
+5.PS-cn的SM服务向RNC发送"request to establish RAB"请求建立RAB,RB携带着用户数据被建立,UE和RNC之间的RB的setup/complete流程.
 6.PS-CN的SM服务向UE发送下行直传消息"activate PDP context accept",即PDP context激活后,高层的数据协议栈可能需要协作或者建立"允许数据开始传输"的请求.
 
 PDP(packet data protocol) context preserved和无线承载重建立
 如果这里有一段不活跃的时期,数据RB可能会废弃掉,RRC连接也可能被释放掉.
 分组数据协议保持在一个"preserved"状态,可能因为"RRC连接的重新建立去恢复用户数据的无线承载"而被重新建立.
 
+==关键-概念==
 
+===WCDMA的演化===
+由GSM/GPRS发展而来,无线链路的演化(支持同时的多重服务,支持多重QoS,支持最大近2Mbps的数据传输速率)
 
+===层级-架构===
+NAS:UE--(CM)--------------------------------------MSC--(connection related signaling)--其他的CN
+	UE--(MM)--------------------------------------MSC--(mobility related signaling)--其他的CN
+AS:	UE--(RRC)--------------------------RNC--(lu)--MSC--(PSTN/ISDN lower layers)--其他的CN
+	UE--(RLC)--------------------------RNC--(lu)--MSC--(PSTN/ISDN lower layers)--其他的CN
+	UE--(MAC)--------------------------RNC--(lu)--MSC--(PSTN/ISDN lower layers)--其他的CN
+	UE--(PHY)--nodeB--(lub/可能有PHY)--RNC--(lu)--MSC--(PSTN/ISDN lower layers)--其他的CN
 
+===信道-类型===
+不同层级对应的逻辑\传输\物理信道,它们的映射关系.
+记录本上有详细框图.
+
+===呼叫状态===
+空闲状态和4种连接状态的转换,需要的条件,一般在什么时候发生这种转换.
+
+===物理层L1===
+常见的物理层的工作-流程(OTA发送数据/3步捕获系统/接入系统/寻呼)(1.TTI帧为单位的数据--传输块处理--信道编码--速率匹配--交织--分段/组合--多工复用--映射到物理信道--扩展和加扰--QPSK调制).详细见之前的物理层部分.
+
+===功率控制===
+OLPC/inner-CLPC/outer-CLPC 3中控制类型的区别,开环控制UE自行测量数据分析调整,不经过UTRAN端;闭环由UTRAN和UE协同进行,根据QoS选择合适SIR,根据SIR调整合适传输功率等等.
+
+===重选和切换===
+两者的区别:有无专用信道,判决是由UE还是UTRAN进行.
+两者各自的流程和相应的usage.
 
 
 

@@ -1,0 +1,181 @@
+==简介==
+===目标===
+能用工具或参考相应文献对设备进行配置;
+了解NV部件和EFS文件;
+NV/EFS和PICS/PIXIT的独立性;
+实际中的典型错误;
+
+===两种部件类型===
+NV - Nonvolatile UE的参数,永久存储在NV-ram里
+EFS - embedded file system 嵌入式文件系统
+这两种部件都有"激活"和"非激活"两种状态,非激活状态下默认值为代码中指定,激活状态下可以由用户指定.
+
+PICS - Protocol Implementation Conformance Statement 协议实现一致性陈述 
+PIXIT - Protocol Implementation eXtra Information for Testing 额外测试信息的协议实现
+在测试中的PICS和PIXIT值要匹配设备通过NV/EFS部件的配置值.
+不是所有的NV部件都对应PICS/PIXIT值,反之亦然.
+
+===设备配置===
+配置的对象:PICS,NV部件,EFS文件
+配置的步骤:
+[1]OEM使用高通的其中一个PICS文件去参考去定制,PICS的选择基于操作者和设备的需求.
+每种芯片组或基线/基带都有其对应的PICS文件;PICS文件包括了NV部件和EFS表,展示了设备配置和PICS设置之间的关系.
+[2]NV/EFS设置决定了在上面步骤里应用到"二进制modem"的配置(modem的软件配置).
+二进制modem配置伴随着每一个软件发布的时候被传送过来.
+二进制modem配置包括了使用的配置镜像文件.这里还有为各类操作者提供的可选的各类配置,这些配置用于芯片组集成化和测试.
+
+===configuration Process QMC uses to test lab conformance===
+用PICS文件去认证配置的正确性,基于以下这些因素:操作者;系统类型;设备类型;LTE mode......
+P10 3G的NV表-样本
+
+二进制modem配置:
+MPSS - modem process sub-system 调制解调器的处理子系统
+.MBN - 高通的集成一些EFS/NV部件的文件格式后缀,此类文件可以用QPST中的PDC工具进行烧录.
+
+二进制modem的mpss.mbn组成:
+MPSS的镜像文件 + 设备配置(SoC/Drv的配置) + 固定的设备配置PDC/默认设置(mcfg_hw.mbn/mcfg_sw.mbn,分别通过MPSS的软/硬件配置获得)
+
+mpss software:
+生成mcfg软件镜像文件,通过使用一个宏-使能的扩展表单.
+modem configuration spreadsheet-->modem config generation-->MPSS default sw config / Vzw(carrier-oem specific mcfg_sw.mbn)-->变成PDC的一部分,组成mpss.mbn
+
+二进制modem配置:
+二进制镜像对(配置数据/镜像)去支持着多重配置,允许OEM去根据自己需求配置modem,例如不同的制式,C2K即cdma2000,LTE,软件的特点,特殊的客制化要求.
+
+1.所使用工具的位置 – $BUILD_ROOT\modem_proc\mcfg\mcfg_gen
+2.输入 – "宏-使能的扩展表单",该允许客制化的修改和配置,PICS在此处进行定制过程
+3.输出 – 输出是源和mbn文件
+4.参考 – See [Q19]
+5.To generate the software modem configuration:
+找到并打开modem配置的扩展表单-->编辑表单并保存它,这个就是PICS定制文件的输入点-->编辑"summary tab总结表格"-->生成源和mbn文件-->加载生成的mbn文件到目标中去.
+6.限制点 – Currently only delivered with PLs above MPSS.DI.1.0(基带版本?)
+
+===OEM是如何从 QMC-tested 配置中获得需要的信息===
+OEM可以使用默认的配置信息作为参考去加载,在高通的参考设备上.
+认定这是已经经过QMC配置检测的,例如lab一致性,IOT,filed......
+配置文件是用CR(change request)程序来进行版本控制的.
+
+===OEM如何使用高通的参考文件去客制化===
+相应的PICS文件;指示出那些重要PICS部件改变带来的改动;
+在每一个"release build"里面二进制modem配置(BMC)对于OEM是可用的;
+在BMC的top应用常用的配置;
+
+===LCR(lab conformance review)/LCVT(lab conformance verification testing) 进程概况===
+为了正确的配置设备,OEM必须要经过LCR过程,LCR过程包括了配置的检视回顾(NVs,EFS,PICS),需要的时候还要进行LCVT(lap一致性的验证测试)程序,LCVT通过GCF, PTCRB, VZW SFN, AT&T PTN去验证设备配置和基础的RF性能.
+
+在LCR程序期间,设备的基础信息收集和配置被确定下来,接下来,OEM会被提供特殊的文件,是关于如何去配置设备和PICS的简述.OEM期望得到一些改变和问题,任何来自于高通的建议都可以被叫做"delta list",这个列表由高通那边经过配置检视回顾后提供.
+
+LCR-->OEm proto HW/SW-->LCVT-->3rd party lab entry
+LCR:回顾设备的PICS; 检视设备的NV/EFS部件配置;
+LCVT:测试关键协议的"测试用例"去确认配置; 测试关键RF的"测试用例"去确认基础的设备RF性能;
+
+==UMTS NV Items==
+
+===NV_PREF_MODE_I===
+NV_PREF_MODE_I;定义用户模式,默认值是4,由AMSS软件设置的(高通芯片组中的modem软件控制部分,advanced mobile subscriber software高级移动性适用软件).
+rex是高通的Real-Time Executive,实时操作系统,brew平台的内核.
+
+mode-preference					value		PICS				address		default		
+MODE_PREF_AMPS 					0								地址都是10	默认值都是4			
+MODE_PREF_DIGITAL 				1		
+MODE_PREF_AUTOMATIC 			4 			pc_UTRAN_GSM=TRUE
+MODE_PREF_EMERGENCY 			3
+MODE_PREF_CDMA 					9
+MODE_PREF_HDR 					10
+MODE_PREF_CDMA_AMPS				11
+MODE_PREF_GPS 					12
+MODE_PREF_GSM 					13
+MODE_PREF_WCDMA 				14 			pc_UTRAN_GSM=FALSE
+MODE_PREF_ANY_BUT_HDR 			16
+MODE_PREF_GSM_WCDMA 			17 			pc_UTRAN_GSM=TRUE
+MODE_PREF_DIGITAL_LESS_HDR 		18
+MODE_PREF_CDMA_HDR 				19
+
+扩展列表-值(地址值依然是10,默认模式值依然是4)
+Mode preference 				Value
+MODE_PREF_LTE_ONLY 				30
+MODE_PREF_CDMA_LTE_ONLY 		32
+MODE_PREF_ HDR_LTE_ONLY 		33
+MODE_PREF_ GSM_LTE_ONLY 		34
+MODE_PREF_ WCDMA_LTE_ONLY 		35
+MODE_PREF_CDMA_HDR_LTE_ONLY 	36
+MODE_PREF_ CDMA_GSM_LTE_ONLY 	37
+MODE_PREF_CDMA_WCDMA_LTE_ONLY 	38
+MODE_PREF_HDR_GSM_LTE_ONLY 		39
+MODE_PREF_HDR_WCDMA_LTE_ONLY 	40
+MODE_PREF_CDMA_LTE_WLAN_ONLY 	41
+MODE_PREF_HDR_LTE_WLAN_ONLY 	42
+MODE_PREF_GSM_LTE_WLAN_ONLY 	43
+MODE_PREF_WCDMA_LTE_WLAN_ONLY 	44
+
+===band preference/带-偏好===
+[1]和选择频带有关NV部件
+Name 					Address
+NV_BAND_PREF_I 			441
+NV_BAND_PREF_16_31_I 	946
+NV_BAND_PREF_32_63_I 	2954
+
+这3个NV部件用于WCDMA和GSM; 带-偏好需要和RF硬件容量匹配; 所有支持的频带都会在"一致性测试"阶段被使能(观察相关的PICS文件可以找到更多的关于带-特性的PICS部件相关信息);
+
+[2]"WCDMA和GSM中的用户频带"选择所对应的"NV部件设置值":
+Band 			Bit position	NV_BAND_PREF_I(441)		NV_BAND_PREF_16_31_I(946)	NV_BAND_PREF_32_63_I(2954)		PICS
+GSM 450 			16 			0x0000 					0x0001 0x00000000
+GSM 480 			17 			0x0000 					0x0002 0x00000000
+GSM 750 			18 			0x0000 					0x0004 0x00000000
+GSM 850 			19 			0x0000 					0x0008 0x00000000 TSPC_Type_GSM_850_Band
+EGSM 900 			08 			0x0100 					0x0000 0x00000000 TSPC_Type_GSM_E_Band
+RGSM 900 			20 			0x0000 					0x0010 0x00000000
+PGSM 900 			09 			0x0200 					0x0000 0x00000000 TSPC_Type_GSM_P_Band
+DCS 1800 			07 			0x0080 					0x0000 0x00000000 TSPC_Type_DCS_Band
+PCS 1900 			21 			0x0000 					0x0020 0x00000000 TSPC_Type_PCS_Band
+WCDMA_I_IMT_2000 	22 			0x0000 					0x0040 0x00000000 Pc_Band1_Support
+WCDMA_II_PCS_1900 	23 			0x0000 					0x0080 0x00000000 Pc_Band2_Support
+WCDMA_III_1700 		24 			0x0000 					0x0100 0x00000000 Pc_Band3_Support
+WCDMA_IV_1700 		25 			0x0000 					0x0200 0x00000000 Pc_Band4_Support
+WCDMA_V_850 		26 			0x0000 					0x0400 0x00000000 Pc_Band5_Support
+WCDMA_VI_800 		27 			0x0000 					0x0800 0x00000000 Pc_Band6_Support
+WCDMA_VII_2600 		48 			0x0000 					0x0000 0x00010000 Pc_Band7_Support
+WCDMA_VIII_900 		49 			0x0000 					0x0000 0x00020000 Pc_Band8_Support
+WCDMA_IX_1700 		50 			0x0000 					0x0000 0x00040000 Pc_Band9_Support
+
+===NV_FORCE_UE_SGSNR_R99_I===
+根据此NV部件和SGSNR-bit(SGSN的修订版本)共同去配置"修订等级"
+Address Default 	Value 	Description
+1030 	1			0		强制UE表现在REL-97/98的特性,无视SGSNR-bit
+1030	1			1		强制UE表现为REl-99特性,无视SGSNR-bit
+1030	1			2		UE的特性变为动态的,和SGSNR-bit有关:SGSNR为1则SGSN用rel-99标准,为0则用rel-98或更早的标准.
+
+===NV_FORCE_UE_MSCR_R99_I===
+根据此NV部件联合MSCR-bit去配置"修订等级"
+Address Default 	Value 	Description
+1031 	1			0		强制UE表现在REL-97/98的特性,无视MSCR-bit
+1031	1			1		强制UE表现为REl-99特性,无视MSCR-bit
+1031	1			2		UE的特性变为动态的,和MSCR-bit有关:MSCR-bit为1则SGSN用rel-99标准,为0则用rel-98或更早的标准.
+
+===NV_NAS_COMPLIANCE===
+此NV部件指示了在REL99标准下NAS应有的特性表现
+Address Default 	Value 	Description
+4722 	1			0		强制UE使用rel-99特性下的NAS特性表现
+4722	1			1		强制UE使用rel-5特性下的NAS特性表现
+4722	1			2		强制UE使用rel-6特性下的NAS特性表现
+4722	1			3		强制UE使用rel-7特性下的NAS特性表现
+
+
+
+
+
+
+
+
+
+
+==WCDMA NV Items==
+==GSM/GPRS NV Items==
+==User Identity Module (UIM) NV Items==
+==Short Message (SMS) NV Items==
+==LTE NV Items==
+==Prepping UEs for Lab Testing and Tests Used for Checking UE==
+==Configuration==
+==Suggestions for Triaging Lab Issues==
+==References==
+==Questions?==

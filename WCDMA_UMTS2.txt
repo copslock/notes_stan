@@ -2,9 +2,9 @@ WCDMA summary:
 
 *主叫流程:	RRC连接建立->信令连接->RAB建立->通话ing->信令连接释放->RAB释放->RRC释放
 
+RL==radio link无线链路
 DT==direct transfer直传消息
 DL/UL==down link/up link
-RL==radio link无线链路
 
 1.UE--(CCCH(RACH):rrc connection request)-->SRNC--(RL setup request)-->nodeB
 2.nodeB--(RL setup response)-->SRNC

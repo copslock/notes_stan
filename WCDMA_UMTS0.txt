@@ -52,6 +52,7 @@ WCDMA和CDMA(TDD)主要是采用的第一种,CDMA2000用的是第二种,目前�
 传输时间间隔,也可以理解为每一个"传输块"的"长度".
 
 ==PSK大家族:BPSK、QPSK、8PSK、16QAM、64QAM==
+为什么上行用BPSK/下行用QPSK?
 BPSK：Binary Phase Shift Keying              二相相移键控
 QPSK：Quadrature Phase Shift Keying          四相相移键控
 8PSK：8 Phase Shift Keying                   八相相移键控(2^3,每一个象限内有2种状态,不能只依靠角度来区分,还要加上到原点的距离)
