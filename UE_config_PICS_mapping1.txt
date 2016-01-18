@@ -171,7 +171,6 @@ P26	NV_FORCE_UE_SGSNR_R99_I和NV_FORCE_UE_MSCR_R99_I和NV_NAS_COMPLIANCE三个NV
 在确定的条件下,只接收第五次尝试发来的LU(逻辑单元);
 UE去实现额外的需求;(当ms处于"ATTEMPTING TO UPDATE"状态,并且处于"Automatic
 Network Selection"模式中,位置更新尝试计数器的值是大于等于4)
-
 address		default		managed roaming feature		NV部件值
 5895		0			enable						1
 5895		0			disable						0
@@ -180,7 +179,6 @@ address		default		managed roaming feature		NV部件值
 用于使能/屏蔽ENS(增强型网络服务);
 使能AT&T边界设备;
 使能ENS会和3gpp的特性冲突,因此需要在3gpp测试用例中屏蔽掉,在AT&T测试和最终的成品中打开使能ENS.
-
 address		default		managed roaming feature		NV部件值
 3461		0			enable						1
 3461		0			disable						0
@@ -188,7 +186,6 @@ address		default		managed roaming feature		NV部件值
 ===NV_SERVICE_DOMAIN_PREF_I===
 设置"服务域"为设备的测试提供支持;
 观察LTE的NV部件,和LTE相关的PICS之间的关系;
-
 Address Default ENS							NV item value 	Associated PICS
 850		0		service domain is CS only		0			pc_CS=true/pc_PS=false
 850		0		服务域只存在于PS				1			pc_CS=false/pc_PS=true
@@ -392,30 +389,170 @@ address		default		EDTM支持	value		PICS
 4209		1			~			1			TSPC_Enhanced_DTM_CS = TRUE; TSPC_Xtd_Ctrl_Message_Segmentation = TRUE;
 4209		1			~			0			TSPC_Enhanced_DTM_CS = false; TSPC_Xtd_Ctrl_Message_Segmentation = false;
 
-===
+===NV_EDA_FEATURE_SUPPORT_I===
+该NV部件用于定义AMSS里的MSC12/扩展性动态分配(EDA)特性;
+对于MSC10的设置,这个是不可用的;
+"TSPC_Extended_Dynamic_Allocation"应该被定义为false;
+address		default		EDA特性支持		value		PICS
+3630		1			enable			1		TSPC_Extended_Dynamic_Allocation = TRUE
+3630		1			disable			0			TSPC_Extended_Dynamic_Allocation = FALSE
 
+===NV_DARP_FEATURE_SUPPORT_I===
+控制SAIC/下行接收性能 Downlink Advanced Receiver Performance(DARP)的特性支持信息,在CLASSMARK 3 的信令中.
+Address  Default  	DARP feature 	value  	PICS
+4117		0		无DARP支持		0		TSPC_DARP_Phase1 = false; TSPC_DARP_Phase2 = false;
+4117		0		DARP支持		1		TSPC_DARP_Phase1 = true; TSPC_DARP_Phase2 = false;
 
+===NV_REPEATED_ACCH_I===
+用于使能/屏蔽对ACCH(随路控制信道)的重复特性的支持
+Address  Default  	R-ACCH support  	value  	PICS
+5107	1(R-FACCH		无支持			0		TSPC_Repeated_FACCH = FALSE; TSPC_Repeated_SACCH = FALSE; TSPC_Repeated_ACCH = FALSE;
+5107	和R-SACCH都		两种都支持		1		TSPC_Repeated_FACCH = true; TSPC_Repeated_SACCH = true; TSPC_Repeated_ACCH = true;
+5107	被使能)			R-FACCH被支持	2		TSPC_Repeated_FACCH = true; TSPC_Repeated_SACCH = FALSE; TSPC_Repeated_ACCH = true;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+===NV_VAMOS_I===
+用于去使能/屏蔽对VAMOS特性的支持;
+VAMOS能成功应用的前提是DARP和重复SACCH/FACCH特性都要被支持使能;
+Address  	Default  	VAMOS type  	value  	PICS
+67228		0(disable)	disable			0		pc_VAMOS_type1 =false; pc_VAMOS_type2 = false;
+67228		0(disable)	type1			1		pc_VAMOS_type1 =true; pc_VAMOS_type2 = false;
+67228		0(disable)	type2			2		pc_VAMOS_type1 =false; pc_VAMOS_type2 = true;
 
 ==User Identity Module (UIM) NV Items==
+===UIM里用于lab一致性测试的NV部件===
+---------------------------------------
+1.NV部件号	65674
+2.NV部件名	Generic SIM application ToolKit(GSTK) feature bitmask
+3.描述		用于使能确定的GSTK特性集,bit-2指示ESTK
+4.典型设置
+	VZW phone – 0x47
+ 	None VZW phone – 0xC6
+ 	VZW data card – 0x9
+ 	AT&T data card – 0x8
+5.参考		Q12
+---------------------------------------
+1.NV部件号	65683
+2.NV部件名	Qualcomm messaging interface(QMI)card application toolkit(cat)MODE
+3.描述		设置还未编码或解码的"UIM积极命令"的格式
+	0x0 – QMI_CAT is disabled
+ 	0x2 – Indications are in RAW format
+ 	0x3 – Indications are in decoded format
+4.典型设置
+	Android/Windows Phone 8 – 0x2
+	Windows Phone 7/data card – 0x0
+	QNX – 0x2
+5.参考		Q13
+---------------------------------------
+1.NV部件号	896
+2.NV部件名	NV_UIM_FIRST_INST_CLASS_I
+3.描述		操作和SIM/USIM相似; 有时候需要去测试GCF的SIM的电子测试用例;
+	GCF(Global Certification Forum,全球认证论坛)
+	0x0	SIM-card
+	0x1	USIM-card
+4.典型设置	0x1
+5.参考		Q2
+---------------------------------------
+1.NV部件号	4398
+2.NV部件名	NV_UIM_SELECT_DEFAULT_USIM_APP_I
+3.描述		为多应用程序的卡-选择默认的应用程序
+	0x1	为多应用的USIM在EF DIR中选择紧急程序
+	0x0	等待UI去选择其中一个急救程序
+4.典型设置	Windows Mobile 8 – 0x0; Others – 0x1;
+5.参考	
+---------------------------------------
+1.NV部件号	67287
+2.NV部件名	QMI_CAT custom terminal profile
+3.描述		在QMI_CAT中定制终端的配置文件; 当OEM想要定义TP数据的时候本NV部件被需要;
+4.典型设置	QMI_CAT有硬编码的终端配置文件
+5.参考		Q13
+---------------------------------------
+1.NV部件号	855
+2.NV部件名	NV_RTRE_CONFIG_I
+3.描述		定义Runtime RUIM Enable (RTRE)的配置类型; 定义了"值"是否需要从NV或RUIM卡中被read/write;
+Removable User Identity Module(RUIM):定义类似GSM系统中的SIM卡
+4.典型设置	Subscription from card – 0x0; Subscription from NV – 0x1;
+5.参考		Q14
+---------------------------------------
+1.NV部件号	5770
+2.NV部件名	NV_TOOLKIT_CS_PS_PARALLEL_I
+3.描述		允许"工具包数据呼叫"通过; 为SAT 27.22.4.27.2.8设置值为0x0;
+4.典型设置	0x0 - allow; 其他值 - not allow;
+5.参考
+---------------------------------------
+===需要"核对"的一些"东西"===
+[1]适应性测试
+mode偏好里面NV的值会自动设置为"4";
+ENS NV-3461会在适应测试中设置为"1";
+RAT捕获顺序文件在SD卡中的EFS中;
+
+[2]伴随CMW500的LTE的USIM/USAT测试 
+USAT - UMTS SIM Application Toolkit,UMTS SIM 应用工具包
+SAT - SIM application toolkit SIM应用工具包 / Subscriber Access Terminal 用户接入终端
+mode偏好里面NV的值会自动设置为"4";
+使能NV_RRC_INTEGRITY_ENABLED_I # 880 = 1;
+使能NV_RRC_CIPHERING_ENABLED_I # 881 = 1;
+屏蔽NV_RRC_FAKE_SECURITY_ENABLED_I # 882 = 0;
+
+[3]伴随Anritsu的SAT/USAT测试
+mode偏好里面NV的值会自动设置为"4";
+使能NV_RRC_INTEGRITY_ENABLED_I # 880 = 0;
+使能NV_RRC_CIPHERING_ENABLED_I # 881 = 0;
+屏蔽NV_RRC_FAKE_SECURITY_ENABLED_I # 882 = 1;
+
 ==Short Message (SMS) NV Items==
+===NV_SMS_GW_BEARER_PREF_I===
+设定短消息服务域的偏好;
+	CS偏好:当CS被限制PS信令连接时可用情况下,使用CS域
+	PS偏好:当PS被限制CS信令连接时可用情况下,使用PS域
+address		default		SMS域偏好		Value	PICS
+909			1			CS偏好			0		TSPC_SMS_over_GPRS = TRUE
+909			1			PS偏好			1		TSPC_SMS_over_GPRS = TRUE
+909			1			只用CS			2		TSPC_SMS_over_GPRS = false
+909			1			只用PS			3		TSPC_SMS_over_GPRS = TRUE
+
+===NV_SMS_CFG_ROUTING_I===
+该部件列出了不同等级的SMS消息路由和存储的方式;
+前6个指示了该NV部件的路由,定义路由的过程;
+后6个指示该NV部件的存储,对应路由部分定义了的存储过程;
+address:	830		
+default:
+	Class 0 Routing = 1, Storage = 3→Store and notify, stores in NV for GSM/WCDMA
+	Class 1 Routing = 1, Storage = 3→Store and notify, stores in NV for GSM/WCDMA
+	Class 2 Routing = 1, Storage = 2→Store and notify, stores in SIM for GSM/WCDMA 
+	Class 3 Routing = 1, Storage = 3→Store and notify, stores in NV for GSM/WCDMA
+	Class 4 Routing = 1, Storage = 3→Store and notify, stores in NV for GSM/WCDMA
+	Class 5 Routing = 1, Storage = 6→Store and notify, stores in NV for CDMA 
+
+===NV_SMS_GW_CB_CONFIG_I===
+该NV部件用于使能/屏蔽在GSM和WCDMA模式中的小区广播消息的重复特性.
+Address  Default  	特性支持	value  		PICS
+1016		0		enable		1			TSPC_Feat_SMS_CB_DRX = TRUE; TSPC_Ext_SMcell_BC = TRUE; TSPC_Serv_TS23 = TRUE; pc_SMS_CellBroadcast = TRUE; pc_SMS_CellBroadcast_DRX = TRUE;
+1016		0		disable		0			TSPC_Feat_SMS_CB_DRX = FALSE;  TSPC_Ext_SMcell_BC = FALSE; TSPC_Serv_TS23 = FALSE; pc_SMS_CellBroadcast = FALSE; pc_SMS_CellBroadcast_DRX = FALSE;
+
+===NV_SMS_GW_CB_USER_PREF_I===
+该NV部件用于为接收的广播消息使能/屏蔽语言过滤器;
+若要接收所有种类语言的广播消息,则该NV值需要被设置为2;
+Address  Default  	特性支持			value  		PICS
+1017		0		广播消息被屏蔽		0
+1017		0		语言过滤器使能		1
+1017		0		语言过滤器被忽略	2
+
 ==LTE NV Items==
+===NV_LTE_BC_CONFIG_I===
+
+
+
+
+
+
+
+
+
+
+
 ==Prepping UEs for Lab Testing and Tests Used for Checking UE==
 ==Configuration==
 ==Suggestions for Triaging Lab Issues==
+
 ==References==
 ==Questions?==
