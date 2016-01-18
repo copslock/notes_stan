@@ -36,7 +36,7 @@ MPSS - modem process sub-system 调制解调器的处理子系统
 MPSS的镜像文件 + 设备配置(SoC/Drv的配置) + 固定的设备配置PDC/默认设置(mcfg_hw.mbn/mcfg_sw.mbn,分别通过MPSS的软/硬件配置获得)
 
 mpss software:
-生成mcfg软件镜像文件,通过使用一个宏-使能的扩展表单.
+通过使用一个宏-使能的扩展表单,生成mcfg_sw.mbn镜像文件.
 modem configuration spreadsheet-->modem config generation-->MPSS default sw config / Vzw(carrier-oem specific mcfg_sw.mbn)-->变成PDC的一部分,组成mpss.mbn
 
 二进制modem配置:
@@ -65,7 +65,7 @@ OEM可以使用默认的配置信息作为参考去加载,在高通的参考设�
 
 在LCR程序期间,设备的基础信息收集和配置被确定下来,接下来,OEM会被提供特殊的文件,是关于如何去配置设备和PICS的简述.OEM期望得到一些改变和问题,任何来自于高通的建议都可以被叫做"delta list",这个列表由高通那边经过配置检视回顾后提供.
 
-LCR-->OEm proto HW/SW-->LCVT-->3rd party lab entry
+LCR-->OEM proto HW/SW-->LCVT-->3rd party lab entry
 LCR:回顾设备的PICS; 检视设备的NV/EFS部件配置;
 LCVT:测试关键协议的"测试用例"去确认配置; 测试关键RF的"测试用例"去确认基础的设备RF性能;
 
@@ -91,6 +91,8 @@ MODE_PREF_GSM_WCDMA 			17 			pc_UTRAN_GSM=TRUE
 MODE_PREF_DIGITAL_LESS_HDR 		18
 MODE_PREF_CDMA_HDR 				19
 
+HDR(high data rate)
+
 扩展列表-值(地址值依然是10,默认模式值依然是4)
 Mode preference 				Value
 MODE_PREF_LTE_ONLY 				30
@@ -115,28 +117,28 @@ NV_BAND_PREF_I 			441
 NV_BAND_PREF_16_31_I 	946
 NV_BAND_PREF_32_63_I 	2954
 
-这3个NV部件用于WCDMA和GSM; 带-偏好需要和RF硬件容量匹配; 所有支持的频带都会在"一致性测试"阶段被使能(观察相关的PICS文件可以找到更多的关于带-特性的PICS部件相关信息);
+这3个NV部件用于WCDMA和GSM频带选择中; 频带-偏好需要和RF硬件容量匹配; 所有支持的频带都会在"一致性测试"阶段被使能(观察相关的PICS文件可以找到更多的关于频带-特性的PICS部件相关信息);
 
 [2]"WCDMA和GSM中的用户频带"选择所对应的"NV部件设置值":
 Band 			Bit position	NV_BAND_PREF_I(441)		NV_BAND_PREF_16_31_I(946)	NV_BAND_PREF_32_63_I(2954)		PICS
-GSM 450 			16 			0x0000 					0x0001 0x00000000
-GSM 480 			17 			0x0000 					0x0002 0x00000000
-GSM 750 			18 			0x0000 					0x0004 0x00000000
-GSM 850 			19 			0x0000 					0x0008 0x00000000 TSPC_Type_GSM_850_Band
-EGSM 900 			08 			0x0100 					0x0000 0x00000000 TSPC_Type_GSM_E_Band
-RGSM 900 			20 			0x0000 					0x0010 0x00000000
-PGSM 900 			09 			0x0200 					0x0000 0x00000000 TSPC_Type_GSM_P_Band
-DCS 1800 			07 			0x0080 					0x0000 0x00000000 TSPC_Type_DCS_Band
-PCS 1900 			21 			0x0000 					0x0020 0x00000000 TSPC_Type_PCS_Band
-WCDMA_I_IMT_2000 	22 			0x0000 					0x0040 0x00000000 Pc_Band1_Support
-WCDMA_II_PCS_1900 	23 			0x0000 					0x0080 0x00000000 Pc_Band2_Support
-WCDMA_III_1700 		24 			0x0000 					0x0100 0x00000000 Pc_Band3_Support
-WCDMA_IV_1700 		25 			0x0000 					0x0200 0x00000000 Pc_Band4_Support
-WCDMA_V_850 		26 			0x0000 					0x0400 0x00000000 Pc_Band5_Support
-WCDMA_VI_800 		27 			0x0000 					0x0800 0x00000000 Pc_Band6_Support
-WCDMA_VII_2600 		48 			0x0000 					0x0000 0x00010000 Pc_Band7_Support
-WCDMA_VIII_900 		49 			0x0000 					0x0000 0x00020000 Pc_Band8_Support
-WCDMA_IX_1700 		50 			0x0000 					0x0000 0x00040000 Pc_Band9_Support
+GSM 450 			16 			0x0000 					0x0001 						0x00000000
+GSM 480 			17 			0x0000 					0x0002 						0x00000000
+GSM 750 			18 			0x0000 					0x0004 						0x00000000
+GSM 850 			19 			0x0000 					0x0008 						0x00000000 				TSPC_Type_GSM_850_Band
+EGSM 900 			08 			0x0100 					0x0000 						0x00000000 				TSPC_Type_GSM_E_Band
+RGSM 900 			20 			0x0000 					0x0010 						0x00000000
+PGSM 900 			09 			0x0200 					0x0000 						0x00000000 				TSPC_Type_GSM_P_Band
+DCS 1800 			07 			0x0080 					0x0000 						0x00000000 				TSPC_Type_DCS_Band
+PCS 1900 			21 			0x0000 					0x0020 						0x00000000 				TSPC_Type_PCS_Band
+WCDMA_I_IMT_2000 	22 			0x0000 					0x0040 						0x00000000 				Pc_Band1_Support
+WCDMA_II_PCS_1900 	23 			0x0000 					0x0080 						0x00000000 				Pc_Band2_Support
+WCDMA_III_1700 		24 			0x0000 					0x0100 						0x00000000 				Pc_Band3_Support
+WCDMA_IV_1700 		25 			0x0000 					0x0200 						0x00000000 				Pc_Band4_Support
+WCDMA_V_850 		26 			0x0000 					0x0400 						0x00000000 				Pc_Band5_Support
+WCDMA_VI_800 		27 			0x0000 					0x0800 						0x00000000 				Pc_Band6_Support
+WCDMA_VII_2600 		48 			0x0000 					0x0000 						0x00010000 				Pc_Band7_Support
+WCDMA_VIII_900 		49 			0x0000 					0x0000 						0x00020000 				Pc_Band8_Support
+WCDMA_IX_1700 		50 			0x0000 					0x0000 						0x00040000 				Pc_Band9_Support
 
 ===NV_FORCE_UE_SGSNR_R99_I===
 根据此NV部件和SGSNR-bit(SGSN的修订版本)共同去配置"修订等级"
@@ -153,24 +155,262 @@ Address Default 	Value 	Description
 1031	1			2		UE的特性变为动态的,和MSCR-bit有关:MSCR-bit为1则SGSN用rel-99标准,为0则用rel-98或更早的标准.
 
 ===NV_NAS_COMPLIANCE===
-此NV部件指示了在REL99标准下NAS应有的特性表现
+此NV部件指示了在REL99及以上的标准下NAS应有的特性表现
 Address Default 	Value 	Description
+4722	1			无应用	采用rel-99之前的标准
 4722 	1			0		强制UE使用rel-99特性下的NAS特性表现
 4722	1			1		强制UE使用rel-5特性下的NAS特性表现
 4722	1			2		强制UE使用rel-6特性下的NAS特性表现
 4722	1			3		强制UE使用rel-7特性下的NAS特性表现
 
+P26	NV_FORCE_UE_SGSNR_R99_I和NV_FORCE_UE_MSCR_R99_I和NV_NAS_COMPLIANCE三个NV部件联合起来的一个对应NV的value值变化UE的不同的特性表现的标准.总体来依照NV_NAS_COMPLIANCE为标准,UE特性变化标准在rel-99到rel-5/rel-6/rel-7之间变化,当前两个NV部件的值为2时,会根据MSCR和SGSNR的bit值来判定,为0时标准为pre-rel-99,为1时标准为rel-99/rel-5/rel-6/rel-7.
 
+===NV_MGRF_SUPPORTED_I===
+用于使能/屏蔽"管理漫游特性分支";
+请求来自于特殊的操作者;
+在确定的条件下,只接收第五次尝试发来的LU(逻辑单元);
+UE去实现额外的需求;(当ms处于"ATTEMPTING TO UPDATE"状态,并且处于"Automatic
+Network Selection"模式中,位置更新尝试计数器的值是大于等于4)
 
+address		default		managed roaming feature		NV部件值
+5895		0			enable						1
+5895		0			disable						0
 
+===NV_ENS_ENABLED_I===
+用于使能/屏蔽ENS(增强型网络服务);
+使能AT&T边界设备;
+使能ENS会和3gpp的特性冲突,因此需要在3gpp测试用例中屏蔽掉,在AT&T测试和最终的成品中打开使能ENS.
 
+address		default		managed roaming feature		NV部件值
+3461		0			enable						1
+3461		0			disable						0
 
+===NV_SERVICE_DOMAIN_PREF_I===
+设置"服务域"为设备的测试提供支持;
+观察LTE的NV部件,和LTE相关的PICS之间的关系;
 
+Address Default ENS							NV item value 	Associated PICS
+850		0		service domain is CS only		0			pc_CS=true/pc_PS=false
+850		0		服务域只存在于PS				1			pc_CS=false/pc_PS=true
+850		0		PS+CS都有服务域					2			pc_CS=pc_PS=true
 
+===NV_DISABLE_CM_CALL_TYPE_I===
+该NV部件值用作"位掩码"去屏蔽某些确定的呼叫类型;
+Address Default feature support					NV item value 	Associated PICS
+5280	0		所有CS域服务使能				0x0
+5280	0		话音呼叫被屏蔽					0x1
+5280	0		CSD(CS域数据)被屏蔽				0x2
+5280	0		话音呼叫和CSD都被屏蔽			0x3
+5280	0		话音呼叫/CSD/紧急呼叫都被屏蔽	515
 
+===NV_ACQ_ORDER_PRED_I===
+决定当MS上电后,系统如何尝试去捕获系统;
+此NV部件现在只应用于UMTS的基线的部分;
+在确定情况下(例如:当"FEATURE_DISABLE_RPLMNACT"已经被定义的情况下)决定RAT(无线接入技术)搜索顺序.
+address default	捕获顺序偏好					value	描述
+848		0		GW_ACQ_ORDER_PREF_AUTOMATIC		0		捕获顺序由系统的选择算法来决定
+848		0		GW_ACQ_ORDER_PREF_GSM_WCDMA		1		优先捕获GSM系统
+848		0		GW_ACQ_ORDER_PREF_WCDMA_GSM		2		优先捕获WCDMA系统
+	
+===NV_ENHANCED_HPLMN_SRCH_TBL_I/增强型-本地PLMN-搜索===
+用于去设置特殊的MCC配置信息,在高优先级的PLMN中搜索中,依赖于carrier 一致性需求......
+
+Address Byte number 	Field name 											Description
+6844	1				编码类型:1是set type/2是all MCC,其他值用以后使用	set type即有很多MCC被记录下来了/all MCC即无任何MCC的过滤会在高优先级PLMN搜索中完成
+		2 				Number of records 									用于set type里表示这里一共有多少记录信息
+		3 				Number of MCCs in record 							记录中MCC的数量 – 1
+		4 				MCC digit 2 | MCC digit 1 							MCC1 in record -1, 3 digits MCCs stored in 2 bytes
+		5 				Not Used | MCC digit 3
+		6 				MCC digit 2 | MCC digit 1 							MCC2 in record -1, 3 digits MCCs stored in 2 bytes
+		7 				Not Used | MCC digit 3
+
+默认来说,该NV部件是"非激活"状态;
+在高优先级PLMN搜索定时器到时时间之内,UE只会搜索当前已经注册到VPLMN上,且具有相同MCC的PLMN.
+(要注册在VPLMN上即意味着已经在HPLMN上有注册信息,VPLMN和HPLMN的关系类似于HLR和VLR)
+
+First byte		Second byte		描述
+NV is inactive	NV is inactive	对于非AT&T的sim卡,UE只会考虑当前驻留的MCC;对于AT&T的sim卡,UE会"驻留"在一个默认的MCC表里.
+1				0				对于所有的sim卡,UE只会考虑当前驻留的MCC
+1				大于0的任何数	UE会考虑多个MCC
+2				大于0的任何数	所有的MCC都会被搜索,这个设置会导致很多3gpp测试用例的失败
+0,3,4,5,6...	大于0的任何数	对于所有的sim卡,UE只会考虑当前驻留的MCC
 
 ==WCDMA NV Items==
+
+===NV_RRC_INTEGRITY_ENABLED_I / RRC的完整的使能===
+控制RRC的所有的特性分支;
+对于大多数测试过程,该NV部件设置为1;
+address default		RRC integrity 	value
+880		0			disable			0
+880		0			enable			1
+
+===NV_RRC_CIPHERING_ENABLE_I===
+使能-网络的加密功能;
+address		default		加密控制	value	pixit
+881			0			disable		0		Px_CipheringOnOff=false
+881			0			enable		1		Px_CipheringOnOff=true
+
+===NV_RRC_FAKE_SECURITY_ENABLED_I===
+使能UE的伪安全性;
+主要是在确定的测试设备上进行测试用途;
+该RRC部件可以指示NAS去使能完整性,不需要SMC(短消息中心的程序)
+address		default		加密控制	value
+882			0			disable		0
+882			0			enable		1
+
+===NV_UMTS_AMR_CODEC_PREFENCE_CONFIG_I / UMTS自适应多速率编码器偏好设置===
+用于让UE去使能/屏蔽AMR编码器;
+NV 位图 - XXXXABCD:
+	结合bit position使能和PICS设置
+	A – Controls WCDMA AMR WB
+	B – Controls GSM HR AMR
+	C – Controls GSM AMR WB
+	D – Controls GSM AMR NB
+address		default						AMR控制		value		PICS
+6850		默认值取决于AMSS			enable		1			pc_UMTS_AMR-WB_Speech=TRUE; TSPC_AddInfo_Full_rate_version_3=TRUE; TSPC_AddInfo_Half_rate_version_3=TRUE; TSPC_TCH_WFS=TRUE;
+6850									disable		0			pc_UMTS_AMR-WB_Speech=FALSE;  TSPC_AddInfo_Full_rate_version_3=FALSE; TSPC_AddInfo_Half_rate_version_3=FALSE; TSPC_TCH_WFS=FALSE;
+
+===NV_WCDMA_RRC_VERSION_I===
+UE支持各种参考标准之间的切换,通过WCDMA接入层的NV部件,这个NV部件用于去改变UE特性的参照标准(3gpp release version).
+address		default				value		behavior
+3649		取决于AMSS			0			rel-99
+3649							1			rel-5
+3649							2			rel-6
+3649							3			rel-7
+3649							4			rel-8
+
+===NV_HSDPA_CAT_I / 高速下行分组接入===
+掌握着UE的HSDPA各种类别的值;
+默认值取决于芯片组的特性;
+address		default		HSDPA种类实例	value		PICS实例
+4118		取决于AMSS	24				24			Pc_HSDPA = TRUE; pc_HSDSCH_UE_Category = 10; pc_HSDSCH_UE_Category_Extension=14; pc_HSDSCH_UE_Category_Extension2=24;
+4118		取决于AMSS	14				14			Pc_HSDPA = TRUE; pc_HSDSCH_UE_Category = 10; pc_HSDSCH_UE_Category_Extension=14; pc_HSDSCH_UE_Category_Extension2=FALSE;
+4118		取决于AMSS	10				10			Pc_HSDPA = TRUE; pc_HSDSCH_UE_Category = 10; pc_HSDSCH_UE_Category_Extension=FALSE; pc_HSDSCH_UE_Category_Extension2=FALSE;
+
+===NV_HSUPA_CAT_I / 高速上行分组接入===
+使用去选择UE的HSUPA种类;
+默认值取决于芯片组的特性;
+address		default		HSUPA种类		value		PICS
+4210		取决于AMSS	6				6			Pc_HSUPA = TRUE; pc_EDCH_UE_Category = 6
+4210					5				5			Pc_HSUPA = TRUE; pc_EDCH_UE_Category = 5
+
+===NV_WCDMA_RX_DIVERSITY_CTRL_I / WCDMA接收分集控制===
+用于控制接收分集特性分支;
+需求去满足请求类型1/3/3i接收机类型......
+address		default		接收分集特性分支		value	PICS
+3851		3			RxD enable				3		Enhanced performance requirements type 1/3/3i = TRUE
+3851		3			RxD disable				0		Enhanced performance requirements type 1/3/3i = false
+RXD(接收分路器)用于将接收信号分配给多个RX,是一个无源分配器.
+
+===NV_WCDMA_EQUALIZER_CTRL_I===
+该NV部件用于控制平衡器功能;
+需求去满足请求,对于类型为 2/3/3i 的接收机;
+强烈推荐设置此NV部件为"非激活状态",设置依赖于软件基线中使用的各种算法的情况;
+address 	default(下面的默认值是一个实例)		平衡器特性分支		Value						PICS
+3852		57(MDM9x00 modem)					enable				57 or 19(AMSS-specific)		Enhanced performance requirements type 2/3/3i = TRUE;
+3852		57(MDM9x00 modem)					disable				0x06						Enhanced performance requirements type 2/3/3i = false;
+
+===NV_WCDMA_HSUPA_CM_CTRL_I===
+用于使能/屏蔽HSUPA的压缩模式的支持;
+默认是支持HSUPA的压缩模式的;
+address		default		HSUPA/CM特性分支	Value
+5090		1			enable				1
+5090		1			disable				0
+
+===NV_CPU_BASED_FLOW_CONTROL_I===
+该NV部件用于使能/屏蔽基于CPU的流程控制;
+暂时的屏蔽可以通过出现的问题去采样调查一下数据;
+流程控制无特殊情况应该是一直打开的;
+address		default		HSUPA/CM特性	value
+4261		1			enable			1
+4261		1			disable			0
+
 ==GSM/GPRS NV Items==
+===NV_MULTISLOT_CLASS_I===
+用于去选择期望的UE的GPRS的"多重-slot"种类;
+从可用的选项中选择一个;
+address		default		MSC							value	PICS
+911			12 or 33	multislot GPRS class 10		10		TSPC_Type_GPRS_Multislot_Class = 10
+911			(取决于软	multislot GPRS class 12		12		TSPC_Type_GPRS_Multislot_Class = 12
+911			件的基线)	multislot GPRS class 33		33		TSPC_Type_GPRS_Multislot_Class = 33
+
+===NV_EDGE_MULTISLOT_CLASS_I===
+用于去选择期望的UE的EGPRS的"多重-slot"的种类;
+从可选的范围里选择唯一个可用的选项;
+address		default		MSC							value	PICS
+2509		12 or 33	multislot EGPRS class 10	10		TSPC_Type_GPRS_Multislot_Class = 10
+2509		(取决于软	multislot EGPRS class 12	12		TSPC_Type_GPRS_Multislot_Class = 12
+2509		件的基线)	multislot EGPRS class 33	33		TSPC_Type_GPRS_Multislot_Class = 33
+
+===NV_DTM_MULTISLOT_CLASS_I===
+控制处于GPRS/EDGE双工传输模式(dual transfer mode)下的"多磁格/多时隙"设备的类别;
+从可选选项里选择一个;
+
+address		default				DTM-class								value	PICS
+3629	3(多磁格类别为11)		多磁格类别11(GPRS多磁格类别应该是12)	3		TSPC_DTM_GPRS_Multislot_Class_11 = TRUE
+3629							多磁格类别9(GPRS多磁格类别应该是10)		2		TSPC_DTM_GPRS_Multislot_Class_9 = TRUE
+3629							多磁格类别5(GPRS多磁格类别应该是10)		1		TSPC_DTM_GPRS_Multislot_Class_5 = TRUE
+
+===NV_EDGE_8PSK_POWER_CLASS_I===
+当此NV部件被屏蔽的话,EDGE只能适用于下行链路.
+address		default		DTM-class					value	PICS
+2510		1			edge上行对于网络是未知的	0		TSPC_Type_EGPRS_8PSK_uplink = FALSE
+2510		1			edge上行对于网络是已知的	1		TSPC_Type_EGPRS_8PSK_uplink = TRUE
+
+===NV_GSM_A5_ALGORITHMS_SUPPORTED_I===
+用于使能A5算法; 位域指示A5的值,bit-0为A5/1,bit-1为A5/2; 
+在rel-6或更新的标准中A5/3是需要存在的; 
+文档中移除掉了A5/2的,在使用该NV部件时一定要将A5/2屏蔽掉;
+address		default		A5支持		value		PICS
+553			1			A5/1		1			TSPC_Feat_A51 = TRUE
+553			1			A5/2		2
+553			1			A5/3		4			TSPC_Feat_A53 = TRUE
+553			1			A5/4		8
+553			1			A5/5		16
+553			1			A5/6		32
+553			1			A5/7		64
+
+===NV_GPRS_GEA_ALGORITHMS_SUPPORTED_I===
+用于使能GPRS的GEA算法;
+位域指示GEA,bit-0为GEA1,bit-1为GEA2;
+保证PICS和NV部件的设置是一致的,GEA3默认是屏蔽掉的,如果要使能GEA3,需要将"NV4432"设置为"0x07"(本来是0x03?);
+address		default		A5支持		value		PICS
+4432		3			GEA1		1			TSPC_Feat_GEA1 = TRUE
+4432		3			GEA2		2			TSPC_Feat_GEA2 = TRUE
+4432		3			GEA3		4			TSPC_Feat_GEA3 = TRUE
+
+===NV_DTM_FEATURE_SUPPORT_I===
+控制DTM对于UE的支持
+address		default		DTM支持		value		PICS
+3628		1			~			1			TSPC_DTM_GPRS = TRUE
+3628		1			~			0			TSPC_DTM_GPRS = FALSE
+
+===NV_EDTM_FEATURE_SUPPORT_I===
+面向网络端,控制增强型DTM的能力;
+如果该NV部件设置值为1,设备会发出"Extended RLC/MAC control Message segmentation"公告信息;
+address		default		EDTM支持	value		PICS
+4209		1			~			1			TSPC_Enhanced_DTM_CS = TRUE; TSPC_Xtd_Ctrl_Message_Segmentation = TRUE;
+4209		1			~			0			TSPC_Enhanced_DTM_CS = false; TSPC_Xtd_Ctrl_Message_Segmentation = false;
+
+===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ==User Identity Module (UIM) NV Items==
 ==Short Message (SMS) NV Items==
 ==LTE NV Items==
