@@ -12,6 +12,7 @@
 	1.Sm:人机接口,包括SIM客户识别卡和移动终端ME的接口等等
 	2.Um:OTA接口,MS和BTS之间,包括无线资源管理,移动性管理,接续管理CM
 	3.Abis:BSC和BTS之间,一般由设备生产方定义
++	3-5.Ater:具体来说,MSC和BSC之间有一个码型变换器TC,TC和BSC之间的接口即是Ater,而TC和MSC之间的接口才是下文的A接口.
 	4.A:BSC和MSC之间,基于2Mbit/s数字接口,采用14bit七号信令方式,主要处理传递呼叫,MM,基站管理,MS管理
 	5.B:MSC和VLR之间,用于MSC向VLR询问MS位置信息,或通知VLR关于MS的位置更新信息
 	6.C:MSC和HLR之间,采用24bit七号信令方式,用于被叫MS用户信息传递和获取被叫用户被分配的漫游号

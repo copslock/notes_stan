@@ -7,12 +7,16 @@ c the programming lang	ready-to-go
 WCDMA协议和信令	over
 LTE白皮书		over
 qcom_UMTS_overview		over
-UE_config_pics_mapping 	P69
+UE_config_pics_mapping 	P87
 
 
 指纹识别			task-->cut
 firefox OS porting 	task-->ing
 
 1.protocol-->keep
-2.C
-3.设计模式
+*2.C
+*3.设计模式
+4.LTE的空口协议和系统结构
+*5.CSFB/SGLTE/voLTE信令流程 (了解)
+6.QXDM"抓"log的方法和"看"的方法
+7.联合附着?双模?

@@ -177,17 +177,17 @@ address		default		managed roaming feature		NV部件值
 
 ===NV_ENS_ENABLED_I===
 用于使能/屏蔽ENS(增强型网络服务);
-使能AT&T边界设备;
+对于AT&T-类的设备使能该NV部件;
 使能ENS会和3gpp的特性冲突,因此需要在3gpp测试用例中屏蔽掉,在AT&T测试和最终的成品中打开使能ENS.
-address		default		managed roaming feature		NV部件值
-3461		0			enable						1
-3461		0			disable						0
+address		default		增强型网络服务		NV部件值
+3461		0			enable				1
+3461		0			disable				0
 
 ===NV_SERVICE_DOMAIN_PREF_I===
-设置"服务域"为设备的测试提供支持;
+设置"服务域"的范围为设备的测试提供支持;
 观察LTE的NV部件,和LTE相关的PICS之间的关系;
-Address Default ENS							NV item value 	Associated PICS
-850		0		service domain is CS only		0			pc_CS=true/pc_PS=false
+Address Default ENS(增强型网络服务)				value 		Associated PICS
+850		0		服务域只存在于CS				0			pc_CS=true/pc_PS=false
 850		0		服务域只存在于PS				1			pc_CS=false/pc_PS=true
 850		0		PS+CS都有服务域					2			pc_CS=pc_PS=true
 
@@ -294,7 +294,7 @@ address		default		HSUPA种类		value		PICS
 ===NV_WCDMA_RX_DIVERSITY_CTRL_I / WCDMA接收分集控制===
 用于控制接收分集特性分支;
 需求去满足请求类型1/3/3i接收机类型......
-address		default		接收分集特性分支		value	PICS
+address		default		接收分集特性分支		value	Associated PICS
 3851		3			RxD enable				3		Enhanced performance requirements type 1/3/3i = TRUE
 3851		3			RxD disable				0		Enhanced performance requirements type 1/3/3i = false
 RXD(接收分路器)用于将接收信号分配给多个RX,是一个无源分配器.
@@ -303,7 +303,7 @@ RXD(接收分路器)用于将接收信号分配给多个RX,是一个无源分配
 该NV部件用于控制平衡器功能;
 需求去满足请求,对于类型为 2/3/3i 的接收机;
 强烈推荐设置此NV部件为"非激活状态",设置依赖于软件基线中使用的各种算法的情况;
-address 	default(下面的默认值是一个实例)		平衡器特性分支		Value						PICS
+address 	default(下面的默认值是一个实例)		平衡器特性分支		Value						Associated PICS
 3852		57(MDM9x00 modem)					enable				57 or 19(AMSS-specific)		Enhanced performance requirements type 2/3/3i = TRUE;
 3852		57(MDM9x00 modem)					disable				0x06						Enhanced performance requirements type 2/3/3i = false;
 
@@ -393,9 +393,9 @@ address		default		EDTM支持	value		PICS
 该NV部件用于定义AMSS里的MSC12/扩展性动态分配(EDA)特性;
 对于MSC10的设置,这个是不可用的;
 "TSPC_Extended_Dynamic_Allocation"应该被定义为false;
-address		default		EDA特性支持		value		PICS
+address		default		EDA特性支持		value	Associated PICS
 3630		1			enable			1		TSPC_Extended_Dynamic_Allocation = TRUE
-3630		1			disable			0			TSPC_Extended_Dynamic_Allocation = FALSE
+3630		1			disable			0		TSPC_Extended_Dynamic_Allocation = FALSE
 
 ===NV_DARP_FEATURE_SUPPORT_I===
 控制SAIC/下行接收性能 Downlink Advanced Receiver Performance(DARP)的特性支持信息,在CLASSMARK 3 的信令中.
@@ -525,33 +525,310 @@ default:
 
 ===NV_SMS_GW_CB_CONFIG_I===
 该NV部件用于使能/屏蔽在GSM和WCDMA模式中的小区广播消息的重复特性.
-Address  Default  	特性支持	value  		PICS
+Address  Default  	特性支持	value  		Associated PICS
 1016		0		enable		1			TSPC_Feat_SMS_CB_DRX = TRUE; TSPC_Ext_SMcell_BC = TRUE; TSPC_Serv_TS23 = TRUE; pc_SMS_CellBroadcast = TRUE; pc_SMS_CellBroadcast_DRX = TRUE;
 1016		0		disable		0			TSPC_Feat_SMS_CB_DRX = FALSE;  TSPC_Ext_SMcell_BC = FALSE; TSPC_Serv_TS23 = FALSE; pc_SMS_CellBroadcast = FALSE; pc_SMS_CellBroadcast_DRX = FALSE;
 
 ===NV_SMS_GW_CB_USER_PREF_I===
 该NV部件用于为接收的广播消息使能/屏蔽语言过滤器;
 若要接收所有种类语言的广播消息,则该NV值需要被设置为2;
-Address  Default  	特性支持			value  		PICS
+Address  Default  	特性支持			value  		Associated PICS
 1017		0		广播消息被屏蔽		0
 1017		0		语言过滤器使能		1
 1017		0		语言过滤器被忽略	2
 
 ==LTE NV Items==
 ===NV_LTE_BC_CONFIG_I===
+NV-6828;
+设置值表明了用户的LTE频带选择,此NV部件将一个频带的位图对应了bit-position;
+LTE频带			bit-position	NV设置值	PICS					Associated PICS
+eFDD band 1		0				1			pc_eFDD_band1_supp		pc_eBandN_Supp(N代表频带号,设置为true则支持所有频带)
+eFDD band 2		1				2			pc_eFDD_band2_supp
+eFDD band 3		2				4			pc_eFDD_band3_supp
+eFDD Band 4 	3 				8			.
+eFDD Band 5 	4 				16			.
+eFDD Band 6 	5 				32			.
+eFDD Band 7 	6 				64			.
+eFDD Band 8 	7 				128			.
+eFDD Band 9 	8 				256			.
+eFDD Band 10 	9 				512			.
+eFDD Band 11 	10 				1024		.
+eFDD Band 12 	11 				2048		pc_eFDD_Band12_Supp
+eFDD Band 13 	12 				4096 		pc_eFDD_Band13_Supp
+eFDD Band 14 	13 				8192 		pc_eFDD_Band14_Supp
 
+===NV_IPv6_ENABLE_I===
+该NV部件用于使能/屏蔽IPv6的支持;
+对Verizon的设备使能;对于AT&T的支持voLTE功能的设备使能该NV items;
+AT command at+cgdcont
+address		default		支持性		value		Associated PICS
+1896		1			enable		1			pc_ipv6=true
+1896		1			disable		0			pc_ipv6=false
 
+===NV_SMS_ONLY===
+如果设置为1,则设备LTE cs域只支持SMS功能;
+所有的数据卡如果只想支持SMS和数据服务可以设置为"SMS ONLY",即设置该NV部件值为"1";
+当话音呼叫支持通过设置NV-5280被屏蔽,那么NV-65776就是唯一有效的部件;
+address		default		特性支持		value	associated PICS
+65776		0			SMS only		1		pc _CS_SMS_only = TRUE; pc_SMS_SGs = TRUE; pc_SMS_SGs_MT = TRUE; pc_SMS_SGs_MO = TRUE;
+65776		0			not SMS only	0		pc _CS_SMS_only = FALSE; pc_SMS_SGs = TRUE; pc_SMS_SGs_MT = TRUE; pc_SMS_SGs_MO = TRUE;
 
+===NV_UE_USAGE_SETTING===
+该NV部件用于去设置设备的常用特性:"以话音为中心"或"以数据为中心";
+如果NV-65776设置为"SMS ONLY",则NV-65777不需要使用;
+address		default		特性支持		value		associated PICS
+65777		0			voice-centric	0			当NV-850="2"(即支持CS+PS):pc_CS_PS_data_centric = False; pc_CS_PS_voice_centric = True;	当NV-850="1"(即只支持PS):pc_PS_data_centric = False; pc_PS_voice_centric = True;
+65777		0			data-centric	1			当NV-850="2"(即支持CS+PS):pc_CS_PS_data_centric = TRUE; pc_CS_PS_voice_centric = FALSE;	当NV-850="1"(即只支持PS):pc_PS_data_centric = TRUE; pc_PS_voice_centric = FALSE;
 
+===NV_LTE_DISABLE_DURATION===
+该NV部件用于设置屏蔽LTE模式的持续时间;(即NV-65777选用voice-centric模式,取值"0")
+address		default		特性支持														value		associated PICS
+65778		720s		设置为T3402定时器的时间长度,如果读取定时器值失败,则设置为720s	0
+65778					设置为720s														0-720
+65778					设置为和NV设置一样的值											大于720
 
+如下的以话音为中心的设备 屏蔽LTE的持续时间 在NV-65778中提到的:
+Registered in LTE with LTE CS capability as CSFB not preferred;
+注册在LTE,伴随着只有SMS的LTE cs域能力
+注册在LTE,只有EPS(Evolved Packet System,演进的分组系统)服务
 
+在AT&T设备中将该NV值设置为0,才能正确执行LTE DAM操作.
 
+===LTE_NAS_Temp_Forbidden_PLMN_Feature / LTE非接入层的临时禁止PLMN列表-特性===
+*只是为了Verizon的设备设置的值;
+当UE启动定时器T3402,在一个限制服务的PLMN上,UE不会被允许去在相同PLMN再被注册记录一次;
+当T3402在某些情况下被终止,NV-65991会被创造出来去填充这个需求(定时器时间空缺?);
+当此NV部件被使能,UE维护一个暂时的禁止PLMN的列表;
+在T3402期间,服务型PLMN会被加入到列表中,伴随着在确定时间内的限制服务;
+当PLMN在这个列表时,不允许任何注册信息再记录在该PLMN上;
 
+address		default		特性支持		value		associated PICS
+65591					enable			0xFFFFFFFF
+65591					disable			其他值
 
+===NV_FEATURE_3GPP_CSFB_SKIP_OPT_WCDMA_SIBS===
+这个特性,使能的话会要求MIB,SIB1,SIB3,SIB5,SIB7去驻留和协助执行在UTRAN上的CSFB呼叫;
+对于CSFB-->UTRAN,呼叫建立延迟会增加,因为额外的信令出现在LTE和UTRAN侧,呼叫时延的另一个实际原因是在UTRAN读取系统消息;
+为了满足Key Performance Indicator(KPI)对于时延的要求,CSFB的特殊的优化实现会重定位到UTRAN上;
+这个NV部件使能只对AT&T的设备有效;
+address		default		特性支持	value	associated PICS
+65885		0			enable		1
+65885		0			disable		0
 
+===WCDMA-->LTE 测量===
+用于去屏蔽掉在WCDMA中曾有的EUTRA(evolution-UTRA)压缩模式的测量方法;
+address		default		特性支持						value		associated PICS
+67256		1			屏蔽WCDMA-->LTE EUTRA			0			pc_UTRA_CompressedModeRequired=FALSE; pc_UTRA_FeatrGrp_2=FALSE; (Support of EUTRAN measurements and reporting in connected mode在连接模式下支持EUTRA测量方法和测量报告)
+67256		1			使能WCDMA-->LTE EUTRA压缩模式	1			pc_UTRA_CompressedModeRequired=TRUE; pc_UTRA_FeatrGrp_2=TRUE;
+
+===LTE的NV部件的典型设置和总结===
+[1]数据卡/netbooks/tablets 推荐的NV设置
+---------------------------------
+1.NV部件名:NV_SMS_ONLY,65776
+2.支持的值:0,1
+3.VzW/Sprint数据为中心:无应用
+4.AT&T话音为中心:使能SMS-only(NV值为1)
+---------------------------------
+1.NV部件名:NV_DISABLE_CM_CALL_TYPE_I,5280
+2.支持的值:
+3.VzW/Sprint数据为中心:515(设置bit-position,并且9到1是为了去屏蔽掉话音呼叫/紧急呼叫/CSD)
+4.AT&T话音为中心:515(设置bit-position,并且9到1是为了去屏蔽掉话音呼叫/紧急呼叫)
+---------------------------------
+1.NV部件名:NV_UE_USAGE_SETTING,65777
+2.支持的值:0,1
+3.VzW/Sprint数据为中心:1(data-centric)
+4.AT&T话音为中心:无应用
+---------------------------------
+1.NV部件名:NV_SERVICE_DOMAIN_PR_EF_I,850
+2.支持的值:0,1,2
+3.VzW/Sprint数据为中心:2(PS+CS域)
+4.AT&T话音为中心:2(PS+CS域)
+---------------------------------
+1.NV部件名:NV_LTE_DISABLE_DURATION,65778
+2.支持的值:0,0-720,大于720
+3.VzW/Sprint数据为中心:无应用
+4.AT&T话音为中心:无应用
+
+[2]智能机推荐的NV部件设置
+---------------------------------
+1.NV部件名:NV_SMS_ONLY,65776
+2.支持的值:0,1
+3.VzW/Sprint数据为中心:无应用
+4.AT&T话音为中心:使能SMS-only(NV值为1)
+---------------------------------
+1.NV部件名:NV_DISABLE_CM_CALL_TYPE_I,5280
+2.支持的值:
+3.VzW/Sprint数据为中心:515(设置bit-position,并且9到1是为了去屏蔽掉话音呼叫/紧急呼叫/CSD)
+4.AT&T话音为中心:515(设置bit-position,并且9到1是为了去屏蔽掉话音呼叫/紧急呼叫)
+---------------------------------
+1.NV部件名:NV_UE_USAGE_SETTING,65777
+2.支持的值:0,1
+3.VzW/Sprint数据为中心:1(data-centric)
+4.AT&T话音为中心:无应用
+---------------------------------
+1.NV部件名:NV_SERVICE_DOMAIN_PR_EF_I,850
+2.支持的值:0,1,2
+3.VzW/Sprint数据为中心:2(PS+CS域)
+4.AT&T话音为中心:2(PS+CS域)
+---------------------------------
+1.NV部件名:NV_LTE_DISABLE_DURATION,65778
+2.支持的值:0,0-720,大于720
+3.VzW/Sprint数据为中心:无应用
+4.AT&T话音为中心:无应用
+
+===EFS 文件===
+1.文件类型:PDN throttling timer - PDN(公共数据网络)的门阀定时器
+2.文件名:pdn_throttling_config.txt
+3.在EFS的位置:/nv/item_files/modem/data/epc
+4.参考/应用性:向互联网PDN建立连接请求失败的时候会进行相应的处理; verizon和AT&T;
+---------------------------------
+1.文件类型:profile list
+2.文件名:profile_list
+3.在EFS的位置:/nv/item_files/modem/data/3gpp/lteps/
+4.参考/应用性:该文件具体指定了一个APN(接入点名)的列表最小集,在联合附着到LTE RAT的设置中它必须被使能,如果因为某些原因其中一个APN被屏蔽了,UE不会正常触发一个附着的请求;
+当前值为1和2;
+verizon only;
+---------------------------------
+1.文件类型:attach profile
+2.文件名:attach_profile
+3.在EFS的位置:/nv/item_files/modem/data/3gpp/lteps/
+4.参考/应用性:该文件指定了UE会用到的在初始化附着过程的"配置文件号";
+当前值是"1";
+verizon only;
+---------------------------------
+1.文件类型:default profile
+2.文件名:socks_call_prof_num;  rmnet_call_prof_num;
+3.在EFS的位置:/pdp_profiles/consl_profiles/
+4.参考/应用性:该文件指定了在默认情况下会使用的"配置文件号";
+当前值为"3"(互联网接入点名);
+verizon only;
+---------------------------------
+1.文件类型:eHRPD(演进的高速分组网络) profile 
+2.文件名:profile_000.txt;Profile_103.txt;Profile_104.txt; Profile_106.txt; Profile_107.txt;
+3.在EFS的位置:/application_specific_profiles
+4.参考/应用性:eHRPD使用去正确建立PDP(Packet Data Protocol 分组数据协议)上下文; verizon only;
+---------------------------------
+1.文件类型:RAT acquisition order
+2.文件名:Rat_acq_order
+3.在EFS的位置:/sd
+4.参考/应用性:决定PLMN选择中的RAT优先级列表
+---------------------------------
+1.文件类型:band supported table
+2.文件名:Bst_tbl
+3.在EFS的位置:/sd
+4.参考/应用性:允许通过MCC去检索频带;
+---------------------------------
+1.文件类型:disabling carrier aggregation(屏蔽集成在一个"携带者"上的所有功能)
+2.文件名:ca_disable
+3.在EFS的位置:/nv/item_files/modem/lte/common/
+4.参考/应用性:允许去屏蔽所有被集成在一起的"能力",设置为"1"去屏蔽;
+---------------------------------
+1.文件类型:feature group indicator file for rel-8
+2.文件名:	fgi
+3.在EFS的位置:/nv/item_files/modem/lte/rrc/cap/
+4.参考/应用性:用于去强制屏蔽任何一个特性组(1-32,已经被软件支持的);
+更新PICS items: Pc_FeatGrp_1...Pc_Featr_grp_32 
+---------------------------------
+1.文件类型:feature group indicator file for rel-9
+2.文件名:
+3.在EFS的位置:/nv/item_files/modem/lte/rrc/cap/
+4.参考/应用性:用于强制屏蔽已经被软件支持的任意特征组(33-64)
+更新PICS items: Pc_FeatGrp_33...Pc_Featr_grp_64
+---------------------------------
+1.文件类型:feature group indicator file for rel-10
+2.文件名:
+3.在EFS的位置:/nv/item_files/modem/lte/rrc/cap/
+4.参考/应用性:用于强制屏蔽已经被软件支持的任意特征组(101-132)
+更新PICS items: Pc_FeatGrp_101...Pc_Featr_grp_132
+---------------------------------
+
+===PICS部件和总结===
+GCF(Global Certification Forum,全球认证论坛)测试中有很多典型的PICS部件,需要去对应UE的配置.
+PICS部件名				典型值									associated NV							参考注释
+pc_attach				true(PS only)/false(CS+PS)				NV-850=1(PS only)/NV-850=2(CS+PS)
+pc_combined_attach		true(CS+PS)/false(PS only)				NV-850=1(PS only)/NV-850=2(CS+PS)
+pc_ue_category_M		true(当M为1,2,3,4,5时)
+pc_eBandN_Supp			true(当所有频带都可以应用时)			N代表频带号,在PICS设置里可以看到例如pc_exxx_Band1_Supp...
+pc_CS_PS_data_centric	true(data-centric)/false(voice-centric)	NV-65777=1并且NV-850=2				对于VZW SVLTE的设备	
+pc_CS_PS_voice_centric	true(voice-centric)/false(data-centric)	NV-65777=0并且NV-850=2				AT&T智能机和手持设备
+pc_PS_data_centric		true(data-centric)/false(voice-centric)	NV-65777=1并且NV-850=1				对大多数的数据卡不支持通过SGs的SMS功能;	
+pc_PS_data_centric		true(voice-centric)/false(data-centric)	NV-65777=0并且NV-850=1				面向支持voLTE的设备
+pc_ipv4					true
+pc_ipv6					true(verizon的UE和支持voLTE的AT&T的UE)/false(不支持voLTE的AT&T的UE)					NV-1896的值为0(屏蔽)或1(使能);	如果该NV被当做默认,ipv6切换到ipv4v6时可用使用AT command "at+cgdcont"
+
+NV-10(mode偏好的)和RAT捕获顺序的EFS文件应该包含各自的RATs.
+pc_1xRTT	false		这些PICS都收如下这些设置影响:		及时设备可能支持C2K,UE不会将其报告为UE能力的一部分
+pc_HRPD		false		NV-10; NV-885; NV-441/946/2954;		该值为false,除非测试UICC包含了CSIM认证;如果CSIM应用出现在了UICC中,UE会报告HRPD功能已经被支持,因此该值会变成true;
+pc_eFDD		true		NV-3446; UICC是否包含CSIM应用;		当UE支持FDD-LTE时为true
+pc_eTDD		false											当UE不支持TDD-LTE时为false
+pc_GERAN	true											当UE支持GERAN时为true;该值应该为false除非UICC包含了CSIM的认证应用;
+pc_UTRA		true											当ue支持UTRAN时为true;该值必须和pc_FDD值对应;该值应该为false除非UICC包含了CSIM的认证应用;
+pc_FDD		true											当UE支持UTRAN_FDD时为true;该值必须和pc_UTRA对应;该值应该为false除非UICC包含了CSIM的认证应用;
+pc_TDD_LCR	false											如果UE不支持UTRA_TDD则为false;
+
+===PIXIT(protocol implementation extra infomation of testing)部件和总结===
+对于GCF(全球认证论坛)测试来说,这些"协议实现的额外测试信息"的部件值需要被修正去匹配UE的配置信息.
+PIXIT名								典型取值											注释/参考
+px_AttachTypeTested					EPS_ATTACH_ONLY(PS only)/COMBINED_ATTACH(CS+PS)	 匹配pc_ATTACH或pc_COMBINED_ATTACH值;
+px_IMEI_Def							需要去设置UE的IMEI值								该值需要test 9.1.4.2
+px_IMSI_Def							该值取测试UICC时使用的值							一个错误的匹配可能影响测试(寻呼UE)
+px_ePrimaryBandChannelBandwidth		n50													n50=10MHz
+px_ePrimaryFrequencyBand*			13													band-13
+px_eSecondaryBandChannelBandwidth	n25													n25=5MHz
+px_eSecondFrequencyBand*			4													band-4
+px_RATComb_Tested					EUTRA_UTRA(当支持UE,也支持UTRA时)					如果LTE only或设备是LTE或C2K的则是EUTRA_only;
+px_MS_ClsmkESIND 					1 													UE支持classmark消息的早发送
 
 ==Prepping UEs for Lab Testing and Tests Used for Checking UE==
-==Configuration==
+===修改"UE默认的携带配置"去支持GCF测试===
+通常来说,IMS是被屏蔽的;设置NV-67218为0(IMS使能);
+如果在PTCRB中测试一个AT&T的设备;设置NV-3461为0(ENS使能);NV-69676为0(aggression management);
+PTCRB:PCS Type Certification Review Board - 个人通信服务型号认证评估委员会,类似于GCF那样的测试认证委员会
+
+如果CMCC产品被测试后,看一个样本必须要考虑让该设备经过CMCC的lab测试;
+设备根据CMCC配置信息去重新开始编程,例如利用一些"商业化的配置?"
+EFS文件指定一些文件(carrier_policy.xml and/or tdscdma_op_plmn_list)需要被修改去面对特别的lab测试;
+1.产品类型:支持SGLTE的产品
+2.被提交的去测试的UE:UE1被配置为SGLTE模式
+3.每种UE上的测试结果:
+	对于SGLTE产品不需要去测试TDD-LTE联合附着的测试用例;
+	
+4.CMCC的lab测试的配置区别点:
+--------------------------------
+1.产品类型:支持SGLTE的产品
+2.被提交的去测试的UE:UE2配置为CSFB模式(联合附着/双模)
+3.每种UE上的测试结果:
+4.CMCC的lab测试的配置区别点:
+---------------------------------
+1.产品类型:支持SGLTE的产品
+2.被提交的去测试的UE:UE3配置为CSFB模式(FDD-LTE/WCDMA Inter-RAT)
+3.每种UE上的测试结果:
+4.CMCC的lab测试的配置区别点:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ==Suggestions for Triaging Lab Issues==
 
 ==References==

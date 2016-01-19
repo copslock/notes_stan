@@ -1,0 +1,29 @@
+==E-UTRAN和EPS==
+EPS(evolution packet system)
+E-UTRAN(evolution-UMTS the radio access network)
+分别对应UTRAN和CN的演化结果
+
+==TAU==
+TAU Terminal Access Unit 终端接入单元
+TAU Test Access Unit 测试接入单元
+
+==CSFB和SGLTE和voLTE==
+Circuit Switched Fallback 电路域回落
+simultaneous GSM and LTE GSM和LTE同时进行的模式
+Voice over LTE	
+
+==AT command set==
+modem中涉及的,调制解调器的命令语言;每条指令以"AT"开头,所以叫做AT命令.
+LTE中的产品验证常使用一些AT命令.
+AT+CGDCONT=1,"IP","cmnet" 使用某一种协议和接入点去进行网络连接,
+
+==cmwap和cmnet和internet==
+CMNET与CMWAP：China Mobile Net与China Mobile Wap
+CMNET和CMWAP是中国移动GPRS网络的两个不同APN(access point name).
+CMNET提供了NAT服务,使用该服务的手机可以直接访问internet,CMWAP只提供了WAP代理和HTTP代理,手机上网能访问的范围有限,接入时只能访问GPRS网络内的IP(10.0.0.172).因此CMWAP主要用于手机WAP上网,CMNET则是用于PC,笔记本电脑,PDA等设备实现GPRS上网.
+
+==GSM-->EDGE - GERAN===
+Enhanced Data rates for GSM Evolution - 由GSM演化的增强型数据速率(edge可以看做是2.75代技术)
+GSM EDGE Radio Access Network - GSM和EDGE的无线接入网络
+GERAN指示GSM/EDGE网络结构的一部分,是无线接入部分,包括了BTS,BSC和它们之间的接口(ater,abis,A)
+不包含EDGE的GERAN网络就是GRAN,不包含GSM的GERAN即是ERAN,在UMTS/GSM中表现为和UTRAN组合.
