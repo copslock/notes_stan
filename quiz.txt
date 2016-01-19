@@ -7,7 +7,7 @@ c the programming lang	ready-to-go
 WCDMA协议和信令	over
 LTE白皮书		over
 qcom_UMTS_overview		over
-UE_config_pics_mapping 	P87
+UE_config_pics_mapping 	P88
 
 
 指纹识别			task-->cut

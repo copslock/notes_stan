@@ -780,6 +780,7 @@ px_RATComb_Tested					EUTRA_UTRA(当支持UE,也支持UTRA时)					如果LTE onl
 px_MS_ClsmkESIND 					1 													UE支持classmark消息的早发送
 
 ==Prepping UEs for Lab Testing and Tests Used for Checking UE==
+
 ===修改"UE默认的携带配置"去支持GCF测试===
 通常来说,IMS是被屏蔽的;设置NV-67218为0(IMS使能);
 如果在PTCRB中测试一个AT&T的设备;设置NV-3461为0(ENS使能);NV-69676为0(aggression management);
@@ -790,22 +791,40 @@ PTCRB:PCS Type Certification Review Board - 个人通信服务型号认证评估
 EFS文件指定一些文件(carrier_policy.xml and/or tdscdma_op_plmn_list)需要被修改去面对特别的lab测试;
 1.产品类型:支持SGLTE的产品
 2.被提交的去测试的UE:UE1被配置为SGLTE模式
-3.每种UE上的测试结果:
+3.每种UE上进行的测试:
 	对于SGLTE产品不需要去测试TDD-LTE联合附着的测试用例;
-	
+	只针对用于TDD-LTE EPS-only TC;
+	对于SGLTE产品不需要去测试关于FDD 数据为中心的TCs;
+	对于SGLTE的设备,不需要去测试FDD-LTE TCs;
 4.CMCC的lab测试的配置区别点:
+	GCF"carrier_policy.xml" 	present
+	GCF"tdscdma_op_plmn_list"	present
+	diff_fdd_tdd_fgi_enable		not present
 --------------------------------
 1.产品类型:支持SGLTE的产品
-2.被提交的去测试的UE:UE2配置为CSFB模式(联合附着/双模)
-3.每种UE上的测试结果:
+2.被提交的去测试的UE:UE2配置为CSFB模式(联合附着/双模/voice-centric)
+3.每种UE上进行的测试:
+	FDD-LTE 联合附着;
+	TDD-LTE inter-RAT to TD-SCDMA;
+	TDD-LTE和FDD-LTE inter-RAT to GSM;
+	FDD-LTE和TDD-LTE inter-band 测试;
 4.CMCC的lab测试的配置区别点:
+	GCF"carrier_policy.xml" 	not present
+	GCF"tdscdma_op_plmn_list"	present
+	diff_fdd_tdd_fgi_enable		present
 ---------------------------------
 1.产品类型:支持SGLTE的产品
 2.被提交的去测试的UE:UE3配置为CSFB模式(FDD-LTE/WCDMA Inter-RAT)
-3.每种UE上的测试结果:
+3.每种UE上进行的测试:	FDD-LTE inter-RAT to WCDMA;
 4.CMCC的lab测试的配置区别点:
+	GCF"carrier_policy.xml" 	not present
+	GCF"tdscdma_op_plmn_list"	not present
+	diff_fdd_tdd_fgi_enable		not present
 
-
+===测试在GCF配置下正常运行===
+推荐使用协议36.523-1中的测试用例9.1.4.2和8.5.4.1;
+当9.1.4.2运行时,如果PIXIT的部件px_IMEI_Def或者px_IMSI_Def被不正确的写入,测试失败;
+当8.5.4.1运行时,
 
 
 
