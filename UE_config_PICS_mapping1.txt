@@ -703,7 +703,7 @@ verizon only;
 当前值为"3"(互联网接入点名);
 verizon only;
 ---------------------------------
-1.文件类型:eHRPD(演进的高速分组网络) profile 
+1.文件类型:eHRPD(演进的高速分组数据网络) profile 
 2.文件名:profile_000.txt;Profile_103.txt;Profile_104.txt; Profile_106.txt; Profile_107.txt;
 3.在EFS的位置:/application_specific_profiles
 4.参考/应用性:eHRPD使用去正确建立PDP(Packet Data Protocol 分组数据协议)上下文; verizon only;
@@ -730,13 +730,13 @@ verizon only;
 更新PICS items: Pc_FeatGrp_1...Pc_Featr_grp_32 
 ---------------------------------
 1.文件类型:feature group indicator file for rel-9
-2.文件名:
+2.文件名:	fgi_rel9
 3.在EFS的位置:/nv/item_files/modem/lte/rrc/cap/
 4.参考/应用性:用于强制屏蔽已经被软件支持的任意特征组(33-64)
 更新PICS items: Pc_FeatGrp_33...Pc_Featr_grp_64
 ---------------------------------
 1.文件类型:feature group indicator file for rel-10
-2.文件名:
+2.文件名:	fgi_r10
 3.在EFS的位置:/nv/item_files/modem/lte/rrc/cap/
 4.参考/应用性:用于强制屏蔽已经被软件支持的任意特征组(101-132)
 更新PICS items: Pc_FeatGrp_101...Pc_Featr_grp_132
@@ -757,10 +757,10 @@ pc_ipv4					true
 pc_ipv6					true(verizon的UE和支持voLTE的AT&T的UE)/false(不支持voLTE的AT&T的UE)					NV-1896的值为0(屏蔽)或1(使能);	如果该NV被当做默认,ipv6切换到ipv4v6时可用使用AT command "at+cgdcont"
 
 NV-10(mode偏好的)和RAT捕获顺序的EFS文件应该包含各自的RATs.
-pc_1xRTT	false		这些PICS都收如下这些设置影响:		及时设备可能支持C2K,UE不会将其报告为UE能力的一部分
+pc_1xRTT	false		这些PICS都收如下这些设置影响:		设备可能支持C2K,UE不会将其报告为UE能力的一部分
 pc_HRPD		false		NV-10; NV-885; NV-441/946/2954;		该值为false,除非测试UICC包含了CSIM认证;如果CSIM应用出现在了UICC中,UE会报告HRPD功能已经被支持,因此该值会变成true;
 pc_eFDD		true		NV-3446; UICC是否包含CSIM应用;		当UE支持FDD-LTE时为true
-pc_eTDD		false											当UE不支持TDD-LTE时为false
+pc_eTDD		false		(UIM和CSIM都是CDMA网络制式里的模块)	当UE不支持TDD-LTE时为false
 pc_GERAN	true											当UE支持GERAN时为true;该值应该为false除非UICC包含了CSIM的认证应用;
 pc_UTRA		true											当ue支持UTRAN时为true;该值必须和pc_FDD值对应;该值应该为false除非UICC包含了CSIM的认证应用;
 pc_FDD		true											当UE支持UTRAN_FDD时为true;该值必须和pc_UTRA对应;该值应该为false除非UICC包含了CSIM的认证应用;
@@ -822,9 +822,262 @@ EFS文件指定一些文件(carrier_policy.xml and/or tdscdma_op_plmn_list)需�
 	diff_fdd_tdd_fgi_enable		not present
 
 ===测试在GCF配置下正常运行===
-推荐使用协议36.523-1中的测试用例9.1.4.2和8.5.4.1;
-当9.1.4.2运行时,如果PIXIT的部件px_IMEI_Def或者px_IMSI_Def被不正确的写入,测试失败;
-当8.5.4.1运行时,
+[0]2G pics 验证:推荐协议51.010协议的测试用例26.6.11.3;
+3G pics 验证:推荐协议34.123-1的测试用例8.1.5.7;
+[1]推荐使用协议36.523-1中的测试用例9.1.4.2和8.5.4.1;
+当9.1.4.2运行时,如果PIXIT的部件px_IMEI_Def或者px_IMSI_Def被不正确的写入,则测试失败;
+当8.5.4.1运行时,从UE的log中观察UE的容量能力信息很重要;当从log信息中得知ue-category为3,则对应的PICS的pc_ue_category_3 = true;其他的pc_ue_category_M值都要被设置为false;
+
+value UE-EUTRA-Capability ::=
+{
+accessStratumRelease rel8,
+ue-Category 3,
+pdcp-Parameters
+...
+
+[2]对于UE来说,当支持的种类高于5的时候,则需要使能多个UE种类的PICS部件,如下:
+	UE支持的种类 	PICS items to be enabled
+	6  			pc_UE_Category_4 = True; pc_UE_Category_6 = True;
+	7  			pc_UE_Category_4 = True; pc_UE_Category_7 = True;
+	8  			pc_UE_Category_5 = True; pc_UE_Category_8 = True;
+[3]根据设备支持的Robust Header Compression(RoHC/可靠的头文件压缩)的特性来设置对应PICS的值:
+supportedROHC-Profiles{
+profile0x0001 TRUE,
+profile0x0002 TRUE,
+profile0x0003 FALSE,
+profile0x0004 FALSE,
+profile0x0006 FALSE,
+profile0x0101 FALSE,
+profile0x0102 FALSE,
+profile0x0103 FALSE,
+profile0x0104 FALSE,
+}
+(根据上面的设备支持的ROHC特性,得到下面的PICS值)
+pc_ROHC_profile0x0001 = TRUE
+pc_ROHC_profile0x0002 = TRUE
+pc_ROHC_profile0x0003 = FALSE
+pc_ROHC_profile0x0004 = FALSE
+pc_ROHC_profile0x0006 = FALSE
+pc_ROHC_profile0x0101 = FALSE
+pc_ROHC_profile0x0102 = FALSE
+pc_ROHC_profile0x0103 = FALSE
+pc_ROHC_profile0x0104 = FALSE
+
+[4]查看设备支持的频带范围
+rf-Parameters{
+supportedBandListEUTRA{
+{
+bandEUTRA 1,
+halfDuplex FALSE
+},
+{
+bandEUTRA 3,
+halfDuplex FALSE
+},
+{
+bandEUTRA 7,
+halfDuplex FALSE
+},
+{
+bandEUTRA 8,
+halfDuplex FALSE
+},
+{
+bandEUTRA 20,
+halfDuplex FALSE
+}
+由上可以得出对应的PICS值设置如下:
+pc_eBand1_Supp = TRUE
+pc_eBand3_Supp = TRUE
+pc_eBand7_Supp = TRUE
+pc_eBand8_Supp = TRUE
+pc_eBand20_Supp = TRUE
+其他没有设置的pc_eBandN_Supp值都为false;
+
+[5]查看设备支持的RATs(各类通信系统)
+interRAT-Parameters
+	utraFDD
+		supportedBandListUTRA-FDD{
+		bandI,
+		bandII,
+		},
+	geran{
+		supportedBandListGERAN{
+		gsm850,
+		gsm1900
+		},
+		interRAT-PS-HO-ToGERAN FALSE
+	},
+	cdma2000-HRPD{
+		supportedBandListHRPD{
+		bc0,
+		bc1
+		},
+		tx-ConfigHRPD single,
+		rx-ConfigHRPD single
+	},
+	cdma2000-1xRTT{
+		supportedBandList1XRTT{
+		bc0,
+		bc1
+		},
+		tx-Config1XRTT single,
+		rx-Config1XRTT single
+	}
+从以上的log里能对应到PICS设置的值如下:
+pc_GERAN = TRUE
+pc_UTRA = TRUE
+pc_FDD = TRUE
+pc_1xRTT = TRUE
+pc_HRPD = TRUE
+
+[6]去查看哪些"特性组"是被设备支持的
+根据特性组的指示器来看,1代表true(支持),0代表false(不支持),对应的PICS值即pc_FeatrGrp_X = true/false;
+featureGroupIndicators '01111111 01011111 11111111 11111000'B
+以上代表了X从1到32,即FG1到FG32是否被支持;
+
+featureGroupIndRel9Add-r9 '11110000 00000000 00000000 00000000'B
+对rel-9标准的特性组指示器如上,对应PICS部件"pc_FeatrGrp_Y",Y取值33到64;
+
+特别制式下的FGI:
+UE为双模终端,会上报通常的FGI以外,还会上报FDD和TDD特有的FGI(pc_FeatrGrp_n_F和pc_FeatrGrp_n_T, n取值1-64),
+"正常FGI"是FDD和TDD的FGI按位与运算的结果?
+Common Feature group
+featureGroupIndicators '01111110 01001101 11011000 10000010'B,
+featureGroupIndRel9Add-r9 '00000000 00000000 00000000 00000000'B,
+
+fdd-Add-UE-EUTRA-Capabilities-r9{
+featureGroupIndicators-r9 '01111111 01001111 11111110 10011010'B,
+featureGroupIndRel9Add-r9 '11000000 00000000 00000000 00000000'B
+},
+
+tdd-Add-UE-EUTRA-Capabilities-r9{
+featureGroupIndicators-r9 '01111110 01001101 11011000 10000010'B,
+featureGroupIndRel9Add-r9 '00000000 00000000 00000000 00000000'B
+},
+
+===异系统间和FGI报告===
+有一些NV部件会影响异系统之间的支持和UE对FGI信息上报;
+	NV 10 – Mode Preference
+ 	NV 855 – RTRE configuration
+ 	NV 441, 946 and 2954 – CDMA, GSM and WCDMA band support configuration
+ 	NV 3446 – TRM setting
+ 	UICC being used has CSIM application
+软件利用这些设置和决定-异系统之间和FGI的报告
+	基础的FGIs影响...
+	rel-9标准下的FGI影响...
+	
+P96 实例-异系统之间的参数和需要通过UE上报的FGI信息所依赖的设置
+
+===为特殊的携带者提供的UE===
+除去要还原到为GCF/PTCRB测试修改一些东西之前的状态,UE不需要其他的改动;
+如之前提到的一样,UE需要被设置对应的默认携带者;
+将UE的还原到原始的AT&T的配置:NV-3461 = 1(ENS使能); NV-69676 = 1(aggression management);
+
+===AT命令===
+使用AT命令对verizon设备进行配置信息的复查;
+[1]设置PDP(分组数据协议)配置文件:
+	AT+CGDCONT=<文件号>,<ip协议类型>,<APN接入点>
+[2]verizon常用的配置:
+	AT+CGDCONT=1, “IPv4v6”, “vzwims”		//vzw=verizon wireless
+ 	AT+CGDCONT=2, “IPv4v6”, “vzwadmin”
+ 	AT+CGDCONT=3, “IPv4v6”, “vzwinternet”
+ 	AT+CGDCONT=4, “IPv4v6”, “vzwapp”
+[3]使能/屏蔽PDP配置文件:(P100)
+	AT$QCPDPCFGE=<profile #>,<enable/disable flag>,<inactivity timer>,<APN class>,<apn_bearer>,<MAX_CONN>,<MAX_CONN_T>,< WAIT_TIME>,<emergency call support>,<operator-specific PCO>,<MCC>,<MNC>
+	实例(使能PDP配置文件1):	AT$QCPDPCFGE=1,0,0,1,255,1023,300,0,0,65280,311,480
+[4]在attach请求中使能/屏蔽"IMS P-CSCF IPv6 PCO":
+	PCO:protocol configuration option,协议配置选项 
+	IMS:IP Multimedia Subsystem,IP多媒体子系统,洗衣袋网络的核心技术,
+	P-CSCF:Proxy-call session control function,代理-呼叫会话控制功能,IMS访问网络的同一入口点,CSCF是IMS内部的功能实体,IMS网络的核心,负责处理多媒体呼叫会话过程中的信令控制,管理IMS网络的用户鉴权,除了P-CSCF之外还有S-CSCF(接收来自网络端通过P-CSCF转发的注册请求信息,配合进行用户鉴权,对用户主被叫侧进行路由管理...),I-CSCF(查询CSCF,IMS归属网络的入口点).
+	实例:	AT$QCPDPIMSCFGE=<profile #>,<enable(1)/disable(0)>,0,0
+[5]使能PDP配置文件1去请求"IPv6 P-CSCF":
+	AT$QCPDPIMSCFGE=1,1,0,0
+[6]当UE在附着请求中请求"IMS P-CSCF IPv6 PCO"时,这代表UE正在请求P-CSCF代理服务器的ip地址,由此才可以初始化一个SIP(会话初始化协议)会话,来作为P-CSCF发现的一部分.
+
+===检查verizon设备是否正常===
+[1]使用verizon的测试用例去检查对应的提供的设备
+[2]测试VZW的"supplementary signaling conformance/补充信令的一致性"的测试用例-2.8:
+	参考以下参数,使其能正确附着在VZWIMS PDN上;
+		pdn_type = 3 (0x3) (Ipv4v6)
+		esm_info_trans_flag = 1 (0x1)
+		container_id = 1 (0x1) (P-CSCF Address Request)
+		container_id = 0xFF00 reporting MCC=311 and MNC = 480
+		container_id = 0x10 reporting IPv4 MTU link (for Rel 10 UEs only)
+	能成功连接到verizon internet PDN;
+	能成功连接到verizon admin PDN;
+	IMS注册成功;
+[3]测试VZW数据重入/重发的测试用例-6.13:	检查APN交换工作;
+[4]VZW数据重入测试用例-6.9:	检查infinite throttling works;
+[5]VZW数据重入测试用例-6.7:	检查PDN throttling works;
+
+===检查AT&T设备是否正常===wtf   {//>//w//<//}
+[1]使用AT&T对应的测试用例检查
+	Test LTE-BTR-1-1806 – Checks that LTE DAM provisioning is correct
+ 	Test LTE-BTR-1-0802 – Checks that CSG(closed subscriber group封闭用户群) provisioning is correct
+ 	Test LTE-BTR-1-4075 – Checks that CMAS(commercia | mobile alert service) provisioning is correct
+
+==Suggestions for Triaging(分类) Lab Issues==
+
+===GCF/PTCRB测试失败===
+[1]设备发送非期望的PDN连接请求:
+对android去检查"data enable",对于WP去检查"data connection",这两个值的设置是否为"ON",如果是将其置为"OFF";
+在AT&T设备测试中"data enable"会被设置为"ON",为了达到相同的效果,通过UI删除所有的APNs.
+[2]设备不能驻留/捕获到LTE RF的信号/频段
+设备中的不正确频带被设置了; 频带测试没有被支持或UE没有被使能(检查NV-6828和PICS);
+[3]设备不能发送附着请求:
+没有SIM卡; SIM卡损坏; PLMN在(forbidden)FPLMN列表里,使用AT命令去清除FPLMN列表(at+crsm=214,28539,0,0,12,"FFFFFFFFFFFFFFFFFFFFFFFF");
+[4]设备不能成功发送"ATTACH":
+使用了错误的SIM卡; 
+PICS和PIXIT的部件值和NV部件之间不匹配(例如Dual-stack IP vs IPv4 only; Combined-attach vs EPS only; Security and/or integrity not enabled correctly);
+[5]UE在测试用例9.1.4.2中失败:	PIXIT的IMEI或IMEISV参数错误;
+[6]UE在测试用例8.5.4.1中失败:	典型的LTE PICS不一致
+1.UE的FGI报告和PICS不匹配,对于单模(FDD或TDD)设备,"制式特殊的FGIs"要和"正常的FGIs"对应,即pc_FeatrGrp_n_F/T要对应pc_FeatrGrp_n.检查FGI文件是否在EFS内,这些文件可能屏蔽掉确定FGs,使其不正确.
+2.UE的eBands报告和PICS值不匹配;
+3.类似"pc_GERAN, pc_UTRA and pc_FDD, pc_1xRTT, or pc_HRPD"这样的异系统,虽然被设备支持,但是没有在PICS中定义.
+4.pc_SwitchONOFF = false;
+5.如果fgi 28 = true,pc_TTI_Bundling可能被设置为false,this must be TRUE also??????
+6.如果fgi 29 = true,pc_semi_persistence_scheduling可能被设置为false,this must be TRUE also??????
+7.设备模式可能存在不正确的模式偏好设置:例如当mode_pref设置为LTE only,但是该设备只支持GERAN和UTRA,那么UE将不会把设备支持"geran和utra"的信息包含在UE的能力上报消息中去.
+8.ROHC(可靠的头压缩)配置文件不匹配;
+9.UE种类不匹配:当UE支持种类大于5的时候,需要设置多个"pc_UE_category_N"为TRUE,小于5的时候设置对应的一个就行了.
+
+===verizon测试失败===
+[1]UE不能附着在VZWIMS PDN上:
+提供的配置文件1不正确-->AT+CGDCONT=1,"ipv4v6","vzwims";
+EFS文件"attach_profile"错误;
+配置文件1(IMS)和配置文件2(ADMIN)不可用-->AT$QCPDPCFGE=1,0,0,0 / AT$QCPDPCFGE=2,0,0,0 分别使能两个配置文件
+[2]UE不能为P-CSCF IPv6发送PCO(协议配置选项)-->AT$QCPDPIMSCFGE=1,1,0,0,使能附着请求中的PCO功能.
+[3]UE不能在附着请求中设置"esm_info_trans_flag"为1 --> APN(接入点)没有在配置文件1中被指定 --> 用命令 AT+CGDCONT=1,"ipv4v6","vzwims" 去将一个APN添加到配置文件1中.
+[4]UE在PDN连接请求中不能发送 operator特有的协议配置选项(PCO) 0xFF00 --> 必须要用QMITestPro来编程????
+[5]UE在PDN连接请求中不能发送 operator特有的协议配置选项 IPv4 link MTU --> 支持rel-10及以上标准的UE,检查NV-70328 = REL_10_THROTTLING ;
+[6]IMS参数可能影响UE,通过RRC连接中测试脚本的限制:
+对于所有的6.x数据重入测试用例,NV-67264/IMS参数"regManagerPDPFailureSchedule"必须要从10变化到1,这只是为了测试,例如IMS重入定时器不会因为数据重入测试用例的失败而失败终止.
+[7]UE不能正常展示IMS注册信息
+EFS中没有"qpconfig"文件-->将其添加进去;
+test_mode处于使能状态,如果存在,qpconfig文件会去屏蔽掉test mode --> <app_field id="SMS_CONFIG_IMS_TEST_MODE" type="int32" value="0" />
+IMS的NV部件没有被正确的编程;
+[8]UE fail to perform 适当的 data throttling
+EFS中没有"pdn_throttling_config.txt"文件
+如果可以成功运行throttling测试,UE一定是功率循环在测试和重启到throttling定时器之间;?????????
+[9]设备不能发送ATTACH请求
+PLMN被禁止掉了-->清理FPLMN列表-->at+crsm=214,28539,0,0,12,"FFFFFFFFFFFFFFFFFFFFFFFF"
+当出现EMM cause是3,6,7,8的时候,去执行完整的功率循环,让UE再次读取UICC的信息,mode LPM/ONLINE or 飞行模式不能让UE再去读取UICC的信息.
+
+===triage(分类) recommendations===
+1.产品是否有可用的测试用例?
+	使用相关的可应用的信息;
+2.测试用例在测试设备上是否还有效?
+	使用GCF和PTCRB网站的测试; 使用ATT(Automatic Test Terminal 自动测试终端) 10776测试;
+3.测试用例是否有已知的问题?
+	如下的KB文件可以提供很多问题的可用信息
+P111
+测试范围				KB-number
+3/4G GCF and PTCRB		
+VZW protocol
+ATT/T-MOB
+2G GCF and PTCRB
+CMCC lab testing info
 
 
 
@@ -848,7 +1101,8 @@ EFS文件指定一些文件(carrier_policy.xml and/or tdscdma_op_plmn_list)需�
 
 
 
-==Suggestions for Triaging Lab Issues==
+
+
 
 ==References==
 ==Questions?==
