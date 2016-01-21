@@ -46,7 +46,7 @@ cdma/wcdma/hsdpa协议参照的标准/类别/版本...
 qxdm 标题栏的tag(随意),出现在banner上的tag.
 [2.5]reset/set..offline/refresh
 [3]DIP switches
-[4]log view config/Message view config 抓取的log/OTA log/event类型等等指定 --> 单独设定filter view的config,将其的config配置保存(重要!).
+[4]log view config/Message view config 抓取的log/OTA log/event类型等等指定 --> 单独设定filter view的config,将其的config配置保存为.cfg和.cfg2文件(重要!).
 [5]parsing option解析选项
 输出文件是ANSI编码还是分析过后的文件,输出分析"源",qxdm对于可用的分析方法选择顺序...
 
