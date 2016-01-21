@@ -1,0 +1,117 @@
+==简介==
+DMSS:dual-mode subscriber station
+AMSS:advanced mobile subscriber software
+QXDM作为一个分析软件主要面向于DMSS和AMSS,它提供了一个高效的协议包分析平台,以图形化的方式和接口展示数据在DMSS的传输 etc.
+
+==安装==
+(RPC)Remote Procedure Call Protocol -- （RFC-1831）远过程调用协议
+安装-->各组件(RPC代理; PPP提取器; listen-only qxdm; database editor; dlf/isf converter; item tester)-->正常使用...
+
+==display==
+===file menu===
+[1]Annotate/注释
+在"目标文件加里"添加一些提前定义的string到userAnnotation.txt文件中去.(不要直接修改Annotation.txt文件)
+[2]dynamic parse/动态分析
+利用"分析引擎"去告诉qxdm要去哪里加载这些分析参数程序(.dll)
+[3]view registrations/注册信息
+当前配置选择的log packet/OTA log的类型有哪些,要抓取的log即这些注册过的.
+在选择的注册信息中还可以选择注册信息的显示方式:只显示被支持的/根据分类来显示/copy text(复制item-type,例如0x1158 - core dump)
+[4]load configuration/save configuration:加载和保存DMC文件
+	DMC管理:各种类型的DMC文件管理
+[5]new items/load items/save items:新建/加载/保存isf文件
+[6]replay items/重现抓取过程
+	maximum gap:每一个items之间的时间间隔
+	playback speed:回顾的播放速度
+	conpact layout:每一个items详细信息的扩展框
+	step:步进一个item
+	play/pause:...
+[7]item store setting
+快速存储items的设置,默认的ISF文件名,存储文件位置,log存储完后特殊"处理程序"...
+标准模式的快速存储选择;高级模式下可以设置isf文件的最大容量或最长记录时间,超过这个限制就自动保存,还有单个最大文件夹里的isf文件数量限制...
+
+===view menu===
+new-->新的一些窗口显示
+各种快捷工具栏
+
+===options menu===
+[1]连接状态/连接端口选择(普通的手机设备接口/GPS设备)
+diag request - 单位为ms,电话每次发出请求和响应之间的时间,实际的timeout是设定值的3倍.
+script commands -  legacy script commands的等待时间.
+
+[2]各类个人设置
+build source path:产生这些log文件所关联的源代码文件目录...
+vendor database path:产品设备数据库目录,用于判断设备的型号,归属厂商...
+cdma/wcdma/hsdpa协议参照的标准/类别/版本...
+设置一些常用操作(加载配置/保存items等等)的hot-key
+qxdm 标题栏的tag(随意),出现在banner上的tag.
+[2.5]reset/set..offline/refresh
+[3]DIP switches
+[4]log view config/Message view config 抓取的log/OTA log/event类型等等指定 --> 单独设定filter view的config,将其的config配置保存(重要!).
+[5]parsing option解析选项
+输出文件是ANSI编码还是分析过后的文件,输出分析"源",qxdm对于可用的分析方法选择顺序...
+
+[6]auto-launch core-dump view:默认使能,自动启动来自目标设备的core-dump log视图
+[7]hide hex pane by default:hex pane在每次初始化时候被隐藏?????
+[8]track dropped Message:包括在每次debug回应的消息包里的手机端报告的丢失的信息
+
+===tool menu===
+各类工具
+
+===window menu===
+tag window:向窗口标题添加某些tag;
+clear most/clear all:前者除了log view其他都会被清掉
+
+窗口的展现方式,窗口的关闭/数据清除/最小化/还原等等...
+auto-scroll all
+arrange icons
+cascade:层叠展示
+minimize all:全部最小化
+restore all:全部还原之前的窗口大小
+tile horizontal/tile vertical:横向/竖向展示??
+previous/next window
+active window list:	1.xxx	2.xxx
+
+===help menu===
+软件的注册信息/状态;
+帮助文档;
+
+----------------------------
+===view bar===
+提供所有的qxdm支持的窗口显示
+
+===cmd bar===
+尽管支持很多以前的DOS DM脚本命令,但是还是推荐使用软件自带的接口来测试.
+
+一些命令会将文件名当做参数,例如运行命令去启动一个脚本去定位一个文件,qxdm会使用下面的搜索标准:
+使用提供的文件; qxdm的默认的data path里的; qxdm设置的可选脚本路径中的文件;
+
+===status bar===	P51 - 各参数-对应-显示的详细数据描述
+可以右击config来调整需要在状态栏中显示的参数...
+
+==qxdm views==
+常用的view方式及其相关设置:
+	F1 log; F5 log参数设置; ctrl+F5 message参数设置; F9 状态信息; F11 item-view; F12 filter-view;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -7,8 +7,8 @@ c the programming lang	ready-to-go
 WCDMA协议和信令	over
 LTE白皮书		over
 qcom_UMTS_overview		over
-UE_config_pics_mapping 	P112 over
-qxdm_user_guide			P17/158
+UE_config_pics_mapping 	over
+qxdm_user_guide			P53/158
 
 指纹识别			task-->cut
 firefox OS porting 	task-->ing

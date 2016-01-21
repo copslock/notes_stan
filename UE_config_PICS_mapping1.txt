@@ -961,7 +961,7 @@ featureGroupIndRel9Add-r9 '00000000 00000000 00000000 00000000'B
 	NV 10 – Mode Preference
  	NV 855 – RTRE configuration
  	NV 441, 946 and 2954 – CDMA, GSM and WCDMA band support configuration
- 	NV 3446 – TRM setting
+ 	NV 3446 – TRM(传输机-资源管理器) setting
  	UICC being used has CSIM application
 软件利用这些设置和决定-异系统之间和FGI的报告
 	基础的FGIs影响...
