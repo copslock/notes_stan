@@ -8,7 +8,7 @@ WCDMA协议和信令	over
 LTE白皮书		over
 qcom_UMTS_overview		over
 UE_config_pics_mapping 	over
-qxdm_user_guide			P53/158
+qxdm_user_guide			P102/158
 
 指纹识别			task-->cut
 firefox OS porting 	task-->ing

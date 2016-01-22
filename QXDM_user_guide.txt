@@ -46,7 +46,7 @@ cdma/wcdma/hsdpa协议参照的标准/类别/版本...
 qxdm 标题栏的tag(随意),出现在banner上的tag.
 [2.5]reset/set..offline/refresh
 [3]DIP switches
-[4]log view config/Message view config 抓取的log/OTA log/event类型等等指定 --> 单独设定filter view的config,将其的config配置保存为.cfg和.cfg2文件(重要!).
+[4]log view config/Message view config 抓取的log/OTA log/event类型等等指定 --> 单独设定filter view的config,将其的config配置(diag配置文件)保存为.cfg和.cfg2文件(重要!).
 [5]parsing option解析选项
 输出文件是ANSI编码还是分析过后的文件,输出分析"源",qxdm对于可用的分析方法选择顺序...
 
@@ -89,8 +89,105 @@ active window list:	1.xxx	2.xxx
 可以右击config来调整需要在状态栏中显示的参数...
 
 ==qxdm views==
-常用的view方式及其相关设置:
+[1]常用的view方式及其相关设置:
 	F1 log; F5 log参数设置; ctrl+F5 message参数设置; F9 状态信息; F11 item-view; F12 filter-view;
+	command output - 只显示类型是string或key值是automation的item;
+	
+[2]filter view设置里item选择的最下面的两个参数:
+1.delayed subsystem response only
+只接受延迟的子系统调度V2响应.
+2.accept unknows
+接收那些没有被识别的items.(当item的类型和key值之间没有对应关系但是item的名字在qxdm数据库中存在,这种即为unknowns items)
+
+[3]搜索
+确定关键字---搜索的范围(类型/item的名字/key值/时间戳/summary信息)---如果选择类型,还可以指定要搜索的item类型的种类---regEx_Engine(none/JScript/Perl,选择后两个就可以接受正则表达式??)搜索的方向(向上/下)---其它选项(相似性搜索/反选搜索/从最后一个选择的items处开始搜索过程/包括所有的分析文件)
+
+找到相关内容后,通过"ctrl+n"和"ctrl+shift+n"可以切换选择下一个或上一个.
+
+[4]others.
+ctrl+G 根据item index号,goto item.
+
+auto-scroll:自动滚动到最后一项item(alt+S)
+
+shift+delect:基本等同于clear most,除了log view的信息其他items信息都被清除.
+
+match items:选择items-->设置选项和搜索过程类似,但是会创建一个新的filter view来显示以上匹配到的items.
+
+process_item:将选择的的items经过一个由用户自己提供的脚本函数处理??(喊出支持的语言有perl/vb/JS/xml,脚本必须包含一个ProcessItem()的函数,且要传入一个参数,一个借口指针指向qxdm的item借口的模板IColorItem,函数返回值是一个布尔型值,true或false,返回值为true则表示通过脚本函数验证可以加入到filter-view中,false则被丢弃掉),最后也会生成一个fliter-view来显示所有被选择的并且通过脚本函数测试的items.
+"C:\Users\Public\Documents\Qualcomm\QXDM\Automation Samples"这个目录里提供了各种示例脚本文件
+
+refilter items:和filter-view配置选择界面一样,最后会生成一个filter-view(可以在各种view界面中发起"再次过滤")
+
+raw item:将选中的item信息以原始的16进制来表示出来.
+
+sync near item:更新index和对应item的列表.
+
+sync to item:更新所有的filter-view到一个相同的被选择的item上.
+
+bookmark_item:(alt+B)将某一些item添加到bookmark-view中去,原item-view中被选择的地方也会被highlight一下,相当于一个书签类似,还可以用"alt+D"和"alt+U"来上下切换选择到已经被添加到bookmark_view里的item.
+
+[5]html-views
+利用html方式来显示测量数据???
+"C:\Users\Public\Documents\Qualcomm\QXDM\HTML"
+模板示例什么的详细的参考上面的目录
+
+[6]gragh views
+各种图标显示(包含各种设置参数clear/cursor游标,可拖动/save image/auto scroll/auto slide/axis scroll mode/axis zoom mode/legend (图例标志)visible/range,选择默认zoom的时间设置/view Y-axis,能选择的图表类型/view channel,能够选择绘制参数)
+
+[7]application Statistics/应用的统计信息
+包括当前这个"item"文件,一共接受/发出的字节数,packet接收/发出数,持续时间,时间戳信息等等.
+
+[8]dynamic item view
+被选择的item类型周期性的出现在dynamic item view中.(右击设置选择周期性出现的item.)
+
+[9]NV browser
+通过这个可以读到并且可以修改NV值.修改值之后一定要"write"确认,否则退出之后保存还是原来的值.
+当修改的NV值有和mode特别的要求时候,在写入NV值之前要先点击offline去发送"mode change request"????
+"reset" - 即重启设备,像手机发送"mode change request reset",当手机处于offline状态时,执行reset会导致手机进入"recycle"???
+
+[10]memory view(F4)  P80-82
+让你可以在运行时看到并且编辑手机的memory location.
+
+[11]OS core dump
+qxdm启动之后,core-dump一般是默认自己启动的,它会记录OS core-dump的log,自启动可以在options menu中禁用掉这个.
+
+[12]task profiling
+展示了一个系统级别的task和每个task的profiling logs.
+对于双核心的目标设备,则对应两个task profiling view - APU(application processing unit)和MPU(modem processing unit)
+设置里:
+task list里竖列显示的项,task graph绘制的图像选择,信息更新时间/间隔,task expiration(终止) options...
+
+[13]debug trace view
+查看到哪些被跟踪要被写入EFS的dump文件,当一个trace dump文件被选择和"start transfer"的时候trace dump文件会有相应的记录信息.结果也可以在配置了接收debug/get trace item response items的item-view或filter-view中看到.
+
+[14]cdma finger placement
+delay(chips); current Ec/Io - 码片能量/干扰电平;(一共展示3个Ec/Io值,一个公共的,2个对应不同天线的?) 
+
+==log view==
+===log-view===
+(alt+L)(F1)新建一个log-view的时候,当前的item/log信息会自动保存在一个以时间信息命名的isf文件里.
+对应的设置(F5):
+Message packet/log packet(包含OTA的)/event packet/diagnostic logs/string/misc
+当选上GSM NV ITEMS,以下类型的NV ITEMS会被要求并记录在log-view中:
+	GSM NV Test Code Version
+	GSM NV System Software Version
+ 	GSM NV RF Cal Version
+ 	GSM NV RF Cal Date
+ 	GSM NV RF Load Date
+ 	GSM NV RF Cal File
+ 	GSM NV RF Config Version
+IS-2000 items:
+	IS 2000 Status (periodic)
+ 	IS 2000 Standard Retrieve Parameters (periodic)
+ 	IS 2000 Extended Retrieve Parameters (periodic)
+misc:不连接设备情况下,可以通过指定log_file_path中使用被保存isf文件加入到log-view中???
+
+==Message view==
+(F3)
+对应的设置(ctrl+F5):
+Message Packets, Log Packets, Log Packets(OTA), Event Reports, and Strings
+
+==command prompt interface / 命令"提示"接口==
 
 
 
@@ -115,3 +212,21 @@ active window list:	1.xxx	2.xxx
 
 
 
+
+
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
