@@ -190,6 +190,8 @@ Message Packets, Log Packets, Log Packets(OTA), Event Reports, and Strings
 ==command prompt interface / 命令"提示"接口==
 
 
+automation string items.
+
 
 
 
