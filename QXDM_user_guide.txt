@@ -203,7 +203,8 @@ automation string items.
 C:\Users\Public\Documents\Qualcomm\QXDM\Automation Samples
 
 ===IQXDM(legacy QXDM com interface)===
-
+BSTR:basic STRing ,微软在COM/OLE中定义的标准字符串数据类型.
+优先级: STL string/wstring-->CString-->C/C++ basic type-->CComBSTR-->BSTR(一般也只有COM接口会用)
 
 
 
