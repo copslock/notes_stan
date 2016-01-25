@@ -35,37 +35,4 @@ linux filesystem：
 				efs(for qcom modem，可以用EFS-Explorer工具查看), fuse(用户空间的文件系统，用在/DATA 和 /sdcard 里比较多)
 				
 		filesystem in userspace
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
+	

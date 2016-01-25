@@ -188,15 +188,21 @@ misc:不连接设备情况下,可以通过指定log_file_path中使用被保存i
 Message Packets, Log Packets, Log Packets(OTA), Event Reports, and Strings
 
 ==command prompt interface / 命令"提示"接口==
-
-
+以命令的方式去控制整个抓取log和修改一些参数的过程.
+P102-P110
 automation string items.
 
+==com automation interfaces==
+大致分为5个模块:
+1.QXDM:
+2.client:
+3.client配置:
+4.Item:面向由QXDM管理的items的接口
+5.Field:提供向QXDM数据库对一个items的分析域的接入方式
+一些自动化示例脚本文件参考如下目录:
+C:\Users\Public\Documents\Qualcomm\QXDM\Automation Samples
 
-
-
-
-
+===IQXDM(legacy QXDM com interface)===
 
 
 

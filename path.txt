@@ -21,6 +21,6 @@ export CLASSPATH=$CLASSPATH:.:$JAVA_HOME/lib:$JAVA_HOME/jre/lib
 java -version
 
 #sdk
-PATH = PATH: /~/platform-tools
-PATH = PATH: /~/tools
+PATH=$PATH:"/~/sdk/platform-tools/"
+PATH=$PATH:"/~/sdk/tools/"
 
