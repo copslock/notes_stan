@@ -400,14 +400,15 @@ GetFieldCount:获取解析域由数据库解析源更新的次数,返回一个Ul
 
 GetFieldIndex:获取第一个"根据指定域名匹配到的"域的索引,返回一个Ulong值(这个值用于展示索引---索引指向匹配特定的域名的解析域的列表---该列表的索引指示从0开始,但是不包括GetfieldCount返回的值...wtf???)(展示了"匹配到特定域名的解析域的列表"的索引,索引反过来也指向这个列表),错误情况返回值为0xFFFFFFFF.
 GetFieldIndexFrom:检索"第一个匹配到特殊域名的"索引,并且根据提供的索引开始搜索过程,返回值同上.
-GetFieldIndexByID:
-GetFieldIndexFromByID:
+GetFieldIndexByID:获取第一个"匹配指定的域ID的"域的索引,这个"域ID"是每一个域在被添加到DM数据库时被分配的,返回值同上.
+GetFieldIndexFromByID:获取第一个"匹配指定域ID"域的索引,并且利用该域索引开始检索过程,返回值同上.
 
-GetFieldOffset:
-GetFieldSize
-GetFieldValue
-GetFieldName
-GetFieldValueText
+GetFieldOffset:通过给出的域索引获得域ID的位偏移量,返回一个Ulong值,错误时返回0xFFFFFFFF.
+GetFieldSize:通过给出的域的索引去获取域ID的"位大小/bit-size",返回一个Ulong值,错误时返回0xFFFFFFFF.
+GetFieldValue:通过给出的域索引去获得域ID的"原始值/raw",返回一个VT_变量(VT变量类型参考GetItemFieldValue中的变量类型值一栏),错误时返回VT_EMPTY.
+GetFieldValueText:通过给出的域索引获取域ID的"值",并将其压缩为一个字符串输出,返回一个BSTR,即该字符串.
+GetFieldName:通过给出的域索引获得域的"名字"???,返回一个BSTR值,即域的"名字".
+
 
 ===qxdm自动化示例===
 略.
@@ -418,7 +419,7 @@ GetFieldValueText
 ==quiz==
 	
 
-	
+越来越菜了= =
 	
 	
 	
