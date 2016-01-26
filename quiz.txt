@@ -8,7 +8,7 @@ WCDMA协议和信令	over
 LTE白皮书		over
 qcom_UMTS_overview		over
 UE_config_pics_mapping 	over
-qxdm_user_guide			P103/158
+qxdm_user_guide			P147/158
 
 指纹识别			task-->cut
 firefox OS porting 	task-->ing
@@ -23,3 +23,4 @@ firefox OS porting 	task-->ing
 
 8.NV-3446 TRM setting  P96的实例  PICS和NV值之间各参数之间的联系
 
+尽己之力 静己之心
