@@ -1,6 +1,7 @@
 鸟哥		    p477
 大话通信	    over
 gsm原理			chapter7和11未看
+gsm总结			基础网络结构和关键信令流程完成
 程序员自我修养(文件的编译,链接)  P31
 c prime 		暂时放弃
 c the programming lang	ready-to-go
@@ -8,10 +9,11 @@ WCDMA协议和信令	over
 LTE白皮书		over
 qcom_UMTS_overview		over
 UE_config_pics_mapping 	over
-qxdm_user_guide			P149/158
+qxdm_user_guide			over
+Wcdma/umts总结			ready-to-go
 
 指纹识别			task-->cut
-firefox OS porting 	task-->ing
+firefox OS porting 	task-->总结错误,暂时决定停止掉
 
 1.protocol-->keep-->ue config pics done-->umts/wcdma/gsm 一些零散文件 去看
 *2.C
@@ -24,3 +26,9 @@ firefox OS porting 	task-->ing
 8.NV-3446 TRM setting  P96的实例  PICS和NV值之间各参数之间的联系
 
 尽己之力 静己之心
+
+
+
+
+
+

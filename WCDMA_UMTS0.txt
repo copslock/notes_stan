@@ -60,7 +60,7 @@ QPSK：Quadrature Phase Shift Keying          四相相移键控
 64QAM：64 Quadrature Amplitude Modulation    64正交幅相调制(2^6)
 
 ==RRC(root-raised cosine filter)和码间串扰(isi)==
-rrc filter是用来做signal shaping的，目的是在一定的带宽要求下，尽量的减少isi，匹配滤波的目标也是为了修正isi带来的信号崎变。这两个的目标是相同的，但是一个是避 免isi，一个是修正isi。
+rrc-filter是用来做signal-shaping的,目的是在一定的带宽要求下,尽量的减少isi,匹配滤波的目标也是为了修正isi带来的信号崎变,这两个的目标是相同的,但是一个是避免isi,一个是修正isi.
 
 isi就是码间串扰
 

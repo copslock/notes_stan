@@ -196,10 +196,10 @@ automation string items.
 ==com automation interfaces==
 大致分为5个模块:
 1.QXDM:COM automation 接口.
-2.client:提供一种区分QXDM-items到唯一的collections的方法(数据获取通过由目标中获取和内部QXDM进程获取两种方式),还提供直接接入QXDM items的"通道".
+2.client:将一部分QXDM-items集合到一起,形成一个集合,这个集合即是client(数据获取通过由目标中获取和内部QXDM进程获取两种方式),还提供直接接入QXDM items的"通道".
 3.client配置:提供一些方法去配置特定类型的items(QXDM接口程序所interested的).
-4.Item:由QXDM管理的面向items的接口
-5.Field:提供向QXDM数据库对一个items的分析域的接入方式
+4.Item:面向特定items的接口,由QXDM来管理这些接口.
+5.Field:提供向"一个特定item所使用的QXDM数据库解析域"的接入方式.
 一些自动化示例脚本文件参考如下目录:
 C:\Users\Public\Documents\Qualcomm\QXDM\Automation Samples
 
@@ -412,20 +412,29 @@ GetFieldName:通过给出的域索引获得域的"名字"???,返回一个BSTR值
 
 ===qxdm自动化示例===
 略.
-	
-	
+
 ==运行时-解析DLLs==
-	
+qxdm提供API给用户让其可以自己编写自己需要的解析源.
+
 ==quiz==
 	
 
-越来越菜了= =
+
 	
 	
 	
 	
 	
 	
+	
+	
+	
+	
+	
+	
+	
+	
+
 	
 	
 	

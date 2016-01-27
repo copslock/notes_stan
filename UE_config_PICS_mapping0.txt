@@ -6,6 +6,7 @@ E-UTRAN(evolution-UMTS the radio access network)
 ==TAU==
 TAU Terminal Access Unit 终端接入单元
 TAU Test Access Unit 测试接入单元
+TAU tracking area update 跟踪区更新
 
 ==CSFB和SGLTE和voLTE==
 Circuit Switched Fallback 电路域回落

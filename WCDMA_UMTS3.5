@@ -222,7 +222,7 @@ SYSTEM INFORMATION CHANGE INDICATION
 TRANSPORT FORMAT COMBINATION CONTROL (TM DCCH only)
 
 IK匹配过程:
-1.对于每条发送的消息,Message authentication code(MAC-I)会被发送端计算出来并附在该消息上,接收器端会使用相同的输入参数和加密函数去计算出一个XMAC-I值,当两个值匹配,数据的完整性验证就算是成功通过,如果不匹配则消息被"丢弃".
+1.对于每条发送的消息,Message authentication code(MAC-I)这个值会被发送端计算出来并附在该消息上,接收器端会使用相同的输入参数和加密函数去计算出一个XMAC-I值,当两个值匹配,数据的完整性验证就算是成功通过,如果不匹配则消息被"丢弃".
 2.IK匹配中的输入数据(输出为一个MAC-I或XMAC-I):
 IK - 128位的IK由AKA过程中产生.
 COUNT-I - 32位的计数器,每个信令无线承载都只有一个,包含了28位的RRC hyperframe number(HFN)和4位的RRC序列号
