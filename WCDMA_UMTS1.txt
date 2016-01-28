@@ -222,6 +222,7 @@ UTRAN--(system info)-->UE
 NBAP:CRNC--(system info update request)-->nodeB--(... response)-->CRNC
 RRC:nodeB--(BCCH:system info)-->UE  重复多(3)次
 
+
 ==呼叫建立和释放信令流程==
 UE通过现有收到的广播信息,选择对应的小区,了解接入网络的条件
 RRC连接-->UE和CN连接-->UE能力-->RAB(无线承载管理)建立-->RAB释放,lu释放-->RRC释放
@@ -390,6 +391,7 @@ RRC释放只能发生在cell_fach或cell_dch状态下,如果在其他状态则�
 *RRC连接在公共信道上的释放
 1.SRNC--(rrc connection release)-->UE
 因为用的是小区公共资源,所以只需要发出释放请求,UE会自动释放占用资源,也不需要经过nodeB去撤除特定分配的"资源"
+
 
 ==MM流程分析==
 UMTS常见的移动性管理:前向切换,软切换,硬切换,系统间切换,迁移
