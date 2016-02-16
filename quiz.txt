@@ -3,7 +3,7 @@
 大话通信	    over
 gsm原理			chapter7和11未看,其余over
 gsm总结			基础网络结构和关键信令流程完成-->over
-程序员自我修养			P51
+程序员自我修养			P105/P483
 c prime 				暂时放弃
 c the programming lang	ready-to-go
 WCDMA协议和信令			over
