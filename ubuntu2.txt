@@ -6,6 +6,7 @@ pwd [-P] 加P显示真实路径，而不是可能出现的链接路径，例如/
 	通过 “ls -ld /var/mail” 可以查看它的权限和连接到哪里去，-d 表示列出当前所在目录而不是这个目录下的文件
 ls 直接接目录路径也可以 -a显示隐藏目录 -l显示时间大小权限等 --full-time显示完整时间 --color=auto 系统自行决定是否显示颜色
 	-i显示index number标志数？索引数？文件的inode号/索引节点号  "ll"="ls -l"
+lsblk 以树状图列出块设备和相应的一些参数
 	
 wget --ftp-user=xxx --ftp-password=xxx -r  ftp://IP:PORT/* 	利用ftp的方式下载东西,-r为递归下载
 wget ftp-ULR 	ftp的匿(ni)名下载
@@ -165,7 +166,7 @@ INT     2    中断（同 Ctrl + C）
 QUIT    3    退出（同 Ctrl + \）
 TERM   15    终止
 KILL    9    强制终止
-CONT   18    继续（与STOP相反， fg/bg命令）
+CONT   18    继续（与STOP相反， "fg前台/bg后台"命令）
 STOP   19    暂停（同 Ctrl + Z）	
 	
 	“nohup+命令”  可以将程序以忽略挂起信号的方式运行起来，被运行的程序的输出信息将不会显示到终端。输出默认实在当前目录下nohup.out里或者$home里，
