@@ -111,6 +111,65 @@ gcc的链接器ld的默认链接脚本位置:/usr/lib/ldscripts/
 $ld -T link.scripts		//指定自己定义的脚本为链接控制脚本
 
 [2]tinytext
+输入:程序源码+涉及的函数的静态库+?
+一般编译链接过程:
+$gcc -c -fno-builtin target.c
+$ld -static -e nomain -o target.o target
+输出:一个可执行文件,还可以精简其中不影响程序运行的段.
+
+[3]使用ld链接脚本(.lds)
+实质:对目标文件的段进行操作.
+/*****以下是一个链接脚本实例*****/
+ENTRY(nomain)		//程序入口函数指定
+SECTIONS
+{
+	. =0x08048000 + SIZEOF_HEADERS;				//.代表当前虚拟地址
+	tinytest : {*(.text) *(.data) *(.rodata)}	//右边3种类型段全部合并后放在tinytest段里,中间的空格隔开是必须的,*即通配符,*(.data)即代表所有目标文件的data段都会被选中.
+	/DISCARD/ : {*(.comment)}					//丢弃掉comment段
+}
+使用脚本编译链接的过程:
+$gcc -c -fno-builtin tinytest.c
+$ld -static -T tinytest.lds -o tinytest.o tintest
+结果中只会有合并后的段,但是仍然会有字符串表和符号表一类,这里可以用strip命令清理掉.
+
+[4]链接脚本语法
+命令语句和赋值语句,凡是脚本语言中或多或少都会允许正则表达式,所以正则用法需要多复习,
+
+ENTRY(target)		程序入口地址,采用优先级(ld命令行的-e > 链接脚本设置 > _start() > .text段起始位置 > 位置0)
+STARTUP(filename)	将"filename"作为链接的第一个输入文件
+SEARCH_DIR(path)	将"path"加入到ld的链接查找目录,效果同命令行里的"-Lpath"
+INPUT(file_A,file_b,...)	将指定文件作为链接输入
+INCLUDE file		类似于C中的头文件包含
+PROVIDE(symbol)		在链接脚本中定义这个符号
+特殊的命令例如SECTIONS见实例部分 - file1(.data .rodata)		file1.o		*(.data)		...
+
+===BFD库===
+为不同平台的目标文件提供一种抽象的统一模型,就像VFS对于各种文件系统类型一样,让这些目标文件之间可以链接,让不同的平台也可以识别多种格式的目标文件.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

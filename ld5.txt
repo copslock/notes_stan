@@ -1,0 +1,48 @@
+Windows PE/COFF
+===COFF(目标文件)/PE(可执行文件) --> PE32+===
+目标文件有着和ELF文件相似的段结构,大多只有名字有出入.(例如.text和.code)
+和gcc不同的用"_attribute_((section("name")))"来自定义段,vc++中多用"#pragma":
+
+#pragma data_seg("foo") int global = 1;		//global变量放在foo段中,此操作完后将数据段的默认指示换回原来的".data".
+#pragma data_seg(".data")
+
+win端的编译器"cl",链接器"link",可执行文件查看器"dumpbin"...
+cl /c /Za target.c		// /c表示只编译不链接,输出则是.obj文件,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
