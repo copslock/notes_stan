@@ -6,13 +6,85 @@ Windows PE/COFF
 #pragma data_seg("foo") int global = 1;		//global变量放在foo段中,此操作完后将数据段的默认指示换回原来的".data".
 #pragma data_seg(".data")
 
+===COFF文件基本概述===
 win端的编译器"cl",链接器"link",可执行文件查看器"dumpbin"...
-cl /c /Za target.c		// /c表示只编译不链接,输出则是.obj文件,
+cl /c /Za target.c		// /c表示只编译不链接,输出则是.obj文件, /Za表示禁用c/c++的标准扩展-->编译器自动定义了宏"_STDC_"
+cl /Zl --> 默认关闭C库的链接指令
+dumpbin /ALL target.obj > target.txt		//打印所有详细信息,并重定向到文本文件中
+dumpbin /SUMMARY target.obj					//只打印段名和长度等基本信息到屏幕上
 
+COFF的文件结构:
+映像头:描述文件总体结构和属性,结构体IMAGE_FILE_HEADER,具体信息见P160
+段表:描述各段属性,结构体IMAGE_SECTION_HEADER[],具体信息见P161
 
+typedef struct _IMAGE_FILE_HEADER{
+	WORD	Machine;
+	WORD	NumberOfSections;
+	DWORD	TimeDataStamp;
+	DWORD	PointToSymbolTable;
+	DWORD	NumberOfSymbols;
+	WORD	SizeOfOptionalHeader;
+	WORD	Characteristics;
+}IMAGE_FILE_HEADER, *PIMAGE_FILE_HEADER;
 
+typedef struct _IMAGE_SECTION_HEADER{
+	BYTE Name[8];
+	union{
+		DWORD PhysicalAddress;
+		DWORD virtualSize;		//被加载到内存后的大小
+	}Misc;
+	DWORD VirtualAddress;		//被加载到内存后的虚拟地址
+	DWORD SizeOfRawData;		//该段在文件中的大小,因为内存对齐的关系,这个值一般比virtualsize小,例如bss段,virtualsize是预分配大小,而sizeofrawdata大小是0
+	DWORD PointerToRawData;
+	DWORD PointerToRelocations;
+	DWORD PointerToLinenumbers;
+	WORD NumberOfRelocations;
+	WORD NumberOfLinenumbers;
+	DWORD Characteristics;		//段类型,对齐方式,rwx权限等等
+}IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
 
+===链接指示信息===P162
+两个ELF中没有的段类型,".drectve"和".debug$S",前者即是这一部分的有关链接指示信息的段.
+该段内容是编译器传递给链接器的指令,编译器告诉链接器怎么样去链接这些目标文件.
 
+"/DEFAULTLIB:'LIBCMT'" --> 告诉链接器目标文件必须要链接到libcmt.lib(静态链接的多线程C库)这个库.
+
+===调试信息===
+调试段".debug$xxx",xxx对应着不同部分的调试信息段,该段中可以看到目标文件的原始路径,编译器信息等,
+
+===符号表===
+COFF的符号和ELF内容基本一样,符号编号(在符号表的下标),符号所占用的空间,符号所在位置,符号类型,符号的可见类型(局部还是全局变量),符号名(可能会同时打印出修饰前后的两个名字)
+
+符号表里面也会有"段名"这种符号,出现段名时,下面往往还会紧跟一行内容,一般是该段的长度,重定位数,行号数和校验和等等段属性信息.
+
+===PE===
+PE作为COFF文件格式的扩展,结构和COFF有一定区别,第一是文件头不一样了,变成了DOS mz可执行文件格式的文件头和桩代码.第二是原COFF文件头变成PE文件结构"IMAGE_NT_HEADERS"的一部分.
+
+DOS可执行文件格式是"MZ",Windows是"PE",后缀扩展名都是".exe".
+PE的文件头和MZ文件头完全一样,头文件"image_dos_header"中的前两个字节是"e_magic"结构,包含了MZ这两个字母的ASCII码值:"e_cs"和"e_ip",这两个成员指向程序的入口地址(PE文件里指向DOS stub).
+
+dos stub是一段可以再dos环境下运行的代码,作用是用于显示该程序是否能够运行在dos上.
+
+PE实际上真正的文件头"IMAGE_NT_HEADERS",它包含一个标记(对于一般PE文件来说是常量0x00004550,)和两个结构体(一个是原COFF的文件头image_file_header,一个是新的image_optional_header32,这一个额外头部结构是必须的,详细的两个结构体见P167)
+typedef struct _IMAGE_NT_HEADERS{
+	DWORD signature;
+	IMAGE_FILE_HEADER fileheader;
+	IMAGE_OPTIONAL_HEADER optionalheader;
+}IMAGE_NT_HEADERS, *PIMAGE_NT_HEADERS;
+
+image_optional_header32是针对32版本的,64版本的Windows也同样使用PE文件格式,不过地址和长度的一些成员从32位扩展成了64位,格式也被称为PE32+,该结构体成员较多,和PE文件装载,运行相关,也有和链接以及和Windows系统关联的.
+
+[1]PE数据目录
+头文件扩展结构体的其中一个成员"datadirectory[]",它同时属于结构体"IMAGE_DATA_DIRECTORY"
+
+typedef struct _IMAGE_DATA_DIRECTORY{
+	DWORD VirtualAddress;
+	DWORD Size;
+}IMAGE_DATA_DIRECTORY, *PIMAGE_DATA_DIRECTORY;
+#define IMAGE_NUMBEROF_DIRECTORY_ENTRIES 16		//数组长度16
+
+在头文件扩展结构的这个成员"datadirectory"内记录着例如导入表,导出表,资源表,重定位表,异常表,调试信息表等各种表的虚拟地址和长度信息.
+"IMAGE_DIRECTORY_ENTIRY_???"其中定义的宏的数字对应相关的表的在这个"datadirectory"数组中的第几个(0表示第一个,以此类推).
 
 
 
