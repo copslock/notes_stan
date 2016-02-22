@@ -13,6 +13,7 @@ UE_config_pics_mapping 	over
 qxdm_user_guide			over
 Wcdma/umts总结			doing
 
+
 [2]项目:
 指纹识别			task-->cut
 firefox OS porting 	task-->总结错误,暂时决定停止掉
@@ -22,19 +23,10 @@ firefox OS porting 	task-->总结错误,暂时决定停止掉
 *2.C --> 暂时不考虑
 *3.设计模式 --> 近段时间暂时不考虑
 4.LTE的空口协议和系统结构 --> 下阶段主要任务
-*5.CSFB/SGLTE/voLTE信令流程(简单了解概念) --> over
+*5.CSFB/SGLTE/voLTE(简单了解概念) --> over
 6.QXDM"抓"log的方法和"看"的方法 --> attach/detach/call_flow done --> qxdm的用户手册 去看 --> 计划做总结中 ready-to-go
 7.联合附着?双模? --> cut
 8.NV-3446 TRM setting  P96的实例  PICS和NV值之间各参数之间的联系 --> 遇到问题再回看
 
 [4]毕设:
 ??????
-
-
-尽己之力 静己之心
-
-
-
-
-
-

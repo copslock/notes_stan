@@ -1,0 +1,22 @@
+以手机的呼叫流程为例,使用QXDM工具,简单根据标准的呼叫流程对比实际的qxdm的log和event信息,进行对比分析,区别相同点和不同点,总结规则特性.
+
+==环境及工具==
+测试机器:mobeepius+4G移动SIM卡
+抓取及分析log工具:QXDM Professional 03.14.1054
+
+==流程记录==
+[1]
+...
+[12]多次的"EVENT_GSM_SI_cache_update_entry"流程将收到的SI更新到一个缓存的SI数组里,这数组里本来每个元素默认值都是255,缓存中还包括了SI2quater和SI2ter的index标识;在多次的cache更新过程中夹杂着过程[13]和一次"event_gsm_si_cache_retrieve"(这个重检索过程确认了一次此时cache中保存的SI内容以及arfcn,lac,cell_id,mcc/mnc等信息);
+
+[13]RR/BCCH DL/SI-3:一模一样的SI-3发送了两次.
+相关内容:小区识别(小区id:8940),位置区识别(位置区代码33033,limn-mcc国家代码460),控制信道描述(mscr=1,att=1,bs_ag_blks_res=1,公共控制信道配置=2,cbq3=0,bs_pa_mfrms=0,t_3212_timeout=10),小区可选参数(功率控制=1,dtx=1,无线链路超时=7),小区选择参数(小区重选滞后参数=3,ms的公共信道发射功率最大值=0,acs/附加重选参数=0,neci/新建原因指示=0表示该小区不支持半速率业务,最小接入接入功率=10),rach控制参数(最大重试次数=2,tx_int=14,cell_barr_access=0,re=1,ac=0),si_3_rest(可选小区选择参数CRO=58,TO/临时偏移量=0,PT=0,CBQ/小区禁止限制=0等等......);
+RR/BCCH DL/SI-4:前面内容和SI-3基本一样,额外多出的部分:cbch的信道描述和移动配置都为0,si_4_rest(比si-3-rest少一些内容其余不变,详略);
+
+[14]"event_gsm_camp_attempt_end"完成-->"event_gsm_cell_selection_end"成功-->"event_rat_change"(无线接入系统的变化,从LTE切换到了GSM)-->"event_cm_call_state"-->"event_gsm_cell_select"(netw sel mode=0)
+
+[15]这个阶段持续报告mm的状态"event_mm_state"(mm_idle/mm_update)-->3条相同的event:"event_plmn_infomation"(plmn识别:100/240/0,lac1=129,lac2=9,rac=1,MM/GMM的服务状态是否可用,当前RAT信息及RAT服务能力大小,CSG_ID=4294967295,CSG_In_White_List=1,注册域=sys_srv_domain_cs_ps,移动操作模式=sys_srv_domain_cs_ps,网络操作模式=network_op_mode_2)-->"event_nas_message_sent"(cm_service_request)-->"event_mm_state"(mm_state变为mm_wait_for_rr_connection_mm,等待RR的连接成功)
+
+[16]重复报告"event_GMM_state"(处于GMM_register和GMM_GU1_update状态)-->"event_cm_service_confirm"(确认cm服务的各种信息,plmn信息,sim状态可用,plmn没有被禁用,漫游状态被关闭,所在rat,服务域=cs_ps,csg_id,注册后的plmn和之前的一样:0x64/0xF0/0x00)-->"event_cm_system_mode"(GSM)-->"event_gsm_L1_state"(此时L1处于随机接入状态"L1_random_access_mode")
+
+[17]RR/CCCH_DL/寻呼请求type1(开头格式和SI的一样,寻呼模式pm=0,)
