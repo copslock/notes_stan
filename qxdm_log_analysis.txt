@@ -1,4 +1,6 @@
-以手机的呼叫流程为例,使用QXDM工具,简单根据标准的呼叫流程对比实际的qxdm的log和event信息,进行对比分析,区别相同点和不同点,总结规则特性.
+以手机的呼叫流程(主叫)和短消息接收流程为例,使用QXDM工具,根据标准的流程对比实际的qxdm的log和event信息(拨打10086客服的情况记录),进行对比分析,区别相同点和不同点,总结规则特性.
+
+*流程中有一些比较关键的参照量,可以由始至终的观察来知道流程的变化和进度:gsm_L1_state,上行的测量报告,event_mm_state,event_GMM_state,event_UMTS_calls_statistics,系统消息SI的出现种类变化,待补充...
 
 ==环境及工具==
 测试机器:mobeepius+4G移动SIM卡
@@ -7,57 +9,107 @@
 ==流程记录==
 [1]
 ...
-[12]多次的"EVENT_GSM_SI_cache_update_entry"流程将收到的SI更新到一个缓存的SI数组里,这数组里本来每个元素默认值都是255,缓存中还包括了SI2quater和SI2ter的index标识;在多次的cache更新过程中夹杂着过程[13]和一次"event_gsm_si_cache_retrieve"(这个重检索过程确认了一次此时cache中保存的SI内容以及arfcn,lac,cell_id,mcc/mnc等信息);
+[12]多次的"EVENT_GSM_SI_cache_update_entry"流程将收到的SI更新到一个缓存的SI数组里,这数组里本来每个元素默认值都是255,缓存中还包括了SI2quater和SI2ter的index标识;在多次的cache更新过程中夹杂着过程[13]和一次"event_gsm_si_cache_retrieve"(这个重检索过程确认了一次此时cache中保存的SI内容以及arfcn,lac,cell_id,mcc/mnc等信息).
 
 [13]RR/BCCH DL/SI-3:一模一样的SI-3发送了两次.
 相关内容:小区识别(小区id:8940),位置区识别(位置区代码33033,limn-mcc国家代码460),控制信道描述(mscr=1,att=1,bs_ag_blks_res=1,公共控制信道配置=2,cbq3=0,bs_pa_mfrms=0,t_3212_timeout=10),小区可选参数(功率控制=1,dtx=1,无线链路超时=7),小区选择参数(小区重选滞后参数=3,ms的公共信道发射功率最大值=0,acs/附加重选参数=0,neci/新建原因指示=0表示该小区不支持半速率业务,最小接入接入功率=10),rach控制参数(最大重试次数=2,tx_int=14,cell_barr_access=0,re=1,ac=0),si_3_rest(可选小区选择参数CRO=58,TO/临时偏移量=0,PT=0,CBQ/小区禁止限制=0等等......);
-RR/BCCH DL/SI-4:前面内容和SI-3基本一样,额外多出的部分:cbch的信道描述和移动配置都为0,si_4_rest(比si-3-rest少一些内容其余不变,详略);
+RR/BCCH DL/SI-4:前面内容和SI-3基本一样,额外多出的部分:cbch的信道描述和移动配置都为0,si_4_rest(比si-3-rest少一些内容其余不变,详略).
 
-[14]"event_gsm_camp_attempt_end"完成-->"event_gsm_cell_selection_end"成功-->"event_rat_change"(无线接入系统的变化,从LTE切换到了GSM, CSFB?)-->"event_cm_call_state"-->"event_gsm_cell_select"(netw sel mode=0)
+[14]"event_gsm_camp_attempt_end"完成-->"event_gsm_cell_selection_end"成功-->"event_rat_change"(无线接入系统的变化,从LTE切换到了GSM, CSFB?)-->"event_cm_call_state"-->"event_gsm_cell_select"(netw sel mode=0).
 
-[15]这个阶段持续报告mm的状态"event_mm_state"(mm_idle/mm_update)-->3条相同的event:"event_plmn_infomation"(plmn识别:100/240/0,lac1=129,lac2=9,rac=1,MM/GMM的服务状态是否可用,当前RAT信息及RAT服务能力大小,CSG_ID=4294967295,CSG_In_White_List=1,注册域=sys_srv_domain_cs_ps,移动操作模式=sys_srv_domain_cs_ps,网络操作模式=network_op_mode_2)-->"event_nas_message_sent"(cm_service_request)-->"event_mm_state"(mm_state变为mm_wait_for_rr_connection_mm,等待RR的连接成功)
+[15]这个阶段持续报告mm的状态"event_mm_state"(mm_idle/mm_update)-->3条相同的event:"event_plmn_infomation"(plmn识别:100/240/0,lac1=129,lac2=9,rac=1,MM/GMM的服务状态是否可用,当前RAT信息及RAT服务能力大小,CSG_ID=4294967295,CSG_In_White_List=1,注册域=sys_srv_domain_cs_ps,移动操作模式=sys_srv_domain_cs_ps,网络操作模式=network_op_mode_2)-->"event_nas_message_sent"(cm_service_request)-->"event_mm_state"(mm_state变为mm_wait_for_rr_connection_mm,等待RR的连接成功).
 
-[16]重复报告"event_GMM_state"(处于GMM_register和GMM_GU1_update状态)-->"event_cm_service_confirm"(确认cm服务的各种信息,plmn信息,sim状态可用,plmn没有被禁用,漫游状态被关闭,所在rat,服务域=cs_ps,csg_id,注册后的plmn和之前的一样:0x64/0xF0/0x00)-->"event_cm_system_mode"(GSM)-->"event_gsm_L1_state"(此时L1处于随机接入状态"L1_random_access_mode")
+[16]重复报告"event_GMM_state"(处于GMM_register和GMM_GU1_update状态)-->"event_cm_service_confirm"(确认cm服务的各种信息,plmn信息,sim状态可用,plmn没有被禁用,漫游状态被关闭,所在rat,服务域=cs_ps,csg_id,注册后的plmn和之前的一样:0x64/0xF0/0x00)-->"event_cm_system_mode"(GSM)-->"event_gsm_L1_state"(此时L1处于随机接入状态"L1_random_access_mode").
 
-[17]RR/CCCH_DL/寻呼请求type1(开头格式和SI的一样,寻呼模式pm=0,移动性识别认证信息(识别类型,tmsi相关,odd_even_ind=0),chan_needed_1_2(chan_second=chan_first=0),p1_rest)-->RR/BCCH_DL/SI-1(包含小区信道描述,arfcn=577,rach的控制参数,si_1_rest)-->MM/CM_services_Request(MS向网络端的请求,包含内容:加密密钥的序列号,cm服务类型,移动识别信息,MS的等级信息,priority_incl=0,add_update_params_incl=1,add_update_params::csmo=1,csmt=0,dev_properties_incl=0)-->"event_random_access_request"(该手机在呼叫中是应用了CSFB原理,此时接入的原因是mo_full_speech/全速率语音呼叫,接入尝试=1,帧数=7781)
+[17]RR/CCCH_DL/寻呼请求type1(开头格式和SI的一样,寻呼模式pm=0,移动性识别认证信息(识别类型,tmsi相关,odd_even_ind=0),chan_needed_1_2(chan_second=chan_first=0),p1_rest)-->RR/BCCH_DL/SI-1(包含小区信道描述,arfcn=577,rach的控制参数,si_1_rest)-->MM/CM_services_Request(MS向网络端的请求,包含内容:加密密钥的序列号,cm服务类型,移动识别信息,MS的等级信息,priority_incl=0,add_update_params_incl=1,add_update_params::csmo=1,csmt=0,dev_properties_incl=0)-->"event_random_access_request"(该手机在呼叫中是应用了CSFB原理,此时接入的原因是mo_full_speech/全速率语音呼叫,接入尝试=1,帧数=7781).
 
-[18]RR/CCCH_DL/寻呼请求type2(chan_needed_1_2(chan_second=chan_first=0),寻呼模式pm=0,移动性识别信息(mob_ident_1::tmsi_val=0x41c20dbf,mob_ident_2::tmsi_val=0x38c47525,mob_ident_3_incl=0),p1_rest(padding_bits和spare_padding信息))-->多条类型1和2的寻呼请求被发送-->中间夹杂着si-2(邻小区频点描述"bcch_freq_list"频点从0到128,RACH控制消息,网络色码/允许的plmn地区/ncc_permitted=255)和si-3(si-3详细内容见前面步骤)-->"RR/CCCH_DL/immediate_assignment"(两条一样的直接指配命令,请求为呼叫过程分配信道资源,建立RR连接)
+[18]RR/CCCH_DL/寻呼请求type2(chan_needed_1_2(chan_second=chan_first=0),寻呼模式pm=0,移动性识别信息(mob_ident_1::tmsi_val=0x41c20dbf,mob_ident_2::tmsi_val=0x38c47525,mob_ident_3_incl=0),p1_rest(padding_bits和spare_padding信息))-->多条类型1和2的寻呼请求被发送-->中间夹杂着si-2(邻小区频点描述"bcch_freq_list"频点从0到128,RACH控制消息,网络色码/允许的plmn地区/ncc_permitted=255)和si-3(si-3详细内容见前面步骤)-->"RR/CCCH_DL/immediate_assignment"(两条一样的直接指配命令,请求为呼叫过程分配信道资源,建立RR连接).
 
-[19]两条"event_GSM_si_cache_update_entry"事件,第一个是再次写入si-2到cache中去,第二个是全部刷新一次状态(没有写入SI-3),status由"entry_added"变成了"entry_update"-->连续3条相同事件"event_GSM_message_received"(收到直接指配的命令)
+[19]两条"event_GSM_si_cache_update_entry"事件,第一个是再次写入si-2到cache中去,第二个是全部刷新一次状态(没有写入SI-3),status由"entry_added"变成了"entry_update"-->连续3条相同事件"event_GSM_message_received"(收到直接指配的命令).
 
-[20]寻呼消息类型1停止,paging Request type-2还在继续-->直接指配命令(和之前的有区别,有很多数据变化而且也多了一些参数,比如arfcn从577变成了598)-->这部分一共出现了3种"参数不同"的直接指配命令,中间夹杂着一条SI-4的消息.(有一条arfcn=577的和过程[18]的直接指配命令一样,还有一条直接指配命令虽然"abs_rf_chan_num=577",但是很多参数数据不同并且少了很多参数???)
+[20]寻呼消息类型1停止,paging Request type-2还在继续-->直接指配命令(和之前的有区别,有很多数据变化而且也多了一些参数,比如arfcn从577变成了598)-->这部分一共出现了3种"参数不同"的直接指配命令,中间夹杂着一条SI-4的消息.(有一条arfcn=577的和过程[18]的直接指配命令一样,还有一条直接指配命令虽然"abs_rf_chan_num=577",但是很多参数数据不同并且少了很多参数???).
 
-[21]"event_GSM_si_cache_update_entry"事件,更新状态,没有写入SI-4数据-->连续4条相同事件"event_GSM_message_received"(收到直接指配的命令)-->"event_GSM_L1_state"(从"随机接入状态"进入到L1_dedicated_mode/专用模式状态)-->"event_GSM_message_sent"(发送两个消息的事件"cm_service_request"和"classmark_change",这里处于层3信令部分,正式建立了ms到网络端的链路,开始向MSC请求服务)-->"event_GMM_state"(GMMsubstate这一属性由normal_service变成了suspended/挂起状态,因为这里不需要gprs的数据交互服务部分)-->"event_MM_state"(MM的MMstate属性由mm_wait_for_rr_connection_mm变成了mm_wait_for_outgoing_mm_connection,已经建立rr链接,现在等待mm链接建立)
+[21]"event_GSM_si_cache_update_entry"事件,更新状态,没有写入SI-4数据-->连续4条相同事件"event_GSM_message_received"(收到直接指配的命令)-->"event_GSM_L1_state"(从"随机接入状态"进入到L1_dedicated_mode/专用模式状态)-->"event_GSM_message_sent"(发送两个消息的事件"cm_service_request"和"classmark_change",这里处于层3信令部分,正式建立了ms到网络端的链路,开始向MSC请求服务)-->"event_GMM_state"(GMMsubstate这一属性由normal_service变成了suspended/挂起状态,因为这里不需要gprs的数据交互服务部分)-->"event_MM_state"(MM的MMstate属性由mm_wait_for_rr_connection_mm变成了mm_wait_for_outgoing_mm_connection,已经建立rr链接,现在等待mm链接建立).
 
-[22]RR/SACCH_DL/SI-5(邻小区的bcch的频点列表,和之前SI-2的bcch频点描述"bcch_freq_list"完全一样)-->RR/DCCH_UL/classmark-change(携带着手机向网络端上报的各种MS的信息和使用能力,包含MS的等级信息::rev_level=2,add_ms_class_incl=1,add_ms_class::associated_radio_capability2=2,associated_radio_capability1=4...还有各种手机对于各种RAT的能力支持信息)-->RR/DCCH_UL/gprs_suspension_Request(gprs数据服务的暂时挂起请求,包含信息tlli_value=0x894e2881,路由区码::mcc+mnc+lac(1059)+rac(78),susp_cause_val=6,service_support_incl=0)
+[22]RR/SACCH_DL/SI-5(邻小区的bcch的频点列表,和之前SI-2的bcch频点描述"bcch_freq_list"完全一样)-->RR/DCCH_UL/classmark-change(携带着手机向网络端上报的各种MS的信息和使用能力,包含MS的等级信息::rev_level=2,add_ms_class_incl=1,add_ms_class::associated_radio_capability2=2,associated_radio_capability1=4...还有各种手机对于各种RAT的能力支持信息)-->RR/DCCH_UL/gprs_suspension_Request(gprs数据服务的暂时挂起请求,包含信息tlli_value=0x894e2881,路由区码::mcc+mnc+lac(1059)+rac(78),susp_cause_val=6,service_support_incl=0).
 
-[23]MM/identiry_Request(鉴权的请求的准备,ident_type=1,网络端发向MS端)-->MM/identiry_Response(MS端响应网络端,返回一个mob_ident,包含ident_type=1,odd_even_ind=1,ident数组(460020-085130751))-->RR/SACCH_UL/Measurement_report(对于ms各种测量数据的汇总报告)-->RR/SACCH_DL/SI-5ter(扩展邻小区的bcch频点描述)
+[23]MM/identiry_Request(鉴权的请求的准备,ident_type=1,网络端发向MS端)-->MM/identiry_Response(MS端响应网络端,返回一个mob_ident,包含ident_type=1,odd_even_ind=1,ident数组(460020-085130751))-->RR/SACCH_UL/Measurement_report(对于ms各种测量数据的汇总报告)-->RR/SACCH_DL/SI-5ter(扩展邻小区的bcch频点描述).
 
-[24]MM/Authentication_Request(网络端发向MS的鉴权需要的信息,此时加密密钥序列号还为0,鉴权参数rand,auth_param_auth_incl=0)-->MM/Authentication_response(MS收到rand值后在sim卡中和ki值经过A3算法计算得出的sres值返回给网络端进行对比,sres_val=0xfd7a9ab7(4252670647),auth_resp_param_ext_incl=0)-->再一次和上一过程相同的上行测量报告-->RR/SACCH_DL/SI-6(小区识别cell_ident_val=8940,位置区识别lai=0x46000f,小区可选参数dtx_high=1,dtx_low=1,pwrc=1,radio_link_timeout=7,ncc_permitted=255,si6_rest_incl=1,si_6_rest)
+[24]MM/Authentication_Request(网络端发向MS的鉴权需要的信息,此时加密密钥序列号还为0,鉴权参数rand,auth_param_auth_incl=0)-->MM/Authentication_response(MS收到rand值后在sim卡中和ki值经过A3算法计算得出的sres值返回给网络端进行对比,sres_val=0xfd7a9ab7(4252670647),auth_resp_param_ext_incl=0)-->再一次和上一过程相同的上行测量报告-->RR/SACCH_DL/SI-6(小区识别cell_ident_val=8940,位置区识别lai=0x46000f,小区可选参数dtx_high=1,dtx_low=1,pwrc=1,radio_link_timeout=7,ncc_permitted=255,si6_rest_incl=1,si_6_rest).
 
 [25]在鉴权到cm_service正式建立这一个大过程中,ms端的event接收和发送变化如下:首先在系统向ms发出"identity_Request"之前再一次去确认"event_plmn_information"-->NAS消息收到认证请求,发出认证回应-->NAS消息收到鉴权请求,发出鉴权回应-->收到"cm_service_accept".
 
-[26]"event_mm_state"(状态由等待mm连接建立变化到MM_connection_active,进入mm连接建立状态,可以随时进入实际呼叫控制阶段)-->plmn信息确认-->"event_nas_message_sent"和"event_gsm_message_sent"(呼叫控制阶段开始,ms向网络端发送"setup")
+[26]"event_mm_state"(状态由等待mm连接建立变化到MM_connection_active,进入mm连接建立状态,可以随时进入实际呼叫控制阶段)-->plmn信息确认-->"event_nas_message_sent"和"event_gsm_message_sent"(呼叫控制阶段开始,ms向网络端发送"setup").
 
-[27]MM/CM_service_accept(该消息内没有实质的内容)-->CC/setup(包括MS的承载能力,信息传输要求发送方式编码方式,可使用无线信道类型,被叫号和被叫号类型等等,实际的OTAlog里还看不懂写了些什么)-->两条测量报告上报,前一部分和之前的测量报告相同,当前服务小区的RXLEV-63,但是后面有新增的3个邻区的数据,两次测量数据中接收功率等级有微小变化-->在测量上报的过程中,SI-5和SI-5ter(关于邻小区和扩展邻小区的BCCH的频点描述)仍然一直在通过下行SACCH信道发送-->"event_cm_service_confirm"(确认cm_service处于的状态,rat信息,注册的服务域信息(CS_PS),ps_data_suspend,csg_id,plmn注册信息)
+[27]MM/CM_service_accept(该消息内没有实质的内容)-->CC/setup(包括MS的承载能力,信息传输要求发送方式编码方式,可使用无线信道类型,被叫号和被叫号类型等等,实际的OTAlog里还看不懂写了些什么)-->两条测量报告上报,前一部分和之前的测量报告相同,当前服务小区的RXLEV-63,但是后面有新增的3个邻区的数据,两次测量数据中接收功率等级有微小变化-->在测量上报的过程中,SI-5和SI-5ter(关于邻小区和扩展邻小区的BCCH的频点描述)仍然一直在通过下行SACCH信道发送-->"event_cm_service_confirm"(确认cm_service处于的状态,rat信息,注册的服务域信息(CS_PS),ps_data_suspend,csg_id,plmn注册信息).
 
-[28]"event_gsm_message_receive"和"event_nas_message_receive"(收到网络端的消息"call_proceeding",从setup信令开始,后面接收到的的nas_message的channel属性都从0变成了8)-->确认plmn信息和mm_state为"mm_connection_active"-->CC/call_proceeding(网络端判断实际情况允许后,向ms端发送,call_priority=6,)-->在同一时间"RR/CCCH_DL/Assignment_cmd"发出,ms对应事件"event_gsm_message_received"(指配命令用于去指配接下来要用的话音业务信道,包含着被指配信道的信息)-->两次测量报告,邻区增加到了4个,邻区的rxlev等数据也有相应的变化-->大约50ms时间后,ms端向网络端反馈指配完成"RR/CCCH_DL/Assignment_com",对应一个ms的"event_gsm_message_sent".
+[28]"event_gsm_message_receive"和"event_nas_message_receive"-->确认plmn信息和mm_state为"mm_connection_active"-->CC/call_proceeding(网络端判断实际情况允许后,向ms端发送,call_priority=6,)-->在同一时间"RR/CCCH_DL/Assignment_cmd"发出,ms对应事件"event_gsm_message_received"(指配命令用于去指配接下来要用的话音业务信道,包含着被指配信道的信息)-->两次测量报告,邻区增加到了4个,邻区的rxlev等数据也有相应的变化-->大约50ms时间后,ms端向网络端反馈指配完成"RR/CCCH_DL/Assignment_com",对应一个ms的"event_gsm_message_sent".
 
-[29]"event_gsm_L1_align_VFR"
+[29]"event_gsm_L1_align_VFR".
 
-[30]在指配命令成功之后,系统继续在下发消息SI-5ter(扩展邻小区BCCH频点描述)-->系统在指配命令成功后,开始呼叫控制的"CC/alerting"过程,对应一个ms的事件"event_gsm_message_received"和"event_nas_message_receive"收到alerting-->确认mm_state和plmn信息-->连续11条事件"event_GHDI_MVS_state"(包含4个参数:ghdi_mvs_qxdm_event_type,mvs_client_type,ghdi_mvs_status,ghdi_mvs_mode,参数在11条中不规律变化,好像是和软件本身有关的东西,暂时不确定这个是什么参数)
+[30]在指配命令成功之后,系统继续在下发消息SI-5ter(扩展邻小区BCCH频点描述)-->系统在指配命令成功后,开始呼叫控制的"CC/alerting"过程,对应一个ms的事件"event_gsm_message_received"和"event_nas_message_receive"收到alerting-->确认mm_state和plmn信息-->连续11条事件"event_GHDI_MVS_state"(包含4个参数:ghdi_mvs_qxdm_event_type,mvs_client_type,ghdi_mvs_status,ghdi_mvs_mode,参数在11条中不规律变化,好像是和软件本身有关的东西,暂时不确定这个是什么参数).
 
-[31]发送"警示"和确认其他信息之后,系统继续下发了SI-5-->在"警示"发送一定时间后(200ms作用),然后系统向ms端发送了"CC/connet",发起建立主被叫的最后的实际链接通路,对应ms的事件"event_gsm_message_received"和"event_nas_message_receive"-->"event_UMTS_calls_statistics"(初始呼叫建立)-->几乎是在发出connect的同一时间,ms发送了响应"CC/connect-ack",对应一个ms的事件"event_gsm_message_sent"和"event_nas_message_sent"(这里的nas_message的channel属性重新变回0)-->确认"event_cm_call_state"状态依然是"conversation"
+[31]发送"警示"和确认其他信息之后,系统继续下发了SI-5-->在"警示"发送一定时间后(200ms左右),然后系统向ms端发送了"CC/connet",发起建立主被叫的最后的实际链接通路,对应ms的一个事件"event_gsm_message_received"和"event_nas_message_receive"-->"event_UMTS_calls_statistics"(呼叫统计信息:移动初始呼叫连接)-->几乎是在发出connect的同一时间,ms发送了响应"CC/connect-ack",对应一个ms的事件"event_gsm_message_sent"和"event_nas_message_sent"-->"event_cm_call_state"(状态"conversation").
 
 至此呼叫建立完毕,进入实际通话和数据业务阶段.
 
-*[32]系统依旧还在进行测量报告(依然是4个邻区,信号强度微弱波动)和系统消息的下发(在通信过程中该过程会一直持续,SI-5ter,SI-6,SI-5),测量报告和SI的发送周期暂时没有发现什么规律.(之前参考标准说si-2发送间隔是一个SDCCH复帧时长0.235s,si-5间隔是4个tch复帧时长0.48s,但是和实际不符合,实际otalog中最长的有3秒以上的情况???)
+*[32]系统依旧还在进行测量报告(依然是4个邻区,信号强度微弱波动)和系统消息的下发(在通信过程中SI-5ter,SI-6,SI-5这3个系统消息会一直发送),测量报告和SI的发送周期暂时没有发现什么规律,后面会也会一直出现,只在有改动的地方提及(之前参考标准说si-2发送间隔是一个SDCCH复帧时长0.235s,si-5间隔是4个tch复帧时长0.48s,但是和实际不符合,实际otalog中最长的有3秒以上的情况???).
 
 *[33]SUBSYS的TX/RX:诊断数据服务(面向debug_message(0/0),event(0/104),log(0/66),的dropped/allocation以及flow_control(1)的计数),该数据服务的数据反馈时间间隔为10s(第一次间隔为8s左右,不知道为什么?),这一过程还会不断重复,后面也就不再提.
 
-[34]"连接响应"之后大概5s左右以后,出现一条"SMS/CP_data"(网络端发向ms,sms_cp_user_data,数据长度52)-->"SMS/CP_ack"(ms端的响应)-->"SMS/CP_data"(ms向网络端的伴随着ack的回应消息,数据长度6)-->"SMS/CP_ack"(网络端响应)-->对应一共两对ms的事件"event_nas_message_receive"和"event_nas_message_sent"(cp_data和cp_ack在两个方向上的发送/接收)-->分别对应了两次mm_state和plmn信息的确认-->这个过程中测量报告的数据中邻小区的数量变成了6个
+[34]"连接响应"之后大概5s左右以后,出现一条"SMS/CP_data"(网络端发向ms,sms_cp_user_data,数据长度52,短消息服务的开始)-->"SMS/CP_ack"(ms端的响应)-->"SMS/CP_data"(ms向网络端的伴随着ack的回应消息,数据长度6)-->"SMS/CP_ack"(网络端响应)-->对应一共两对ms的事件"event_nas_message_receive"和"event_nas_message_sent"(cp_data和cp_ack在两个方向上的发送/接收)-->分别对应了两次mm_state和plmn信息的确认-->这个过程中测量报告的数据中邻小区的数量变成了6个.
+(短消息发送也会先检测是否建立RRC连接,若有则直接用,没有就发起RRC连接建立为其分配信道再进行短消息发送过程)
 
-[35]
+*event_nas_message_sent/received"的channel属性和接收的log的参数"trans_id_or_skip_ind"的值一致,随其变化;"message_set"参数根据对应消息类型分别可以是"PD_MM","PD_CC"...
+
+[35]通话过程结束挂机之后出现"CC/disconnect",(log里写的是有网络端发向ms,但是书上都是由ms端发出断开信令的)包含的信息有断开的原因(cause_val=16,一般的呼叫挂断,coding_standard=3,ext=1...),facility_incl=0,progress_ind_incl=0,user_user_incl=0,allowed_actions_incl=0-->"CC/Release"(ms发向网络端,cause_incl=0,second_cause_incl=0,facility_incl=0,user_user_incl=0,ss_ver_incl=0,具体什么信息看不懂?)-->分别对应消息的接收和发送"event_gsm_message_receive/sent"和"event_nas_message_receive/sent"-->plmn消息和mm_state确认(暂时无变化)-->"event_UMTS_calls_statistics"(呼叫数据统计:"呼叫"从连接状态变成了释放清除状态).
+
+[36]"CC/Release_complete"(网络端发向ms,完成话音业务信道资源的释放,包含原因(cause_val=16,一般的呼叫挂断,coding_standard=3,ext=1...),facility_incl=0,user_user_incl=0)-->对应的"event_gsm_message_receive"和"event_nas_message_receive"-->plmn信息和mm_state状态确认-->"event_UMTS_calls_statistics"(呼叫数据统计:呼叫过程终止).
+
+[37]"event_cm_call_state"(状态一直是"conversation")-->又是连续3条的"event_GHDI_MVS_state".
+
+[38]连续3轮的"SMS/CP_data"-->"SMS/CP_ack"-->"SMS/CP_data"-->"SMS/CP_ack"(这三次的短消息内容和之前一次不同,第三轮流程中的最后一条"sms/cp_ack"没有在log中找到)-->相应的"event_gsm_message_receive/sent"和"event_nas_message_receive/sent"-->每一轮对应的plmn信息和mm_state(还是"mm_connection_active")确认.
+
+[39]"RR/DCCH_DL/channel_release",释放完业务信道就是RR连接的释放,按照理论来说应该在这之前还有"clear_request","clear_cmd",之后还会有一些响应,但是这里没有找到相关的log,本log包含的信息详略-->对应的接收事件-->"event_GSM_L1_state"从专用模式变成"L1_find_BCCH"-->mm_state从连接激活状态变成"mm_idle",plmn信息无变化-->"event_GSM_camp_attempt_end"事件,标志驻留尝试结束-->"event_GSM_L1_state"从"L1_find_BCCH"变为"L1_idle_mode"-->"EVENT_GSM_CELL_SELECTED"(netw_sel_mode=0)-->mm_state从空闲状态变成"mm_wait_for_rr_connection_LU",plmn信息无变化.
+
+*大概从这里开始,彻底结束了呼叫的过程,手机重新进入到空闲或寻呼状态,所以SI-5,SI-5ter,SI-6都停止了下发,现在开始下发的大多都是SI-3,SI-4的位置区信息和SI-13的gprs信息.
+
+[40]"MM/location_updating_request"(ms向网络端提出位置区的更新请求)-->对应的nas消息发送事件-->"event_SMGMM_request_sent"-->"event_NAS_LAU"-->"event_GSM_L1_state"由空闲变为"L1_random_access_mode"(又要准备建立RR连接?)-->event_GMM_state(GMMSubstate属性由之前的挂起状态恢复了"GMM_normal_service")-->"event_random_access_request"(事件记录了随机接入的次数,帧数=18025,接入原因=位置更新)
+
+*位置更新的原因:周期性,位置变化,开机IMSI附着,这里应该是属于呼叫完成后正好遇上的一次周期性更新流程.
+
+[41]SI-3和SI-4,SI-13的下发-->3种类型的寻呼消息一共发了16条(大多是p1)-->3条"event_gsm_si_cache_update_entry",更新SI的缓存信息,并不会写入实际的信息,status都是entry_updated.
+
+[42]直接指配
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
