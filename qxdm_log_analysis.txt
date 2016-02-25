@@ -51,7 +51,8 @@ RR/BCCH DL/SI-4:前面内容和SI-3基本一样,额外多出的部分:cbch的信
 
 [31]发送"警示"和确认其他信息之后,系统继续下发了SI-5-->在"警示"发送一定时间后(200ms左右),然后系统向ms端发送了"CC/connet",发起建立主被叫的最后的实际链接通路,对应ms的一个事件"event_gsm_message_received"和"event_nas_message_receive"-->"event_UMTS_calls_statistics"(呼叫统计信息:移动初始呼叫连接)-->几乎是在发出connect的同一时间,ms发送了响应"CC/connect-ack",对应一个ms的事件"event_gsm_message_sent"和"event_nas_message_sent"-->"event_cm_call_state"(状态"conversation").
 
-至此呼叫建立完毕,进入实际通话和数据业务阶段.
+*至此呼叫建立完毕,进入实际通话和数据业务阶段.
+-----------------------------------------------------------------------
 
 *[32]系统依旧还在进行测量报告(依然是4个邻区,信号强度微弱波动)和系统消息的下发(在通信过程中SI-5ter,SI-6,SI-5这3个系统消息会一直发送),测量报告和SI的发送周期暂时没有发现什么规律,后面会也会一直出现,只在有改动的地方提及(之前参考标准说si-2发送间隔是一个SDCCH复帧时长0.235s,si-5间隔是4个tch复帧时长0.48s,但是和实际不符合,实际otalog中最长的有3秒以上的情况???).
 
@@ -73,22 +74,26 @@ RR/BCCH DL/SI-4:前面内容和SI-3基本一样,额外多出的部分:cbch的信
 [39]"RR/DCCH_DL/channel_release",释放完业务信道就是RR连接的释放,按照理论来说应该在这之前还有"clear_request","clear_cmd",之后还会有一些响应,但是这里没有找到相关的log,本log包含的信息详略-->对应的接收事件-->"event_GSM_L1_state"从专用模式变成"L1_find_BCCH"-->mm_state从连接激活状态变成"mm_idle",plmn信息无变化-->"event_GSM_camp_attempt_end"事件,标志驻留尝试结束-->"event_GSM_L1_state"从"L1_find_BCCH"变为"L1_idle_mode"-->"EVENT_GSM_CELL_SELECTED"(netw_sel_mode=0)-->mm_state从空闲状态变成"mm_wait_for_rr_connection_LU",plmn信息无变化.
 
 *大概从这里开始,彻底结束了呼叫的过程,手机重新进入到空闲或寻呼状态,所以SI-5,SI-5ter,SI-6都停止了下发,现在开始下发的大多都是SI-3,SI-4的位置区信息和SI-13的gprs信息.
-
-[40]"MM/location_updating_request"(ms向网络端提出位置区的更新请求)-->对应的nas消息发送事件-->"event_SMGMM_request_sent"-->"event_NAS_LAU"-->"event_GSM_L1_state"由空闲变为"L1_random_access_mode"(又要准备建立RR连接?)-->event_GMM_state(GMMSubstate属性由之前的挂起状态恢复了"GMM_normal_service")-->"event_random_access_request"(事件记录了随机接入的次数,帧数=18025,接入原因=位置更新)
+-----------------------------------------------------------------------
 
 *位置更新的原因:周期性,位置变化,开机IMSI附着,这里应该是属于呼叫完成后正好遇上的一次周期性更新流程.
 
+[40]"MM/location_updating_request"(ms向网络端提出位置区的更新请求)-->对应的发送事件-->"event_SMGMM_request_sent"-->"event_NAS_LAU"-->"event_GSM_L1_state"由空闲变为"L1_random_access_mode"(又要准备建立RR连接?)-->event_GMM_state(GMMSubstate属性由之前的挂起状态恢复了"GMM_normal_service")-->"event_random_access_request"(事件记录了随机接入的次数,帧数=18025,接入原因=位置更新)
+
 [41]SI-3和SI-4,SI-13的下发-->3种类型的寻呼消息一共发了16条(大多是p1)-->3条"event_gsm_si_cache_update_entry",更新SI的缓存信息,并不会写入实际的信息,status都是entry_updated.
 
-[42]直接指配
+[42]直接指配"RR/CCCH_DL/Immediate_assignment"(请求分配相关的RR链路资源)-->对应的接收事件-->event_GSM_L1_state"状态变为"L1_dedicated_mode"-->RR/DCCH_UL/classmark_change(ms一系列能力信息)-->RR/DCCH_UL/gprs_suspension_Request(暂时挂起gprs服务)-->测量报告重新开始测量,此时邻小区个数为0,SI5,6,5ter重新开始一轮发送-->classmark_change的一个发送事件-->evnet_GMM_state从normal_service变为GMM_suspended,mm_state从等待RR链接建立变为"MM_location_update_initiated",plmn信息无变化.
 
+[43]第二次认证请求"MM/identity_Request"(这次是短消息流程中的身份验证)-->"MM/identity_response"(两个信令之间几乎没有延迟)-->RR/DCCH_DL/classmark_enquiry(网络端发向ms,请求了解ms的相关信息)-->RR/DCCH_UL/classmark_change-->系统消息-->"MM/Authentication_Request"和"MM/Authentication_response"鉴权-->认证请求,鉴权,classmark的两条信息,一共6条信息的收发对应事件-->测量报告重新开始测量过程,邻小区增加到3个了.
 
+[44]"MM/MM_information"(网络端到ms,包含要更新的位置区信息?local_time_tz,ut_and_local_tz,net_dst...)-->"MM/location_update_accept"(网络端发向ms,位置更新的确认,顺便携带了新分配tmsi号,此后会开始释放信道等等)-->"MM/TMSI_reallocation_complete(ms发向网络端)"-->"event_cm_service_confirmed"(连接管理服务完成的确认事件,同时携带了很多当前cm_service的状态和参数)-->"RR/DCCH_DL/Channel_release"-->对应mm_information,位置更新接收,tmsi重分配完成,信道释放的收发事件-->mm_state从位置区更新初始化变成"mm_wair_for_network_cmd",在释放信道后又变成了"mm_idle",plmn信息无变化,event_nas_LAu状态由start变为end,end_reasons=accept.
 
+[45]gsm_L1_state从专用模式变为"L1_find_BCCH",最后变为"L1_idle_mode"-->"event_gsm_camp_attempt_end"-->"event_gsm_cell_selected(netw_sel_mode=0,无小区选择?)"(后面这两条log都不是很清楚出现时机,camp_attempt_end感觉每一个流程结束好像都会出来??)
 
+*至此,位置更新部分完全结束,开始和结尾可以参考"event_NAS_LAU"的变化.
+-----------------------------------------------------------------------
 
-
-
-
+[45]"GMM_state"状态变为"GMM_ROUTING_AREA_UPDATING_INITIATED"-->"event_gprs_mac_camped_on_cell"(log里无详细分析,不懂)-->"GMM/Routing_area_update_request"
 
 
 

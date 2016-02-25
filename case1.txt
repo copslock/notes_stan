@@ -1,0 +1,36 @@
+1.*
+图:客户提供的问题
+文字:客户提供的解决方案
+
+https://qualcomm-cdmatech-support.my.salesforce.com/5003000000dOzrKAAS	//enable spc in device
+https://qualcomm-cdmatech-support.my.salesforce.com/5003000000dPLZUAA4	//use spc to protect "QXDM and EFS explorer" based on msm8939
+
+1. the mobile to a PC and install the required Windows drivers, a new serial port should be detected. 
+2. Download Qualcomm’s QPST tools: https://code.google.com/archive/p/mydownloadsection/downloads (click on QPST.2.7.374.rar) 
+3. Run the tool "QPST Software Download” 
+4. Select the "Backup" tab, Select the right serial port with the first "Browse" button, Select any location for the output file with the second "Browse" button 
+5. Leave the default SPC value to "000000”, press the "Start" button 
+6. If the download starts and succeeds, this means that the default SPC value is working on this phone. The value should be changed as part of the initialization(初始化赋值) of new phones in order to prevent customers from changing the phone’s IMEI and other values.(避免用户自行修改手机的IMEI和其他特定参数)
+
+Q:spc和diag是什么?
+A:需要添加一段random-spc?去保护EFS_explorer,让相关数据不会再被改动?/不可见?但是实际情况好像只能保护QCN的备份数据,并且不能使用默认的spc,因为用户觉得不安全,因为机器已经大量正式发售,所以更新spc的方式希望是直接让用户通过软件或者OTA方式来更新.
+A:spc(service_programming_code)一般是客户提出的一些特别服务的程序代码,diag是pc和手机连接传输信令的"端口",diag端口一般可以安装驱动(必须)和手动打开.
+
+Q:diag端口的打开?
+A:通过shell打开diag端口:
+adb shell
+su
+setprop sys.usb.config diag
+这里测试本来之前就是打开的.
+
+Q:qspr软件相关及作用?
+A:qpst的EFS explorer里可以修改这些EFS的item-files的一些属性.
+QSPR是高通的一个校准软件,可以加入.xtt文件,设置响应的参数,进行手机对应平台的校准.经过高通case1提供的xtt文件对测试手机mobeeplus进行平台校准后,这个代码就和手机里部分数据信息进行写入和同步后,qspr软件端根据你指定的"save_key_to_file"属性,在指定路径下得到一个spc的"key"文本文件,我这里生成的是"352330".再利用QPST里工具"software_download"的back-up选项卡,选择测试的手机和输入spc的"key",获得该测试手机QCN数据备份到PC上.
+
+Q:EFS_explorer里面显示的东西到底有什么用?
+A:和QCN里的NV-items性质类似,具体的作用还不是很明确.
+
+
+
+
+
