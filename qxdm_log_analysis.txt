@@ -76,7 +76,7 @@ RR/BCCH DL/SI-4:前面内容和SI-3基本一样,额外多出的部分:cbch的信
 *大概从这里开始,彻底结束了呼叫的过程,手机重新进入到空闲或寻呼状态,所以SI-5,SI-5ter,SI-6都停止了下发,现在开始下发的大多都是SI-3,SI-4的位置区信息和SI-13的gprs信息.
 -----------------------------------------------------------------------
 
-*位置更新的原因:周期性,位置变化,开机IMSI附着,这里应该是属于呼叫完成后正好遇上的一次周期性更新流程.
+*位置更新的原因:周期性,位置变化,开机IMSI附着,这里情况应该是LTE在CSFB完成话音通信后又回到LTE所识别的位置区,这里可以看做是位置区变化了.
 
 [40]"MM/location_updating_request"(ms向网络端提出位置区的更新请求)-->对应的发送事件-->"event_SMGMM_request_sent"-->"event_NAS_LAU"-->"event_GSM_L1_state"由空闲变为"L1_random_access_mode"(又要准备建立RR连接?)-->event_GMM_state(GMMSubstate属性由之前的挂起状态恢复了"GMM_normal_service")-->"event_random_access_request"(事件记录了随机接入的次数,帧数=18025,接入原因=位置更新)
 
@@ -88,27 +88,35 @@ RR/BCCH DL/SI-4:前面内容和SI-3基本一样,额外多出的部分:cbch的信
 
 [44]"MM/MM_information"(网络端到ms,包含要更新的位置区信息?local_time_tz,ut_and_local_tz,net_dst...)-->"MM/location_update_accept"(网络端发向ms,位置更新的确认,顺便携带了新分配tmsi号,此后会开始释放信道等等)-->"MM/TMSI_reallocation_complete(ms发向网络端)"-->"event_cm_service_confirmed"(连接管理服务完成的确认事件,同时携带了很多当前cm_service的状态和参数)-->"RR/DCCH_DL/Channel_release"-->对应mm_information,位置更新接收,tmsi重分配完成,信道释放的收发事件-->mm_state从位置区更新初始化变成"mm_wair_for_network_cmd",在释放信道后又变成了"mm_idle",plmn信息无变化,event_nas_LAu状态由start变为end,end_reasons=accept.
 
-[45]gsm_L1_state从专用模式变为"L1_find_BCCH",最后变为"L1_idle_mode"-->"event_gsm_camp_attempt_end"-->"event_gsm_cell_selected(netw_sel_mode=0,无小区选择?)"(后面这两条log都不是很清楚出现时机,camp_attempt_end感觉每一个流程结束好像都会出来??)
+[45]gsm_L1_state从专用模式变为"L1_find_BCCH",最后变为"L1_idle_mode"-->"event_gsm_camp_attempt_end"-->"event_gsm_cell_selected(netw_sel_mode=0,这个值一直都是0)"(后面这两条log都不是很清楚出现时机,camp_attempt_end感觉每一个流程结束好像都会出来??)
 
 *至此,位置更新部分完全结束,开始和结尾可以参考"event_NAS_LAU"的变化.
 -----------------------------------------------------------------------
 
-[45]"GMM_state"状态变为"GMM_ROUTING_AREA_UPDATING_INITIATED"-->"event_gprs_mac_camped_on_cell"(log里无详细分析,不懂)-->"GMM/Routing_area_update_request"
+[45]"GMM_state"状态变为"GMM_ROUTING_AREA_UPDATING_INITIATED"-->"event_gprs_mac_camped_on_cell"(log里无详细分析,不懂)-->"GMM/Routing_area_update_request"-->"SS,GMM/UL/routing_area_update_request"(两条除名字外完全一样的log,ms发向网络端...)-->对应的nas消息发送事件-->"event_SMGMM_request_sent"-->"event_gprs_SMGMM_MSG_sent(gprs移动性管理的消息)-->"event_NAS_rau"对应gmm_ra_updating程序类型,状态为"start"-->event_gsm_L1_state从空闲变为L1_random_access_mode-->"event_random_access_request"(接入原因=107(107应该就是代表路由区更新这个原因了),frame_number=18800).
 
+[46]SI-2(依然是邻小区频点信息,rach控制参数,plmn允许参数),寻呼消息1和2-->每一条SI对应的cache更新事件(之后不再记录)-->RR/CCCH_DL/Immediate_assignment-->MAC/PACCH_UL/packet_uplink_dummy_control_block(分组上行"空"控制块)-->对应的接收事件-->event_gprs_mac_msg_sent(mac层那条信息对应的发送事件)-->event_gsm_L1_state从随机接入状态变为L1_transfer_mode-->这里连续4条"MAC/PACCH_DL/packet_uplink_ack/Nack"(对上行消息的回应?4条消息的差别在于EGPRS响应参数的描述里"final_ack_ind"和"starting_seq_num"参数的变化)-->"MAC/PACCH_DL/packet_downlink_assignment"-->对应的5条"event_gprs_mac_msg_received"和1条"event_gprs_packet_downlink_assignment"(时隙分配=8,TFIassignmentUplink=27,传输模式指示?)-->"event_gprs_TBF_release"(releasetype=UL_TBF_normal)-->"event_gprs_llc_ready_timer_start"(无具体log信息).
 
+*后面GMM部分的"event_gprs_MAC_msg_sent/received","event_gprs_SMGMM_msg_sent/received",和之前的收发事件类型"gsm_msg_sent/received","event_nas_message_sent/received",加上SI消息的cache更新事件"event_gsm_si_cache_update_entry"都省略掉.
 
+[47]后面有很多条"MAC/PACCH(RRBP)/EGPRS_packet_downlink_ack/Nack",但都有或多或少的数据差异,具体作用不懂-->"event_gprs_surround_search_start"(bcch_arfcn=32811,pbcch_arfcn=4095)-->"MAC/PACCH_DL/packet_power_control/timing_advance"-->"MAC/PACCH_DL/packet_uplink_assignment"-->SI-3-->"event_gprs_surround_search_end"(邻区搜索完成?)-->"MAC/PACCH_DL/packet_uplink_ack/Nack"
 
+[48]"SS,GMM/DL/Authentication_and_ciphering_Request","GMM/Authentication_and_ciphering_Request"(网络端发向ms,位置区更新的鉴权和加密流程)-->"MAC/PACCH(RRBP)/EGPRS_packet_downlink_ack/Nack"-->"SS,GMM/DL/Authentication_and_ciphering_response","GMM/Authentication_and_ciphering_response"(鉴权的响应)-->两种ack/Nack
 
+[49]"SS,GMM/DL/routing_area_update_accept","GMM/routing_area_update_accept"(网络端接收ms的请求,对ms发出回应)-->"SS,GMM/DL/routing_area_update_complete","GMM/routing_area_update_complete"(ms确认位置区更新的完成)-->gmm_state从路由区更新初始化的状态最后变为"GMM_registed"-->"event_nas_rau"状态变为"end",end_reason=accept-->"event_gprs_llc_ready_timer_end"-->"event_gprs_llc_ready_timer_start"-->这里在GMM里会有一个发送分组数据增强型的测量报告的事件"event_gprs_SMGMM_msg_sent",具体测量报告内容没有找到对应的log信息-->"event_cm_service_confirmed"这个事件里的"ps_data_suspend"属性从之前一直的true变成了false,表示这里是支持ps域的数据服务的,没有被挂起.
 
+*RAU部分到此也大致流程结束,路由区更新完成.
+-----------------------------------------------------------------------
 
+[50]SS,GMM/DL/modify_PDP_context_request,SM/modify_PDP_context_request(网络端发向ms端,提出修改分组数据协议的请求)-->SS,GMM/UL/modify_PDP_context_accept","SM/modify_PDP_context_accept"(ms发向网络端,接收修改的请求,实际log中只有一个参数"prot_conf_opt_incl=0")-->又是一堆"MAC/PACCH_DL/packet_uplink_ack/Nack和MAC/PACCH(RRBP)/EGPRS_packet_downlink_ack/Nack-->中间夹杂着一条"MAC/PACCH_DL/packet_timeslot_reconfigure"(分组数据服务时隙的重配置?具体log内容没看,可能涉及重配置的具体参数)-->对应事件"event_packet_timeslot_reconfigure"(时隙分配上行=3,下行=3;TFI指配上行=8,下行=27)
 
+[51]此时的gmm_state处于registered状态,gsm_L1_state是transfer_mode,mm_state是空闲的状态-->SI-13,SI-2ter-->一直持续那两种上下行的ack/Nack的log,对应着收发的事件-->"event_gprs_TBF_release"(释放类型变=UL_TBF_normal)-->"event_gprs_TBF_release"(释放类型=DL_TBF_normal)
 
+[52]后面gsm_L1_state依然还是保持idle状态,但是后面出现了大量的寻呼1,2(寻呼消息出现应该是表明)和SI-3,2quater2(这两种消息出现表明手机处于空闲状态),以及对应着4条直接指配命令(不理解,立即指配不是只有在信道分配才会出现吗?这里是给谁在分配信道?),3次"event_gprs_surround_search_start"和"event_gprs_surround_search_end"的组合(pbcch_arfcn不变,bcch_arfch一直在变化)
 
+[53]"event_DS_gsm_RR_out_of_service"(ASID=1)-->这里是话音结束后,位置区/路由区信息都更新完毕,要从GSM系统回到LTE系统中去-->GSM_L1_state从idle变为L1_inactive_mode-->mm_state状态还是idle但是整个子系统的状态变成了MM_no_cell_available-->plmn信息中很多属性模式都变成无可用的状态-->gmm_state还是registered,但是整个GMMsubstate=gmm_no_cell_available-->"event_RAT_change"(当前active-RAT重新恢复为"SYS_rat_LTE_radio_access")-->两条"event_nas_TAU"(重新进入LTE位置区的track_area_update)-->event_cm_service_confirmed(确认当前的RAT,连接控制服务的状态,此时ps_data_suspended依旧是false状态)和event_cm_system_mode(LTE).
 
-
-
-
-
+*至此本呼叫过程的log和event信息基本结束.
 
 
 
