@@ -16,7 +16,7 @@ Voice over LTE
 ==AT command set==
 modem中涉及的,调制解调器的命令语言;每条指令以"AT"开头,所以叫做AT命令.
 LTE中的产品验证常使用一些AT命令.
-AT+CGDCONT=1,"IP","cmnet" 使用某一种协议和接入点去进行网络连接,
+AT+CGDCONT=1,"IP","cmnet" 使用某一种协议和接入点去进行网络连接.
 
 ==cmwap和cmnet和internet==
 CMNET与CMWAP：China Mobile Net与China Mobile Wap

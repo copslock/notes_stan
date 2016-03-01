@@ -1,0 +1,165 @@
+===从wcdma到LTE===
+WCDMA(rel-99,新的无线接口技术UTRA,cs和ps域服务的并发执行,多媒体消息,基础的UMTS安全性,GSM/GPRS的内部网络交互)-->HSPA(rel-5,All-IP,带宽和下载速率的增加;rel-6,上行下载速率的增加,voIP/PTT实时服务的出现,MBMS/multicast)-->HSPA_evolved/HSPA+(rel-7,rel-8,MIMO,实时服务的性能增强,backward_compatibility)-->LTE(rel-8,下行OFDM,上行SC-FDMA,可支持的频带扩展,high_order_MIMO/SDMA...).
+
+SC-FDMA的传输结构:
+DFT: 离散傅里叶变换　
+IDFT: 离散傅里叶反变换　
+CP: 循环前缀　
+PS: 脉冲整形　
+DAC:数/模转换
+RF: 无线射频信号　
+ADC:模/数转换　
+LP-OFDMA: 线性正交频分多址
+
+从最开始的GGSN和SGSN最后演变为由MME,PGW,SGW组成的EPC,RNC和NodeB适应更扁平化的趋势可以视为合成一个eNodeB,两者共同组成EPS(演化的分组数据系统).
+
+===LTE的网络拓扑结构和关键网元===
+拓扑结构和相应接口见本子上的图.
+
+对应有几个新的网元(eNodeB,EPC(PGW,SGW,MME,PCRF),HSS),整个网络结构对比UMTS时期更加扁平化,但是相应的功能更加的强大.
+
+QCI(QoS_Class_Identifier)同时应用于GBR和Non-GBR承载,一个QCI是一个值,用于指定访问节点内定义的控制承载级分组转发方式(如调度权重、接纳门限、队列管理门限、链路层协议配置等),这些都由运营商预先配置到接入网节点中.
+QCI是每一个EPS承载都会被分配且最重要的QoS参数之一,它是一个数量等级,代表了EPS为相应承载提供的QoS特性,QCI决定了在一定承载上的IP数据包应该接受怎样的用户平面处理.
+
+===Track Area and MM===
+UE状态也不想WCDMA时候分了4,5种,这里关键的记住idle和active状态即可(还有一种unattached状态).
+在idle状态下,只涉及AS的小区重选和TA变化后的NAS的TAU过程;在active状态下,无论是小区变化还是TA变化都是对应AS的切换过程.
+
+TA:EPS/LTE中的注册区域
+idle和active的区别即是:RRC连接建立(MME和eNodeB之间)
+
+===协议栈组成和相应"承载"===
+控制面:
+UE			eNodeB			MME
+	NAS				NAS
+	RRC				S1-AP
+	PDCP			SCTP
+	RLC				IP
+	MAC				L2
+	PHY				L1
+	(LTE-Uu)		(S1-CP)
+eNodeB		eNodeB
+	X2-AP
+	SCTP
+	IP
+	L2
+	L1
+	(X2-CP)
+
+用户面:
+	都是Application
+	都是IP
+	PDCP			GTP-U			GTP-U			无
+	RLC				UDP				UDP				无
+	MAC				IP				IP				无
+	PHY				L2/L1			L2/L1			L2/L1
+UE (LTE-Uu) eNodeB  (S1-U)  S-GW    (S5)	P-GW   (SGi)	APP-server
+
+每一个接口都对应着相应的承载类型,无线接口可以对应RB,S1接口对应S1-Bearer,S5同理,这些可以都称为EPS的Bearer,PGW和网络服务端可以看做是额外的扩展性承载,所有加起来是一个终端到终端的服务.
+
+===EPS的安全性功能===
+AKA,安全性功能应用于AS,NAS的信令和用户面数据,临时的认证和加密是为了保护用户的个人资料,
+
+UE_category:被分为9类,对应着上下行SCH信道的传输速率,支持的调制方式,下行链路中支持的复用的信道数等等参数,详细可以参考"TS36.306",关于UE无线接入能力的资料.
+
+===LTE的特点===
+1.混合型的ARQ(自动重发请求):多重并行的"等待式"混合ARQ......
+2.信道调度和速率自适应:上下行都有应用共享信道,UE根据每次回馈自适应速率调整.
+3.多天线支持:传输和发射分集,束波(波束赋形),空间复用.
+4.有效的调制方法(QPSK,16QAM,64QAM).
+
+ARQ:传统自动重传请求分成为三种,即停等式(stop-and-wait)ARQ,回退n帧go-back-n)ARQ,以及选择性重传selective-repeat)ARQ,三者的区别在于对于出错的数据报文的处理机制不同,除了传统的ARQ,还有混合ARQHybrid-ARQ,在混合ARQ中,数据报文传送到接收方之后,即使出错也不会被丢弃,接收方指示发送方重传出错报文的部分或者全部信息,将再次收到的报文信息与上次收到的报文信息进行合并,以恢复报文信息,在现代的无线通信中,ARQ主要应用在无线链路层,在WCDMA和cdma2000无线通信中都采用了选择性重传ARQ和混合ARQ.
+
+===LTE无线链路接口===
+调制编码技术:
+基于OFDM的下行OFDM(300Mbps)和上行SC-FDMA(75Mbps).
+OFDM:任意两个子载波(窄带)之间都是正交的,每一个子载波都携带着数据,子载波间隔和符号调制速率成反比,高速率的结果是通过大量子载波并发的传输数据(互相完善补充)来实现的.
+
+数据流程图:
+data--(编码调制)-->modulation_symbols--(serial-to-parallel mapping)-->OFDM子载波--(IFFT)-->时域信号-->发射
+接收时域信号--(FFT)-->OFDM子载波--(parallel-to-serial mapping)--...--(解码解调)-->data
+
+多径-OFDM信号:
+传输信号在传输过程中被反射和折射后形成的多径现象,多个相同的传输信号可以组合的很成功也可以很失败.
+OFDM(通过CP)可以有效抑制多径现象带来的相移和信号衰落,减小码间串扰.(符号由于反射或延迟被接收,可能会覆盖接下来接收到的符号)
+
+CP:循环前缀
+通过加前缀的方式去消除多径的影响,避免延迟接收数据带来的消息丢失,用循环前缀的方式保持OFDM的正交性,前缀的引入整体增加了每一段符号的时间,"CP减小ISI的影响"......
+
+OFDMA和OFDM的区别:
+OFDMA是使用OFDM调制策略的多接入技术,OFDM在时域分配用户,OFDMA同时在时域和频域分配用户,OFDMA可以同时让子载波相互组合复用,resource_blocks定义了在LTE的资源分配中连续的子载波组...
+P32
+
+OFDM的优缺点:
+优点:高频谱利用率,抗多径衰落效果好,带宽分配可扩展性,低传输/接收复杂度,simplify equalization.
+缺点:high PAPR(峰值/平均无线功率),频率同步问题,guard-band-requirement.
+
+PAPR(峰均比):MIMO-OFDM系统能够提供更大的覆盖范围、更好的传输质量、更高的数据速率和频谱效率。然而，由于OFDM符号是由多个独立经过调制的子载波信号叠加而成的，当各个子载波相位相同或者相近时，叠加信号便会受到相同初始相位信号的调制，从而产生较大的瞬时功率峰值，由此进一步带来较高的峰值平均功率比（PAPR—Peak to Average Power Ratio），简称峰均比(PAPR)。由于一般的功率放大器的动态范围都是有限的，所以峰均比较大的MIMO-OFDM信号极易进入功率放大器的非线性区域，导致信号产生非线性失真，造成明显的频谱扩展干扰以及带内信号畸变，导致整个系统性能严重下降。高峰均比已成为MIMO-OFDM 的一个主要技术阻碍.
+
+SC-FDMA:
+出现的原因:上行链路中为了减小PAPR值大小,同时上行传输需要低功率,低复杂度,低消耗的条件.(上行一般不强求高速率,稳定性最重要)
+具体操作:数据编码时使用DFT/FFT(频域/时域),最后进行IFFT.
+
+两种调制编码技术对比:
+data-->IFFT-->CP-->tx rx-->remove_CP-->FFT-->demod...
+data-->SC-FDM-->CP-->tx rx-->remove_CP-->FFT-->FDE(频域均衡)-->IFFT-->demod
+
+===LTE的帧结构===
+[1]Type-1
+1帧=10ms=20slot=140symbols
+1子帧=1ms=2slot
+1slot=7symbols(第一个symbol是CP)
+基本时间单元Ts=1/(15000*2048) sec = 1/30720000
+
+[2]Type-2
+1帧=10ms=2半帧=10子帧=20slot
+1子帧=DwPTS(下行导频时隙)+GP(guard-period)+UpPTS(上行导频时隙)		//3个组成部分可配置可变化,但总的长度始终未为1ms
+基本时间单元Ts=1/(15360*2000) sec = 1/30720000
+
+GP时隙是96chip的保护时隙，时长75us，作用：1.用于下行到上行转换的保护，2.小区初搜时，确保DWPTS可靠接收，防止干扰UL工作，3.随机接入时，确保UPPTS可以提前发射，防止干扰DL工作，4.决定覆盖距离。TS0固定用作下行时隙来发送系统广播消息。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
