@@ -25,10 +25,12 @@ setprop sys.usb.config diag
 
 Q:qspr软件相关及作用?
 A:qpst的EFS explorer里可以修改这些EFS的item-files的一些属性.
-QSPR是高通的一个校准软件,可以加入.xtt文件,设置响应的参数,进行手机对应平台的校准.经过高通case1提供的xtt文件对测试手机mobeeplus进行平台校准后,这个代码就和手机里部分数据信息进行写入和同步后,qspr软件端根据你指定的"save_key_to_file"属性,在指定路径下得到一个spc的"key"文本文件,我这里生成的是"352330".再利用QPST里工具"software_download"的back-up选项卡,选择测试的手机和输入spc的"key",获得该测试手机QCN数据备份到PC上.
+QSPR是高通的一个校准软件,可以加入.xtt文件,设置响应的参数,进行手机对应平台的校准.经过高通case1提供的xtt文件对测试手机mobeeplus进行平台校准后,这个代码就和手机里部分数据信息进行写入和同步后,qspr软件端根据你指定的"save_key_to_file"属性,在指定路径下得到一个spc的"key"文本文件,我这里生成的是"352330".再利用QPST里工具"software_download"的back-up选项卡,选择测试的手机和输入spc的"key",从而可以将测试手机的QCN数据备份到PC上.
 
 Q:EFS_explorer里面显示的东西到底有什么用?
-A:和QCN里的NV-items性质类似,具体的作用还不是很明确.
+A:和QCN里的NV-items性质类似.
+
+
 
 
 

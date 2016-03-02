@@ -26,5 +26,5 @@ CMNET提供了NAT服务,使用该服务的手机可以直接访问internet,CMWAP只提供了WAP代理和HT
 ==GSM-->EDGE - GERAN===
 Enhanced Data rates for GSM Evolution - 由GSM演化的增强型数据速率(edge可以看做是2.75代技术)
 GSM EDGE Radio Access Network - GSM和EDGE的无线接入网络
-GERAN指示GSM/EDGE网络结构的一部分,是无线接入部分,包括了BTS,BSC和它们之间的接口(ater,abis,A)
+GERAN是GSM/EDGE网络结构的无线接入部分,包括了BTS,BSC和它们之间的接口(ater,abis,A)
 不包含EDGE的GERAN网络就是GRAN,不包含GSM的GERAN即是ERAN,在UMTS/GSM中表现为和UTRAN组合.
