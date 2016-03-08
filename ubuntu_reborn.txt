@@ -13,22 +13,55 @@
 
 [4]个人习惯是先改输入法和中文显示(用英文也可以),顺便检查一下网络啊,终端敲几个命令看有没有问题之类的,时间地区选择等等.
 
-[4.5]fdisk/mkfs/mount 系统2个磁盘的分区,格式化,和自动挂载的设置
+[4.5]fdisk /dev/sdb...
+mkfs -t ext4 /dev/sdb1...
+mount device dir...
+vim /etc/fstab
+根据提示,完成系统添加磁盘的分区,格式化,和自动挂载的设置.
 
-[5]安装一些常用软件,例如vim(~/.vimrc的配置,各类插件的使用因人而异),看一下python,perl等等的版本,hexagon(modem编译会用到的东西)等等.
+[5]安装一些常用软件,例如vim(~/.vimrc的配置,各类插件的使用因人而异),看一下python,perl等等的版本,hexagon(modem编译会用到的东西,可能需要建立相应的软链接"ln -s 6.4.01 target-version")等等.
+#HEXAGON PATH
+export HEXAGON_ROOT="/home/eminem/software/hexagon_tools/"
+export ARMTOOLS=QDSP6GCC
+export HEXAGON_RTOS_RELEASE=6.4.01
 
-[5.5]自己编译安装python,下载对应python的源码,解压并进入相应目录,可能会用到的命令:./configure --prefix=${pwd},make,sudo make install,sudo grdit /etc/profile修改环境变量,
-在文件末尾加上你自己的路径
-PATH="$PATH:/自己的路径/Python-3.3.3"
+
+[5.5]自己编译安装python,下载对应python的源码,解压并进入相应目录,可能会用到的命令参考如下:
+./configure --prefix=${pwd},	进行配置
+make,	编译
+sudo make install,	安装
+sudo grdit /etc/profile		修改环境变量
+PATH="$PATH:/自己的路径/Python-2.7.x"		在文件末尾加上你自己python的安装路径
 export PATH
 
 mv /usr/bin/python /usr/bin/python.bak
 ln -s 自己新安装的python地址 /usr/bin/python  			//建立软连接
 python -V
 
+[6]在ubuntu上手机相关的一些usb驱动设置:
+在/etc/udev/rules.d/android.rules   目录下创建一个文件"android.rules"作为android设备的识别文件,里面内容的格式:
+SUBSYSTEM=="usb", ATTR{idVendor}=="901b", MODE="0666", GROUP="plugdev"
+chmod修改一下这个文件的权限
+sudo service udev restart
+sudo udevadm control --reload-rules
 
-[6]一些工具包直接copy到系统中,设置对应的系统变量参数(~/.bashrc,~/.profile).
+添加这个文件"~/.android/adb_usb.ini",在里面加设备的vid
+
+这里遇到了一个问题:正确设置了路径之后,显示无此目录或文件,网上查询问题结果是adb是32位的,linux是64位,缺少某些32位库文件所致,解决如下:
+sudo apt-get install lib32bz2-1.0
+sudo apt-get install lib32ncurses5 lib32stdc++6
+
+[6.25]一些工具包(例如adt包,sdk什么的)直接下载到系统中,设置对应的系统变量参数(~/.bashrc,~/.profile).
+#SDK
+PATH=$PATH:"/home/eminem/software/sdk/platform-tools/"
+PATH=$PATH:"/home/eminem/software/sdk/tools/"
+
+[6.5]git/repo代码库的ssh链接建立.操作如下:
+下载git(ubuntu-14.04里git不再是自带安装的,所以需要我们自己下载)
+ssh-keygen -t rsa -C "youremail@example.com"		//获取ssh的密钥,添加id_rsa.pub到你需要建立ssh连接的网站的设置里,例如github.
+
 
 [7]自己原虚拟机的一些脚本文件,记录文件的copy.
 b2g项目,msm-8916(mobee)项目代码的clone需要完成,modem代码的编译也需要实施一次.
 
+[8]在ubuntu上建立opengrok源码浏览索引,操作如下:
