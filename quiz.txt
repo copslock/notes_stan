@@ -5,7 +5,7 @@ gsm原理			chapter7和11未看,其余over
 gsm总结			基础网络结构和关键信令流程完成-->over
 程序员自我修养			P191/P483
 c prime 				暂时放弃
-c the programming lang	P20/P296
+c the programming lang	P37/P296
 WCDMA协议和信令			over
 LTE白皮书				over
 qcom_UMTS_overview		over
