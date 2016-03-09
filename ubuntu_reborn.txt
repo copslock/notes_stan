@@ -60,6 +60,7 @@ PATH=$PATH:"/home/eminem/software/sdk/tools/"
 下载git(ubuntu-14.04里git不再是自带安装的,所以需要我们自己下载)
 ssh-keygen -t rsa -C "youremail@example.com"		//获取ssh的密钥,添加id_rsa.pub到你需要建立ssh连接的网站的设置里,例如github.
 
+后面就可以进行正常的代码clone和同步.
 
 [7]自己原虚拟机的一些脚本文件,记录文件的copy.
 b2g项目,msm-8916(mobee)项目代码的clone需要完成,modem代码的编译也需要实施一次.
