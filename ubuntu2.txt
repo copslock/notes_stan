@@ -179,9 +179,33 @@ ip neigh list		显示邻居表
 ifconfig
 ip addr		具体ip地址
 	
-	
-	
-	
+稀疏文件系统-Sparse:
+为一个文件预分配一定空间的文件系统,实际占用大小取决于当前大小,随着数据的增多会逐渐变大.
+dd命令创建一个稀疏文件: dd if=source of=dest count=0 bs=1MB seek=1024	//这个稀疏文件当前大小为0,最大限制大小为1024MB
+
+也可以用c代码或者python代码来创建一个稀疏文件.
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+int main(int argc, char *argv[])
+{
+    int fd = open("sparse.file", O_RDWR|O_CREAT);
+    lseek(fd, 1024, SEEK_CUR);
+    write(fd, "\0", 1);
+    return 0;
+}
+
+#!/usr/bin/env python
+f = open('fs.img', 'w')
+f.seek(1023)
+f.write('\n')
+
+将文件稀疏化:(file是目标文件)
+cp --sparse=always source dest
+cp --sparse=never source dest
+tar cSf - file | (cd /tmp; tar xpSf -)
+find file |cpio -pdmuv --sparse /tmp
 	
 	
 	
