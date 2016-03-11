@@ -2,9 +2,12 @@
 
 *流程中有一些比较关键的参照量,可以由始至终的观察来知道流程的变化和进度:gsm_L1_state,上行的测量报告,event_mm_state,event_GMM_state,event_UMTS_calls_statistics,系统消息SI的出现种类变化,待补充...
 
+实际中因为是4G的sim卡所以不可能只有单2G或者3G的信令,肯定是各种类型的信令都会出现,需要自己去判断这是哪一种情况下哪一种RAT中的信令,从而去确定当前手机所处的状态,了解大概的流程.
+
 ==环境及工具==
 测试机器:mobeepius+4G移动SIM卡
-抓取及分析log工具:QXDM Professional 03.14.1054
+抓取log工具:QXDM Professional 03.14.1054
+分析log工具:QCAT(qxdm中显示的都是由QCAT解析后发给qxdm的)
 
 ==流程记录==
 [1]
@@ -76,7 +79,7 @@ RR/BCCH DL/SI-4:前面内容和SI-3基本一样,额外多出的部分:cbch的信
 *大概从这里开始,彻底结束了呼叫的过程,手机重新进入到空闲或寻呼状态,所以SI-5,SI-5ter,SI-6都停止了下发,现在开始下发的大多都是SI-3,SI-4的位置区信息和SI-13的gprs信息.
 -----------------------------------------------------------------------
 
-*位置更新的原因:周期性,位置变化,开机IMSI附着,这里情况应该是LTE在CSFB完成话音通信后又回到LTE所识别的位置区,这里可以看做是位置区变化了.
+*位置更新的原因:周期性,位置变化,开机IMSI附着,这里情况应该是从LTE的位置区到2G/3G中的位置区,即是物理上可能没变,但是也必要要执行位置更新,让系统知道这是在2g/3g的位置区小区内,否则在CSFB结束后,UE以为你本来就LTE位置区中,会无法从GSM切换回原来的LTE系统中.
 
 [40]"MM/location_updating_request"(ms向网络端提出位置区的更新请求)-->对应的发送事件-->"event_SMGMM_request_sent"-->"event_NAS_LAU"-->"event_GSM_L1_state"由空闲变为"L1_random_access_mode"(又要准备建立RR连接?)-->event_GMM_state(GMMSubstate属性由之前的挂起状态恢复了"GMM_normal_service")-->"event_random_access_request"(事件记录了随机接入的次数,帧数=18025,接入原因=位置更新)
 
@@ -112,7 +115,7 @@ RR/BCCH DL/SI-4:前面内容和SI-3基本一样,额外多出的部分:cbch的信
 
 [51]此时的gmm_state处于registered状态,gsm_L1_state是transfer_mode,mm_state是空闲的状态-->SI-13,SI-2ter-->一直持续那两种上下行的ack/Nack的log,对应着收发的事件-->"event_gprs_TBF_release"(释放类型变=UL_TBF_normal)-->"event_gprs_TBF_release"(释放类型=DL_TBF_normal)
 
-[52]后面gsm_L1_state依然还是保持idle状态,但是后面出现了大量的寻呼1,2(寻呼消息出现应该是表明)和SI-3,2quater2(这两种消息出现表明手机处于空闲状态),以及对应着4条直接指配命令(不理解,立即指配不是只有在信道分配才会出现吗?这里是给谁在分配信道?),3次"event_gprs_surround_search_start"和"event_gprs_surround_search_end"的组合(pbcch_arfcn不变,bcch_arfch一直在变化)
+[52]后面gsm_L1_state依然还是保持idle状态,但是后面出现了大量的寻呼1,2(寻呼消息出现应该是表明)和SI-3,2quater(这两种消息出现表明手机处于空闲状态),以及对应着4条直接指配命令(不理解,立即指配不是只有在信道分配才会出现吗?这里是给谁在分配信道?),3次"event_gprs_surround_search_start"和"event_gprs_surround_search_end"的组合(pbcch_arfcn不变,bcch_arfch一直在变化)
 
 [53]"event_DS_gsm_RR_out_of_service"(ASID=1)-->这里是话音结束后,位置区/路由区信息都更新完毕,要从GSM系统回到LTE系统中去-->GSM_L1_state从idle变为L1_inactive_mode-->mm_state状态还是idle但是整个子系统的状态变成了MM_no_cell_available-->plmn信息中很多属性模式都变成无可用的状态-->gmm_state还是registered,但是整个GMMsubstate=gmm_no_cell_available-->"event_RAT_change"(当前active-RAT重新恢复为"SYS_rat_LTE_radio_access")-->两条"event_nas_TAU"(重新进入LTE位置区的track_area_update)-->event_cm_service_confirmed(确认当前的RAT,连接控制服务的状态,此时ps_data_suspended依旧是false状态)和event_cm_system_mode(LTE).
 

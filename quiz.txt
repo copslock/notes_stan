@@ -11,8 +11,9 @@ LTE白皮书				over
 qcom_UMTS_overview		over
 UE_config_pics_mapping 	over
 qxdm_user_guide			over
-Wcdma/umts总结			almost over,只差一个log分析的wiki
-LTE_overview			P61
+Wcdma/umts总结			over --> 总结只差一个log分析的wiki
+LTE_overview1			over --> 总结?
+
 
 
 [2]项目:

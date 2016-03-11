@@ -1,11 +1,37 @@
 这个是在之前log上加上LTE相关的event和log部分的分析补充,去尝试解释很多之前出现的问题.
 
 LTE一般待机状态下的event和OTA-log:
-1.永远在下发的"PCCH/paging"(rrc释放相关的数"10.7.2";无线承载ID由于现在还没有业务所以都是0;物理小区id=176,无变化;freq/频点=38950;sysframenumber和msg长度这两个参数一直在无规律变化,)
-2.对应寻呼的下行消息"event_LTE_rrc_DL_msg"
-3."event_LTE_ML1_search_idle"
+1.永远在下发的"PCCH/paging"(rrc释放相关的数"10.7.2";无线承载ID由于现在还没有业务所以都是0;物理小区id=176,无变化;freq/频点=38950;sysframenumber这个参数似乎是在一组SFN里反复循环?(不是很理解),msg长度这个参数一直在无规律变化)
+2.上面那个"paging"对应的下行消息事件"event_LTE_rrc_DL_msg"
+3."event_LTE_ML1_search_idle",手机处于空闲状态(ML1层是对L1层处理加工后的信息???),只有wake.offline和wake.serv Meas DRX cycle两个参数为1,其他都是0.
 
+LTE状态下主叫10086的流程:
 
+*一开始系统时处于LTE环境下的,一开始在LTE环境下的RRC连接建立.
+
+LTE中出现的寻呼-->OTA输出msg(ext services request)-->启动RRC的定时器T300(UE发送RRC CONNECTION REQUEST后,初始值1000,单位ms?) 启动EMM的定时器T3417-EXT(收到重定向命令以后才终止)-->RACH状态启动-->RRC状态变化(变为connecting连接中)及原因(MO_data,起呼)-->MAC的timer相关事件-->RACH成功-->RRC连接建立后定时T300终止-->PHR_report(power_headroom=28,不知道是什么值,出现原因是配置有变化引起)-->RRC状态变化(connected)-->EMM定时器T3412结束-->Buffer_Status_Report缓冲状态报告-->security_mode_cmd/complete
+
+RRC连接的重配置/完成-->ESM_outgoing_msg事件(EQ_PLMN_CHANGE_IND)
+
+EMM_incoming_msg(EQ_PLMN_CHANGE_IND)-->LTE_CM_outgoing_msg(PLMN_serach_about_req)
+
+UEcapabilityEnquiry/information-->第二次RRC连接重配置/完成(这些ota_log里面包含都是PDU的内容)-->RRC连接释放???
+
+*出现很多RRC定时器"deadlock",每一个都只记录一小段时间就结束,暂没发现规律.
+*MAC的定时器TA和
+
+RRC定时器"connect_Rel"启动-->RRC状态变化(closing)-->定时器"connect_rel"终止-->"event_LTE_ML1_search_idle"(所有参数都为0)-->MAC_reset(起因是连接释放)-->RRC状态变化(idle_not_camped)-->ESM_outgoing_msg(SIM_not_available_req)-->EMM定时器T3412启动,EMM接收msg"SIM_not_available_req"-->cm_outgoing_msg(stop_mode_req)
+
+RRC定时器42启动,初始值1000-->RRC状态变化(suspend)-->定时器42终止-->"event_LTE_RRC_IRAT_REDIR_FROM_EUTRAN_start(切换到GSM?)"
+
+在GSM那边GSM_L1_state进入到idle_mode后,选好小区驻留成功后,LTE这边RRC状态彻底变为inactive.定时器T3417-EXT终止.-->"event_LTE_RRC_IRAT_REDIR_FROM_EUTRAN_end"(完成到LTE到GSM的RAT切换)-->event_RAT_change.
+
+*下面就基本进入到GSM的部分,不再详细描述,中间出现和LTE有关的事件,全部都是一些定时器的起始变化.
+*在GSM系统中完成呼叫和短消息过程后,完成RAU的更新后即会出现要恢复到LTE系统的迹象.
+
+开始出现EMM_outgoing/incoming_msg(EQ_PLMN_change_ind)-->手机在GSM系统中都恢复到了空闲中?-->大量寻呼
+
+LTE-RRC状态变化(IRAT_to_LTE_start)-->RRC定时器"SIB_event1_WT"启动,标志开始读取SIB1内容?-->"event_LTE_ML1_search_idle"的参数wake.PBCH_Decode=1,search.special_PBCH=1-->DL_SPS_implicit_release触发事件"event_LTE_ML1_DL_SPS_report"-->RRC状态变化(idle_camped)-->event_RAT_change(恢复LTE系统状态)
 
 
 
