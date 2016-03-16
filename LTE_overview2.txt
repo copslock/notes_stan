@@ -1,13 +1,58 @@
+RA-RNTI		随机接入过程中去指示随机接入响应消息
+T-CRNTI		eNB在随机接入响应消息中下发,没有进行竞争前的CRNTI
+C-RNTI		RRC连接状态标识,由T-CRNTI进化而来,初始接入时变化
+SPS-CRNTI	eNB调度UE进入SPS(半静态调度)时分配
+P-RNTI		寻呼标识
+SI-RNTI		系统广播标识
+
+IMSI		来源于SIM卡
+IMEI		来源于终端
+IMEISV		来源于终端,携带设备的软件版本号的国际识别唯一标识
+S-TMSI		MME产生并分配
+GUTI		全球唯一临时标识,由MME分配,TMSI是GUTI的一部分,在SIM附着时通过attach accept下发给UE
+
+LTE系统消息:
+类型:MIB(最重要的传输参数),SIB1(其他所有SIB的调度信息和小区接入信息),SI承载的SIB2-SIB12
+终端在接收SIB1后,通过其中的"SchedulingInfoList"字段才能接收其他的SI消息...
 
 
+[1]开机SIM附着-->PLMN/ACT选择-->小区选择-->合适小区位置登记更新-->UE进入idle状态
 
+*SIB1中携带着LTE最重要的小区选择和接入的信息,固定以20ms为周期发送4次
+*RPLMN上次登录的-->EHPLMN用户归属网络-->UPLMN用户控制的PLMN列表-->OPLMN运营商控制的PLMN列表-->VPLMN拜访地的PLMN列表
+*小区选择和GSM中相似,都是先检测历史记录中的频点和监听到的邻频小区信息,不适合再进行全频段的扫描.
 
+[2]idle-->上行随机接入-->RRC连接-->RRC连接重配置-->(RRC连接重建)-->(RRC连接释放)-->测量报告
 
+*上行接入申请,获得C-RNTI(小区内的无线网络标识),进入RRC连接状态,UE和eNB的时间同步
+*上级随机接入的出现场景:RRC连接建立/上行随机接入失败后的重试,RRC连接重建/RRC连接状态下,上行未同步但需要发送上行数据或需要申请上行资源/RRC连接中,小区的切换/RRC连接中,上行未同步但需要接受下行数据/RRC连接中,需要定位UE位置可以利用随机接入.
+*竞争和非竞争的随机接入:竞争状态的在上行接入响应后还会有调度信息...
 
+*RRC建立的原因:TAU,service_Request,extended_service_Request,attach/detach,发起呼叫/被寻呼,短消息...
+*RRCconnectionRequest-->~setup-->~complete(作为S1接口的建立基础)
+*RRCconnectionRequest-->~reject
+*RRC连接重配置发起原因:测量控制,切换,E-RAB建立/释放/重配置,RB的管理,不同于WCDMA的多种控制信令,LTE中基本都把它们简化为"RRC连接重配置"这一种.
 
+*RRC连接重建原因:RRC为连接状态,但出现切换失败,无线链路故障,完整性保护失效,RRC连接重配置失败等等.
 
+*RRC连接释放原因:一段时间内无数据交互,避免终端一直占用资源.
 
+*空闲状态下,通过SIB4(同频邻区),SIB5(异频邻区)获取UE需要的测量参数.连接状态下,通过RRC重配置中的MeasConfig信元下发测量参数配置.
+*可测量类型:邻小区的同频点,当前服务小区的异频点,和GERAN,UTRAN,CDMA2000_1xRTT系统间的测量...
 
+*空闲状态下,测量数据不上报,由UE自主判决,完成小区重选.连接状态下,按照网络的配置情况可能需要UE和eNB交互(触发事件上报/周期上报),完成切换过程.
+*触发事件:例如服务小区/邻小区的信道质量大于/小于门限值,异RAT的小区信道质量大于门限等等...
+
+[3]附着/去附着-->主被叫流程
+*因为CSFB的原因,所以在LTE需要做LTE和GSM电路域的联合附着/更新过程
+RA_Request/response-->RRC连接请求/建立/完成-->initial_UE_msg(eNB发向MME)-->鉴权和完整性保护过程认证-->
+initial_context_setup_Request(下发给eNB,包含附着的确认,激活EPS承载的请求)-->UE_capacity_enquiry/information(UE能力信息交互)-->
+UE_capacity_info_indication(eNB发给MME)-->security_mode_cmd/complete-->RRC连接重配置/完成(RAB建立/管理等等,测量报告)-->
+initial_context_setup_response(eNB发给MME)-->UL_direct_transfer/UL_NAS_transport(UE-->eNB-->MME,包含着附着接收,RAB建立等消息)
+
+*去附着可以是UE或MME发起,MME都会通知S-GW,"delect_session_request/response",然后eNB和UE进行上下行NAS层直传消息的交互,最后释放RRC连接:MME-->(UE_context_release_cmd)-->eNB-->(RRC连接释放)-->UE-->(~_complete)-->eNB--->(UE_context_release_complete)-->MME
+
+*service_Request出现:UE需要上行数据需要建立RRC连接,  UE处于idle状态但此时有下行数据到达.
 
 
 

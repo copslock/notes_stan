@@ -1,0 +1,76 @@
+==diagnostic service overview==
+[1]central-routing
+PC(qxdm)<---->APSS(master_registration_table)<---->remote processor,  modem,  ADSP
+以上3个的本地注册表都会和APSS(应用子系统)上的主注册表上相关联(master-diag).
+
+APSS接收一个请求-->继续前向传递请求给(remote,modem,ADSP...)或者是返回一个错误的响应信息,vice-versa.
+
+1.初始化阶段,远端处理器/伺处理器创建一个本地注册表(包含要发送给apps-processor的命令),apps-processor会创建一个主注册表(这个表包含了每一个processor的所有可能使用的命令).
+
+2.当PC端发送一个命令请求后,和主注册表里对比后,在继续前向传输.
+
+3.processor控制着所有的命令传递和响应.
+
+*在qxdm工具里实际通过diag接口去设置msg/logs/events的mask,master-diag将最新的mask通过控制消息发给所有可用的"slaves",如果"slaves"和master-diag有直接的控制连接,则相应的"slaves"也会对所有的通常请求作出响应.
+
+[2]diag-services
+常用的API功能,  on-devices_logging(直接在设备上调试保存log在SD卡上,不许需要连接PC),  QXDM-logging(socket/UART-logging),
+diag-consumer-interface(apps-processor使用的diag的API合集去插入命令请求去支持周边和接收到的响应),
+Listeners(接收特定的log/event/msg),  QPST-polling(运行一个trace去收集信息),  
+Low-Power-mode(给予无"non-HLOS"processor可以去缓存数据的能力)
+
+[3]diag-services APIs
+Request/response,  debug_msg_service,  event_report_services,  logging_services
+
+1.cmd-code 1byte,  SSID子系统id 1byte,  subsystem-cmd-code 2bytes,  payload 4bytes
+2. P13有msg的详细格式和每一部分的含义介绍,  msg里的宏(MSG,  MSG_N,  MSG_SPRINTF_N)
+  filter(运行时在qxdm工具中进行过滤)(build-time过滤,在msgtgt.h文件中的MSG_BUILD_MASK_<SSID-name>定义)
+  F3-trace
+  Qshrink
+3. P16
+4. P17
+
+[3]客制化范例
+定义一个新的子系统命令:
+1. Write a command handler function.
+2. Create a subsystem command table.
+3. Register the table with diag.
+P18 单次和多次响应的范例,设立API和响应具体的代码框架.
+-----------------------------------------------
+定义一个新的log-packet:
+在log_codes.h中定义log-packet的id,e.g.
+#define LOG_ROHC_COMPRESSOR_OUTPUT_C 	((0x82F) + LOG_1X_BASE_C)
+#define LOG_1X_LAST_C 					((0x82F) + LOG_1X_BASE_C)			//这行的last的值随着log的增加相应的增加
+这样定义了以后才能用,将指定的发生改变的log-packet信息打印出来...
+定义了以后最好重新编译一下进行验证新的log-packet能不能展示出来.
+------------------------------------------------
+定义一个新的event_report
+和上面定义相似,在event_defs.h加入如下行:
+EVENT_FOO = 0x9D9,		//新加行
+EVENT_LAST_ID = 0x9D9,	//原有行,但是需要改变数据,定义之前last-id是0x9D8,现在变为0x9D9
+EVENT_NEXT_UNUSED_EVENT,
+
+使用方法:
+void foo(void){
+	...
+	event_report(EVENT_FOO);
+	...
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
