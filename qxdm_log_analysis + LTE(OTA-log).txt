@@ -5,13 +5,16 @@ LTE一般待机状态下的event和OTA-log:
 2.上面那个"paging"对应的下行消息事件"event_LTE_rrc_DL_msg"
 3."event_LTE_ML1_search_idle",手机处于空闲状态(ML1层是对L1层处理加工后的信息???),只有wake.offline和wake.serv Meas DRX cycle两个参数为1,其他都是0.
 
-LTE状态下主叫10086的流程:
+通话中的典型信令:
+alerting到connect之间: 有SI-5,6,5ter,还有上行的测量报告
+connect到disconnect之间: 有SI-5,6,5ter,对应的一些消息事件,AMR状态被激活
 
+LTE状态下主叫10086的流程:
 *一开始系统时处于LTE环境下的,一开始在LTE环境下的RRC连接建立.
 
 LTE中出现的寻呼-->OTA输出msg(ext services request)-->启动RRC的定时器T300(UE发送RRC CONNECTION REQUEST后,初始值1000,单位ms?) 启动EMM的定时器T3417-EXT(收到重定向命令以后才终止)-->RACH状态启动-->RRC状态变化(变为connecting连接中)及原因(MO_data,起呼)-->MAC的timer相关事件-->RACH成功-->RRC连接建立后定时T300终止-->PHR_report(power_headroom=28,不知道是什么值,出现原因是配置有变化引起)-->RRC状态变化(connected)-->EMM定时器T3412结束-->Buffer_Status_Report缓冲状态报告-->security_mode_cmd/complete
 
-*终端发起CSFB时(标识即"extended_service_Request"),会启动定时T3417ext(例如设定时间为10s).
+*终端发起CSFB时(标识即"extended_service_Request"),会启动定时T3417ext(协议规定是10s?).
 *该定时器的作用:设定时间内网络无响应,定时器超时终端将释放LTE网络的RRC连接,并开始搜索2/3G的小区来建立通信,此即CSFB的重定向目的.
 
 RRC连接的重配置/完成-->ESM_outgoing_msg事件(EQ_PLMN_CHANGE_IND)

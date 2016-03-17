@@ -11,11 +11,14 @@ IMEISV		来源于终端,携带设备的软件版本号的国际识别唯一标�
 S-TMSI		MME产生并分配
 GUTI		全球唯一临时标识,由MME分配,TMSI是GUTI的一部分,在SIM附着时通过attach accept下发给UE
 
+ETWS: Earthquake and Tsunami Warning System	地震和海啸预警系统
+CMAS: Commercia / Mobile Alert Service
+
 LTE系统消息:
 类型:MIB(最重要的传输参数),SIB1(其他所有SIB的调度信息和小区接入信息),SI承载的SIB2-SIB12
 终端在接收SIB1后,通过其中的"SchedulingInfoList"字段才能接收其他的SI消息...
 
-
+==LTE关键流程==
 [1]开机SIM附着-->PLMN/ACT选择-->小区选择-->合适小区位置登记更新-->UE进入idle状态
 
 *SIB1中携带着LTE最重要的小区选择和接入的信息,固定以20ms为周期发送4次
@@ -53,6 +56,78 @@ initial_context_setup_response(eNB发给MME)-->UL_direct_transfer/UL_NAS_transpo
 *去附着可以是UE或MME发起,MME都会通知S-GW,"delect_session_request/response",然后eNB和UE进行上下行NAS层直传消息的交互,最后释放RRC连接:MME-->(UE_context_release_cmd)-->eNB-->(RRC连接释放)-->UE-->(~_complete)-->eNB--->(UE_context_release_complete)-->MME
 
 *service_Request出现:UE需要上行数据需要建立RRC连接,  UE处于idle状态但此时有下行数据到达.
+*CSFB出现的标识:出现"extended_service_Request"消息,(下行会有"xxx_notification")定时器T3417-ext被启动.
+
+[4]LTE的移动性管理-->RAT之间的移动性管理
+*小区重选:UE在当前小区驻留1s以上,在idle状态下通过监测邻区的信号(系统消息下发林区配置和测量重选参数)和当前服务小区的对比选择一个信号质量最好的小区驻留.
+*RAT之间的小区重选:满足重选条件(在一定时间内,本系统信号强度小于门限值,异系统小区信号强度大于门限值,优先级设置一般是LTE>3G>GSM/EDGE),RAU/TAU更新,鉴权,核心网元之间的信令交互...
+
+*RSRP是LTE网络中可以代表无线信号强度的关键参数以及物理层测量需求.
+RSRP(Reference-Singnal-Received-Power,参考信号接收功率)是终端接收到的小区公共参考信号(CRS)功率值,数值为测量带宽内单个RE功率的线性平均值,反映的是本小区有用信号的强度.
+RSSI(Received-Singnal-Strengthen-Indicator,接收信号强度指示)是终端接收到的所有信号(包括同频的有用和干扰、邻频干扰、热噪声等)功率的线性平均值,反映的是该资源上的负载强度.
+RSRQ(Reference-Singnal-Received-Quality,参考信号接收质量)RSRQ=N*RSRP/RSSI,其中N表示RSRI的测量带宽内包含的RE数目,能反映出信号和干扰之间的相对大小.
+SINR(Signal-to-Interference&Noise-Ratio,信躁比)是有用信号功率与干扰和噪声功率之和的比值,直接反映接收信号的质量.
+
+*TAU:跟踪区更新,TA是LTE中的分区方式,类似于WCDMA的LA/RA,是位置更新和寻呼的基本范围单位.一个TA可以包括多个小区,TA之间用TAC区分,TAI=MCC+MNC+TAC
+*TA_list:在UE附着时,MME为UE分配的TAI表(包含1-16个TAI,6-96个字节的长度),当需要寻呼时,网络会在TA_list中所有TAI包含的所有小区内发送寻呼消息,当UE有位置的变化时,如果改变后的TA在TA_list被包含,则不需要进行TAU过程,否则就进行TAU.因为现在的LTE大多有设置CSFB,所以需要TA和LA的对应,在位置更新时也需要进行LTE和GSM网络的联合位置更新.
+
+*idle状态的TAU过程:UE进入的新TA不在TA_list中-->上行随机接入-->RRC连接(这一部分携带着TAU的请求)-->鉴权-->UE能力查询-->安全模式激活命令-->RRC连接重配置(TAU被接受)-->直传消息(TAU过程的完成)-->RRC连接释放
+*连接状态的TAU过程:UE进入的新TA不在TA_list中-->上行直传消息/NAS传输(TAU请求)-->下行NAS传输/直传消息(TAU请求被接受)-->上行直传消息/NAS传输(TAU完成)
+*以上两个过程中,必须在TAU被接收且分配了新的GUTI情况下,UE才会向网络端做出"TAU完成"的上行响应.
+
+*切换:和小区重选的区别,切换处于服务状态中的(即RRC连接已建立),会有上行的测量报告,切换的最终决策由网络端发出.
+
+SRB - 信令的承载 	DRB - 数据的承载
+SRB0	缺省承载		在idle状态就已经存在,只用于RRC信令,使用CCCH信道
+SRB1	专用承载		即RRC的连接的UE和eNB之间的承载,在SRB0上传输信令建立了SRB1,承载RRC和NAS层信令,使用DCCH信道
+SRB2	专用承载		在SRB1上传输NAS信令建立SRB2,专门承载NAS层信令,使用DCCH信道
+DRB		专用承载		在SRB1上建立DRB用于传输数据
+security mode激活发生SRB1建立,即RRC连接建立之后,这之后继续在SRB1上建立SRB2和DRB,一旦安全性激活,所有的SRB1,2,包括NAS和非3GPP的消息都会在PDCP层进行完整性保护和加密.
+UE可以有多个DRB,每一个DRB和一个EPS-bearer对应.
+
+*LTE中eNB的切换发生在发送的RRC连接重配置信令中,携带着切换所需的目标小区id,载频,C-RNTI,RB配置,专用的随机接入参数,UE接收信息完成切换过程后,返回"RRC连接重配置完成"信令.
+*X2接口的切换,即不同eNB的切换,不经过MME,和小区切换差不多,先完成eNB的切换,最后向MME进行上报更新,进行TAU.
+*基于S1接口切换,在两个不同MME(对应不同的S-GW)中的不同eNB间的切换,多一些在核心网络建立的承载,多一些两个MME,eNB,S_GW之间信令交互,实际的切换执行部分和前面都基本一样(多经过两个MME),完成切换后都要进行TAU.(切换准备-->切换执行-->释放/完成)
+
+*重定向:UE在连接状态,收到RRC连接释放的信令,其中带有重定向信息,要求RRC连接释放后进行指定频点的搜索和小区选择.根据重定向是否有相应的测量报告交互,分为盲重定向和一般重定向,在RRCconnectionrelease中可以找到redirectedCarrierInfo的字段信息,该字段指示了UE需要重定向的目标频点.(重定向测量/判决-->重定向执行-->数据业务恢复)
+*LTE-->2/3G:RRC连接重配置里有上行的测量数据配置,携带目标频点的测量配置,当UE测量结果满足重定向条件,UE向eNB发送一个测量报告,eNB下发RRC连接释放并携带着重定向的目标频点,完成重定向,释放LTE网络的S1接口承载,最后在重定向后的目标频点重新建立RRC连接进行相关服务.
+*3G-->LTE:最关心的是最初重定向的判定和信令传递,后面的重定向执行到从新建立RRC连接除了网元有区别以外都差不多,RNC下发的测量控制消息携带着异系统测量的配置,当条件满足重定向,UE上行发送测量报告,RNC发送RRC连接释放进入到重定向阶段,后略.
+*2G重定向回LTE没有看到有相关的OTA-log,都是一些event信息.
+
+==CSFB==
+LTE的短信业务不需要CSFB,通过MME和MSC之间SGs接口将短信从GSM的SMSC路由到LTE网络的MME.
+
+开机附着和驻留LTE引起的联合附着更新:
+LTE中的attach应该理解为联合附着更新(combined_eps/IMSI_attach),而不是2/3G中单独的LA/RA更新.
+MME会向MSC发送位置区更新请求,完成LAU后VLR向MME返回LA更新接受消息,MME再下发给UE位置区相关信息LAI和TMSI.
+
+联合位置区更新:
+发起原因:TA变化,从其他RAT返回LTE,周期性TAU,类型为combined_TA/LA_update_Request
+让LTE的TA和MSC的LA建立映射关系,所以需要联合更新,VLR向MME最后返回给UE建立了映射关系的LA和新分配的TMSI.
+
+CSFB的主叫流程参见之前写的一个qxdm_log_analysis.
+CSFB的被叫流程:
+寻呼由主叫CSFB后发出,经过GSM中的BSC,MSC,网关等等网元传到被叫端的MSC,被叫归属HLR,在这里通过MSC和MME的接口SGs路由至被叫端的LTE网络中下发寻呼,被叫端响应寻呼,从而CSFB回落到GSM,后面的通话流程和传统GSM中没有什么大变化.
+
+当LTE覆盖范围差时,第一次寻呼无响应会导致MSC发起二次寻呼,
+在LTE部署前期,MSC的SGs接口寻呼配置还没有更新,则在第一次寻呼会使用TMSI,第二次寻呼就会采用IMSI,而现在如果更新了MSC_POOL的方案,就会导致LTE的第二次寻呼就会失败.
+失败原因:因为设置了MSC-pool,所以发出寻呼的MSC不一定是最后接收到寻呼响应的MSC,而如果MSC不同则不会下发setup命令建立通话,被叫就会失败.
+
+1.FR(fast_return):由GSM下发的"channel_release"触发,可以快速返回LTE网络,完成TAU,进入LTE网络的idle状态,返回LTE仅需要0.5s-1.5s.
+2.经过GSM-->3G-->LTE,通过邻区测量信息,一步一步小区重选返回LTE,需要时间可能在10s-16s.
+
+FR返回标识即"channel_release"消息,GSM覆盖区信号强度和LTE覆盖信号强度会对FR成功率有一些影响.
+FR原理:
+	在通话时测量合适的LTE小区频点,选择合适的准备接入.(用户通话时间过短可能造成FR失败)
+	设置执行FR对应的业务类型,使用该类型中历史曾经的LTE驻留小区频点.(有效的增加了FR成功率,但增加一些UE不可及时延)
+
+
+
+
+
+
+
+
 
 
 
