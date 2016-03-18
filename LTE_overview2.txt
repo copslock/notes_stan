@@ -1,3 +1,4 @@
+==概念缩写==
 RA-RNTI		随机接入过程中去指示随机接入响应消息
 T-CRNTI		eNB在随机接入响应消息中下发,没有进行竞争前的CRNTI
 C-RNTI		RRC连接状态标识,由T-CRNTI进化而来,初始接入时变化
@@ -9,12 +10,14 @@ IMSI		来源于SIM卡
 IMEI		来源于终端
 IMEISV		来源于终端,携带设备的软件版本号的国际识别唯一标识
 S-TMSI		MME产生并分配
-GUTI		全球唯一临时标识,由MME分配,TMSI是GUTI的一部分,在SIM附着时通过attach accept下发给UE
+GUTI		全球唯一临时标识,由MME分配,TMSI是GUTI的一部分,在SIM附着时通过attachaccept下发给UE
 
-ETWS: Earthquake and Tsunami Warning System	地震和海啸预警系统
-CMAS: Commercia / Mobile Alert Service
+ETWS:EarthquakeandTsunamiWarningSystem	地震和海啸预警系统
+CMAS:Commercia/MobileAlertService
 
-LTE系统消息:
+ML1:L1的信令处理后的输出?? LTE信令中经常出现的东西,指的是idle_mode??
+
+==LTE系统消息==
 类型:MIB(最重要的传输参数),SIB1(其他所有SIB的调度信息和小区接入信息),SI承载的SIB2-SIB12
 终端在接收SIB1后,通过其中的"SchedulingInfoList"字段才能接收其他的SI消息...
 
@@ -22,8 +25,16 @@ LTE系统消息:
 [1]开机SIM附着-->PLMN/ACT选择-->小区选择-->合适小区位置登记更新-->UE进入idle状态
 
 *SIB1中携带着LTE最重要的小区选择和接入的信息,固定以20ms为周期发送4次
-*RPLMN上次登录的-->EHPLMN用户归属网络-->UPLMN用户控制的PLMN列表-->OPLMN运营商控制的PLMN列表-->VPLMN拜访地的PLMN列表
-*小区选择和GSM中相似,都是先检测历史记录中的频点和监听到的邻频小区信息,不适合再进行全频段的扫描.
+
+*PLMN选网流程:
+RPLMN上次登录的网络信息-->EHPLMN和EFHPLMNwAcT搜索,用户归属网络列表信息-->EFIMSI中的HPLMN和EFHPLMNwAct中的ACT信息搜索-->根据EFPLMNwAcT中的用户设置的PLMN和ACT优先级进行搜索(UPLMN?)-->后面是运用到漫游用户的开机选网,OPLMN运营商控制的PLMN列表(EFOPLMNwACT)-->搜索所有UE支持的接入技术.
+GSM: signal level 大于 -85 dBm.
+UTRAN FDD: p-CPICH RSCP 大于等于 -95 dBm
+UTRAN TDD: P-CCPCH RSCP 大于等于 -84 dBm
+E-UTRAN: RSRP 大于等于 -110 dBm
+
+*LTE小区选择和GSM中相似,都是先检测历史记录中的频点和监听到的邻频小区信息,不适合再进行全频段的扫描.
+*关键的字段"RRC_service_IND",指示服务的类型(full_service,limited_service,no_service).
 
 [2]idle-->上行随机接入-->RRC连接-->RRC连接重配置-->(RRC连接重建)-->(RRC连接释放)-->测量报告
 
@@ -53,9 +64,10 @@ initial_context_setup_Request(下发给eNB,包含附着的确认,激活EPS承载
 UE_capacity_info_indication(eNB发给MME)-->security_mode_cmd/complete-->RRC连接重配置/完成(RAB建立/管理等等,测量报告)-->
 initial_context_setup_response(eNB发给MME)-->UL_direct_transfer/UL_NAS_transport(UE-->eNB-->MME,包含着附着接收,RAB建立等消息)
 
+*去附着种类:UE发起,MME发起,HSS发起.
 *去附着可以是UE或MME发起,MME都会通知S-GW,"delect_session_request/response",然后eNB和UE进行上下行NAS层直传消息的交互,最后释放RRC连接:MME-->(UE_context_release_cmd)-->eNB-->(RRC连接释放)-->UE-->(~_complete)-->eNB--->(UE_context_release_complete)-->MME
 
-*service_Request出现:UE需要上行数据需要建立RRC连接,  UE处于idle状态但此时有下行数据到达.
+*service_Request出现:UE需要上行数据需要建立RRC连接,UE处于idle状态但此时有下行数据到达.
 *CSFB出现的标识:出现"extended_service_Request"消息,(下行会有"xxx_notification")定时器T3417-ext被启动.
 
 [4]LTE的移动性管理-->RAT之间的移动性管理
@@ -76,14 +88,6 @@ SINR(Signal-to-Interference&Noise-Ratio,信躁比)是有用信号功率与干扰
 *以上两个过程中,必须在TAU被接收且分配了新的GUTI情况下,UE才会向网络端做出"TAU完成"的上行响应.
 
 *切换:和小区重选的区别,切换处于服务状态中的(即RRC连接已建立),会有上行的测量报告,切换的最终决策由网络端发出.
-
-SRB - 信令的承载 	DRB - 数据的承载
-SRB0	缺省承载		在idle状态就已经存在,只用于RRC信令,使用CCCH信道
-SRB1	专用承载		即RRC的连接的UE和eNB之间的承载,在SRB0上传输信令建立了SRB1,承载RRC和NAS层信令,使用DCCH信道
-SRB2	专用承载		在SRB1上传输NAS信令建立SRB2,专门承载NAS层信令,使用DCCH信道
-DRB		专用承载		在SRB1上建立DRB用于传输数据
-security mode激活发生SRB1建立,即RRC连接建立之后,这之后继续在SRB1上建立SRB2和DRB,一旦安全性激活,所有的SRB1,2,包括NAS和非3GPP的消息都会在PDCP层进行完整性保护和加密.
-UE可以有多个DRB,每一个DRB和一个EPS-bearer对应.
 
 *LTE中eNB的切换发生在发送的RRC连接重配置信令中,携带着切换所需的目标小区id,载频,C-RNTI,RB配置,专用的随机接入参数,UE接收信息完成切换过程后,返回"RRC连接重配置完成"信令.
 *X2接口的切换,即不同eNB的切换,不经过MME,和小区切换差不多,先完成eNB的切换,最后向MME进行上报更新,进行TAU.
@@ -121,16 +125,79 @@ FR原理:
 	在通话时测量合适的LTE小区频点,选择合适的准备接入.(用户通话时间过短可能造成FR失败)
 	设置执行FR对应的业务类型,使用该类型中历史曾经的LTE驻留小区频点.(有效的增加了FR成功率,但增加一些UE不可及时延)
 
+SAE(system_architecture_evolution)-EPC
+LTE(long_term_evolution)-eUTRAN
 
+==LTE的承载类型==
+SRB-信令的承载	DRB-数据的承载
+SRB0	缺省承载		在idle状态就已经存在,只用于RRC信令(RRC连接建立和重建立相关的信令),使用CCCH信道
+SRB1	专用承载		即RRC的连接的UE和eNB之间的承载,在SRB0上传输信令建立了SRB1,承载RRC和NAS层信令,使用DCCH信道
+SRB2	专用承载		在SRB1上传输NAS信令建立SRB2,专门承载NAS层信令,使用DCCH信道
+DRB		专用承载		在SRB1上建立DRB用于传输数据,使用PDSCH信道
+securitymode激活发生SRB1建立,即RRC连接建立之后,这之后继续在SRB1上建立SRB2和DRB,一旦安全性激活,所有的SRB1,2,包括NAS和非3GPP的消息都会在PDCP层进行完整性保护和加密.
+UE可以有多个DRB,每一个DRB和一个EPS-bearer对应.
 
+==NAS层消息种类== 详见P81
+"RRC连接建立完成"-->初始化NAS消息的标识(包含信息:附着/去附着请求,TAU请求,service_Request)
+"RRC连接重配置"(包含消息:附着接受,TAU接受,激活默认/专用EPC承载请求,修改EPC承载请求,去活EPC承载请求)
+"上行直传消息"(GUTI重分配完成,鉴权响应,安全模式完成,认证响应,附着完成,连接状态下的去附着请求,连接状态下的TAU请求...)
+"下行直传消息"(略)
 
+==TAI-list的类型==
+1.PLMN相同,TAC值连续
+2.PLMN相同,TAC值不连续
+3.PLMN不同,TAC值???
 
+==重选优先级==
+网络配置的频段组/频点优先级,通过"SI"或者是"RRCconnectionrelease"下发给用户,特定字段"cellReselectionPriority",取值0-7.
 
+GSM会在SI2quater中广播LTE邻区及本小区的优先级信息,3G网络会在SIB9中广播.
 
+SIB1有是否允许RAT之间重选的开关"intraFreqReselection"
+SIB3同频/异频/异系统重选通用参数"CellReselectionInfoCommon",异频/异系统重选通用信息"CellReselectionServingFreqinfo",同频小区重选的信息"IntraFreqCellReselectionInfo"
+SIB4同频小区列表"IntraFreqNeighCellList",列表中各小区的重选信息"IntraFreqNeighCellInfo",不能用于同频小区重选的列表"IntraFreqBlackCellList"
+SIB5异频小区列表"InterFreqNeighCellList",列表中各小区的重选信息"InterFreqCarrierFreqInfo",不能用于异频小区重选的列表"InterFreqBlackCellList"
+SIB6UTRAN邻小区列表"CarrierFreqListUTRAN",列表中小区重选信息"carrierFreq(List)UTRA-TDD/FDD"
+SIB7GERAN邻小区列表"CarrierFreqInfoListGERAN",列表中小区重选信息"carrierFreqInfoGERAN"
+SIB8CDMA2000重选信息(详略)
 
+SI中关于重选的重要参数:
+1.QHyst,SIB3-"CellReselectionInfoCommon",小区的滞后擦数,增加重选的难度,避免频繁重选
 
+2.ThreshServing,low
+SIB3-"CellReselectionServingFreqinfo",重选到低优先级的异频小区的门限值,服务小区小于该值就会进行重选,目标小区信号大于该值
 
+3.cellreselectionPriority-重选优先级设定(0-7)
+SIB3-"CellReselectionServingFreqinfo"	
+SIB5-"InterFreqCarrierFreqInfo"
 
+4.S-intrasearch
+SIB3同频小区重选信息"intraFreqCellReselectionInfo",同频小区重选门限,服务小区小于该值就会进行同频小区重选
 
+5.S-nonIntraSearch
+SIB3异频/异系统重选信息"CellReselectionServingFreqInfo",异频/异系统重选门限,服务小区小于该值就会进行异频/异系统小区重选
 
+6.Treselectionst-RAT
+SIB3-"intraFreqCellReselectionInfo",减小频间重选震荡
+SIB5-"InterFreqCarrierFreqInfo",减小异频重选震荡
 
+7.Qrxlevmin,服务小区最低接入电平(dBm)
+SIB3-"intraFreqCellReselectionInfo",避免UE在接收信号电平过低时接入系统,但是后续服务质量不好
+SIB5-"InterFreqCarrierFreqInfo",避免UE在接收信号电平过低时接入系统,但是后续服务质量不好
+
+8.Threshx,low/High
+SIB5-"InterFreqCarrierFreqInfo",UE重选到目标小区的信号门限,切换到高优先级RAT,目标小区信号强度一定时间内大于threshx,high...
+
+9.Qoffsetcell(该值越小进入该小区倾向越大)
+SIB4-"IntraFreqNeighCellInfo",服务小区和同频目标小区的频率偏移量,减少重选震荡
+SIB5-"InterFreqNeighCellInfo",服务小区和异频目标小区的频率偏移量,减少重选震荡
+
+10.Qoffsetfrequency
+SIB5-"InterFreqNeighCellInfo",服务小区和通优先级目标小区的频率偏移值
+
+小区选择的接收功率等级srxlev = 测量到的接收信号功率 - 该小区最低接入电平 - 小区最低接入电平的偏移量 - pcompensation
+pcompensation = max(UE随机接入的最大传输功率, 终端RF的最大发射功率, 0)
+
+==UE不同RRC状态的行为==
+idle:PLMN选网,DRX(寻呼周期1.28s),接收SI和paging,邻小区测量,小区重选和TAU,UE在当前TA的唯一标识,无RRC连接.
+connected:通过RRC连接的UE和网络端的数据交互,网络端控制UE的移动性,邻小区测量.

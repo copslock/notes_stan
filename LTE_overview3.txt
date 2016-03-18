@@ -1,0 +1,20 @@
+==在小区选择中会涉及的EFs/NV/EFS-items==
+EFIMSI – IMSI
+EFPLMNwAcT – User-controlled PLMN selector with Access Technology
+EFHPPLMN – Higher-priority PLMN search period
+EFFPLMN – Forbidden PLMNs
+EFOPLMNwACT – Operator-controlled PLMN selector with Access Technology
+EFHPLMNwAcT – Home HPLMN selector with Access Technology
+EFEHPLMN – Equivalent HPLMN
+EFLRPLMNSI – Last RPLMN selection indication
+EFLOCI – Location information
+EFPSLOCI – Packet-switched location information
+EFEPSLOCI – EPS location information
+
+NV 1190 NV_RPLMNACT_I – Stores the last RPLMN RAT information
+NV 850 NV_SERVICE_DOMAIN_PREF_I – Determines the service preference for the device
+NV 849 NV_NET_SEL_MODE_PREF_I (automatic/manual/limited)– Determines the network mode of operation for the device
+
+RAT Priority List (/sd/rat_acq_order) – Determines the RAT priority list for PLMN selection
+
+
