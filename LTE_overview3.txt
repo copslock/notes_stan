@@ -17,4 +17,32 @@ NV 849 NV_NET_SEL_MODE_PREF_I (automatic/manual/limited)– Determines the netwo
 
 RAT Priority List (/sd/rat_acq_order) – Determines the RAT priority list for PLMN selection
 
+==小区选择-内容补充==
+初始化捕获/接入:
+	PSS(分组交换系统)探测:5ms-frame,获取物理层的验证
+	SSS探测:10ms-frame的同步帧,小区id组的探测
+	PBCH探测:MIB的获取(40ms的TTI,在"子帧0"里传输4个OFDM-symbols,SFN,PHICH信息,系统带宽)
+With acquiring PSS/SSS/MIB, UE can obtain Reference Signal position, which is based on Cell ID, and read to all scheduled SIBs in DLSCH.-->结论:找到并驻留到一个合适小区,进入"idle-camped"状态.
+
+LOG-PACKET::LTE::ML1::0xB176(LTE_ML1_initial_acquisition_results) 此条log里包含着接入的详细信息报告,可选择性接收.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

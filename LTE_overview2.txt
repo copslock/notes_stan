@@ -34,12 +34,12 @@ UTRAN TDD: P-CCPCH RSCP 大于等于 -84 dBm
 E-UTRAN: RSRP 大于等于 -110 dBm
 
 *LTE小区选择和GSM中相似,都是先检测历史记录中的频点和监听到的邻频小区信息,不适合再进行全频段的扫描.
-*关键的字段"RRC_service_IND",指示服务的类型(full_service,limited_service,no_service).
+*关键的字段"RRC_service_IND",指示服务的类型(full_service,limited_service,no_service),选择成功后RRC进入到"idle_camped"状态.
 
 [2]idle-->上行随机接入-->RRC连接-->RRC连接重配置-->(RRC连接重建)-->(RRC连接释放)-->测量报告
 
 *上行接入申请,获得C-RNTI(小区内的无线网络标识),进入RRC连接状态,UE和eNB的时间同步
-*上级随机接入的出现场景:RRC连接建立/上行随机接入失败后的重试,RRC连接重建/RRC连接状态下,上行未同步但需要发送上行数据或需要申请上行资源/RRC连接中,小区的切换/RRC连接中,上行未同步但需要接受下行数据/RRC连接中,需要定位UE位置可以利用随机接入.
+*上级随机接入的出现场景:RRC连接建立/上行随机接入失败后的重试,RRC连接重建/RRC连接状态下,上行未同步但需要发送上行数据或需要申请上行资源/RRC连接中,小区的切换/RRC连接中,上行未同步但需要接受下行数据/RRC连接中,需要定位UE位置可以利用随机接入/无专用资源/RLF(无线链路失败).
 *竞争和非竞争的随机接入:竞争状态的在上行接入响应后还会有调度信息...
 
 *RRC建立的原因:TAU,service_Request,extended_service_Request,attach/detach,发起呼叫/被寻呼,短消息...
