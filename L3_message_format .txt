@@ -1,0 +1,113 @@
+==概览==
+主要介绍一下标准L3信息的格式定义.(service_request除外)
+
+==类别==	P305
+[1]NAS消息:
+protocol_discriminator(协议鉴别)
+EPS_bearer_identity或者security_header_type
+procedure_transaction_identity
+message_type
+其他的消息类型
+
+[2]具有安全保护的NAS消息:
+protocol_discriminator(协议鉴别)
+security_header_type
+message_Authentication_code
+SN
+NAS消息
+
+==structure==
+8	7	6	5	4	3	2	1	
+EPS bearer identity or Security header type(0000)/ Protocol discriminator	octet 1
+Procedure transaction identity												(octet 1a*)
+Message type																octet 2
+Other information elements as required										octet 3-octet n
+
+
+8	7	6	5	4	3	2	1	
+Security header type / Protocol discriminator	octet 1
+Message authentication code						octet 2-octet 5	
+Sequence number									octet 6
+NAS message										octet 7-octet n
+
+===多说一句===
+[1]EPS承载认证和程序处理验证只用于含有protocol_discriminator的EPS-SM消息中,octet1a*也是.
+[2]Unless specified otherwise in the message descriptions of clause 8, a particular information element shall not be present more than once in a given message.
+[3]当一个部分内容增加超过一个octet,随着octet-number的增大,bit-value的顺序?会逐渐变小,该部分最大octet的最低数字位会变成最不显著的bit??
+
+==慢慢讲==
+===protocol discriminator===
+octet1的1-4 bits
+
+详细种类见图,如果网络端接收的消息中protocol_discriminator不符合图中任意一种类型,则网络端会忽略该条消息并执行信道释放的初始化,如果UE接收到此类消息UE会忽略掉.
+
+===security header type and EPS bearer identity===
+[1]octet1的5-8 bits
+包含着和NAS消息安全性保护的控制信息,普通的NAS消息(无安全性保护)这一部分的4bits设置应该就是为"0000".
+security header type是对于EPS-MM消息的.
+
+[2]octet1的5-8 bits
+这两个部分位于同样的位置,因此对于一个消息来说,只会有一个存在,
+EPS bearer identity是对于EPS-SM消息的.
+
+===procedure transaction identity(PTI)===
+octet1a* 1-8 bits
+这个属于只有在正常NAS消息中的EPS-SM消息中才会有的部分,因为一共有8bit,除去00000000(无此程序操作验证的指配)和11111111(保留)两种,剩余254种不同的值可以指定,可以区别254种message-flow...
+
+===message Authentication code(MAC)===
+只存在于受保护的NAS消息的octet2-octet5 32bits
+消息鉴权码包含着对该消息的保护信息.
+MAC由特殊设定的算法得来,算法大致有以下4种:
+"00002"      EIA0      	 Null Integrity Protection algorithm
+"00012"      128-EIA1    SNOW 3G based algorithm
+"00102"      128-EIA2 	 AES based algorithm
+"00112"      128-EIA3 	 ZUC based algorithm
+(这些都是基本128-bit的输入数据进行计算的,RAND?)
+
+UEA	UMTS Encryption Algorithm
+UIA	UMTS Integrity Algorithm
+EEA	EPS Encryption Algorithm
+EIA	EPS Integrity Algorithm
+
+EEA0通常表示无加密策略.
+
+===sequence number===
+有安全性保护NAS消息对应的SN号,位置在octet 6.
+这里的SN号部分和上面的MAC也都是属于NAS消息安全性保护的一部分.
+
+以上两个部分可参考TS24.301的4.4章节-NAS安全性的部分内容.
+
+===NAS message===
+普通的NAS消息,作为第一种NAS消息的类型,也是第二种NAS消息的组成部分.
+
+===message type===
+NAS-message的组成部分,对于EPS-MM和SM都适用.
+
+===other information elements===
+还有一些不同格式IEs的和5个种类的信息元素...
+IE的组成:IEI,LI(长度指示),value-part.
+还有太多暂略P309
+
+==很特别的地方==
+===NAS security===
+在eUTRAN中为了将完整性保护,加密,鉴权都绑在一起应用在EPS安全性验证中,设置了一个新的e-KSI(key_set_identifier_for_eUTRAN).
+[1]EPS的安全性上下文准备
+在安全性建立之前,需要利用EPS鉴权程序完成各类验证和准备.
+P37
+
+
+
+
+
+
+
+
+
+===service Request===
+一开始我们判断NAS消息的时候是没有把"service_Request"算在内的,因此这部分单独介绍一下和这一条信令相关的NAS消息的格式是什么样的.
+
+Short MAC IEI					octet 1
+Short MAC value 				octet 2
+Short MAC value(continued)		octet 3
+
+Bit 1 of octet 3 contains the least significant bit, and bit 8 of octet 2 the most significant bit of these 2 octets.
