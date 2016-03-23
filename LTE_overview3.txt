@@ -33,13 +33,23 @@ no contention-based:eNB发起,使用系统指配的报头
 RRC连接建立完成的log里返回的信息的10进制数字中第3位开始的数据对应有一个table,有各种操作情况完成的指示.
 参见另一个分析文件-->"L3_message_format"
 
+==TAU-recall==
+TAU的目的-->触发原因-->类型3种-->要做什么-->有什么结果
+1.让网络了解UE的TA信息
+2.位置变化/恢复/更新TA-list/联合更新/周期/inter-rat/csfb...
+3.normal/combine/periodic
+4-5.正常情况UE接收TAU确认,更新"GUTI, TAI list, Update Status, EPLMN list",需要时发回TAU-complete
+异常情况UE接收TAU拒绝-->看reject-cause;可能是只有EPS更新成功,2/3G这边LAU失败;响应2/3G更新所需要参数是否更新
 
+TAU的起始标志定时器:T3430
 
+==小区选择部分可用的log分析关键词==
+LTE_CPHY_, acq req, acq cnf, cell id, pbch_dec, MIB cell, service ind, barred,
+CSP, Phy_cell_Id, Plain OTA, RRC OTA,TAU COMPLETE, acq succ,
+EMM:,mmr_service_ind, TAU accept
 
-
-
-
-
+==小区选择 - qxdm常用的分析工具==
+filtered view, ML1 acquisition, PBCH serving measurements, ML1 Real time RSRP, RRC state change plot
 
 
 

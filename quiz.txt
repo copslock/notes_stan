@@ -2,22 +2,37 @@
 鸟哥		    p477
 大话通信	    over
 gsm原理			chapter7和11未看,其余over
-gsm总结			基础网络结构和关键信令流程完成-->over
 程序员自我修养			P191/P483
-c prime 				暂时放弃
+c prime 				expiry
 c the programming lang	P46/P296
+
+[x]总结:
+gsm总结			基础网络结构和关键信令流程完成-->over
+Wcdma/umts总结			over
+
+[y]技术文档:
 WCDMA协议和信令			over
 LTE白皮书				over
 qcom_UMTS_overview		over
 UE_config_pics_mapping 	over
 qxdm_user_guide			over
-Wcdma/umts总结			over --> 总结只差一个log分析的wiki
 LTE_overview1			over --> 总结?
 LTE_CSFB_signaling      over
-diag_system_overview    P26/104
+diag_system_architecture    	P26/104
+AS_carrier_x_log_analysis 		P13-24
+LTE_cell_select_registered_TAU	over
+LTE_Cell_Reselection_and_Redirection	P4
+
+
+[z]3GPP协议文件:
+TS21.905 - vocabulary of 3GPP	//3GPP中涉及到的所有英文首字母缩写
+TS24.301 - NAS_protocol_for_EPS L3					//第4章节的完整性保护和加密的相关内容(4.4 NAS security),第9章各类标准格式介绍(9.1-9.8 标准IEs, 9.9 other-IEs)
+TS33.401 - 3GPP System Architecture Evolution (SAE)	//
+TS24.007 - Mobile radio interface signalling L3		//TS24.301中9.1-9.8章节中有几部分关键定义在此文件里
+TS24.008 - Mobile radio interface L3 specification	//TS24.301中9.9章节中有大量的定义都在这个文件里
 
 [2]项目:
-指纹识别			task-->cut
+指纹识别			task-->expiry
 firefox OS porting 	task-->总结错误,被停止掉
 
 [3]计划:
@@ -25,9 +40,9 @@ firefox OS porting 	task-->总结错误,被停止掉
 2.C --> ready-to-go
 *3.设计模式 --> 近段时间暂时不考虑
 4.LTE的空口协议和系统结构 --> doing
-*5.CSFB/SGLTE/voLTE(简单了解概念) --> over
+5.CSFB/SGLTE/voLTE(简单了解概念) --> over
 6.QXDM"抓"log的方法和"看"的方法 --> attach/detach/call_flow done --> qxdm的用户手册 去看 --> over
-7.联合附着?双模? --> cut
+7.LTE的联合附着? --> over
 8.NV-3446 TRM setting  P96的实例  PICS和NV值之间各参数之间的联系 --> 遇到问题再回看
 
 [4]毕设:

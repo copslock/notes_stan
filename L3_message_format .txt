@@ -93,21 +93,139 @@ IE的组成:IEI,LI(长度指示),value-part.
 在eUTRAN中为了将完整性保护,加密,鉴权都绑在一起应用在EPS安全性验证中,设置了一个新的e-KSI(key_set_identifier_for_eUTRAN).
 [1]EPS的安全性上下文准备
 在安全性建立之前,需要利用EPS鉴权程序完成各类验证和准备.
-P37
 
+在inter-system的切换中,MME和UE之间获得一个EPS的安全保护的映射,该映射关系是由切换之前的A/Gb或Iu接口中继承过来的,
+在CS和PS-SRVCC类切换中,同上.(Single Radio Voice Call Continuity 单一无线语音呼叫连续性)
 
+e-KSI是在EPS鉴权程序是由MME分配,在系统间切换中,eKSI包含着value和安全上下文参数的类型,会告知我们EPS安全上下文是本地的还是映射过来的,不同的情况,eKSI对应不同的值native-->KSI_asme,mapped-->KSI_sgsn.
 
+初始化NAS层消息和"security mode xxx"消息都包含着eKSI,SN-IE指示着当前EPS安全上下文使用完整性保护去应对NAS层消息.
 
+如果要设置删除eKSI,则UE会去将eKSI值设定为"不可用",相应的KSI-asme和KSI'-asme也会被设定为"不可用",NAS层的加密密钥和完整性保护密钥都变为"invalid".
 
+UE的状态不再是"EMM-registered"时或发起初始化附着程序时,UE需要将USIM中NV存储的和EPS安全上下文相关的内容都置为无效.
+当UE进入"EMM-deregistered"状态时,UE会存储并使其有效大部分当前所有本地EPS安全上下文的信息,部分native和所有的映射的EPS安全上下文信息豆浆杯删除掉.
 
+P39
+[2]NAS-count和NAS-SN
+每一个EPS安全性上下文都应该对应着两个计数器NAS-count(分别用于上/下行的NAS信息).计数器一共有24位并且独立的被UE和MME控制,NAS-count应该被理解为一个NAS序列号(8位)和一个NAS流程计数器(16位)的组合.
 
+当NAS-count被输入NAS加密或NAS完整性保护的算法时,它会变成32位的,24位的internal-representation加上8位的0.
+上行的NAS-count存储并可以在USIM或NV项中阅读到,该计数值会被应用到下一条NAS消息中.
+下行的NAS-count存储并可以在USIM或NV项中阅读到,最大的下行NAS-count会被应用在成功完成完整性保护验证的NAS消息上.
 
+每出现一个重发或新的受安全保护的NAS消息(除去一些因为低层失败去建立RRC连接的NAS消息),NAS-count就加1,对应的,NAS序列号也会加1,如果结果是0(wrap-around的原因?),NAS流程计数器也应该加1.
+The receiving side shall estimate the NAS COUNT used by the sending side. Specifically, if the estimated NAS sequence number wraps around, the NAS overflow counter shall be incremented by one.
+
+replay-protection:
+确保UE和MME可以接收到NAS消息,并且不重复接收相同的消息,在EIA0时,此功能不可用.
+
+完整性保护和验证:
+发送端将自己存储的NAS-count作为输入发给完整性保护的算法策略.
+接收端会使用接收到的NAS-count中的NAS序列号信息(8位),对NAS流程计数器做出预估去规范NAS-count的输入(输入到完整性验证算法中).
+详细的算法参考TS33.401,收安全保护的NAS消息的octet6开始以后就是序列号和NAS-message的IE,信令"service_Request"的完整性保护定义是short-MAC,参见该部分的介绍.其他数据常量诸如"BEARER ID, DIRECTION bit, NAS COUNT and NAS integrity key"都会被作为完整性保护算法的输入.
+经过完整性保护和验证后,接收者会根据此条NAS消息更新自己本地存储的NAS-count值,并运用到下一条NAS消息中去.
+在EIA0时此功能不可用.
+
+加密和解密:
+NAS-count将作为加密算法的输入,算法的输入参数还包括常量"BEARER ID, DIRECTION bit, NAS COUNT, NAS encryption key and the length of the key stream".
+
+NAS-count_wrap-around:
+上面有提到当增大NAS-count的值的时候,MME会检测它上下行的NAS-count,当出现"wrap-around"情况时,MME会有如下操作,If there is no non-current native EPS security context with sufficiently low NAS COUNT values,MME会初始化一个新的AKA程序去引导新的EPS安全性上下文建立,重新建立EPS安全性上下文后NAS-count会被置为0.
+其他情况下,MME会激活一个non-current native EPS security context with sufficiently low NAS COUNT values or initiate a new AKA procedure as specified above.
+
+[3]NAS信令消息 的 完整性保护
+对于UE来说,一旦验证/存在EPS安全上下文后,NAS消息的完整性保护就是必需的了,对于网络端来说,一旦NAS消息的安全性交互建立以后完整性保护就是必需的了,对于NAS信令消息完整性保护是必要的,这个是由网络端使能激活的.
+EIA0,即无完整性保护策略,可以允许未鉴权的UE建立紧急类服务的承载,通过对"security_header_type"的设定,UE和MME可以获取到"无安全性保护"和其他各种类型保护性算法的标识.
+如果NAS消息选择的是加密和完整性保护,则会先加密NAS消息,然后加密的NAS消息和NAS序列号经过MAC调度进入完整性保护.
+
+1.UE的NAS信令消息的完整性check:
+除去以下列出的信令,没有其他的NAS信令消息会经过UE的EMM/ESM实体,除非网络端为NAS信令连接建立了NAS消息的安全交互.
+EMM messages:
+-	IDENTITY REQUEST (if requested identification parameter is IMSI);
+-	AUTHENTICATION REQUEST;
+-	AUTHENTICATION REJECT;
+-	ATTACH REJECT (if the EMM cause is not #25);
+-	DETACH ACCEPT (for non switch off);
+-	TRACKING AREA UPDATE REJECT (if the EMM cause is not #25);
+-	SERVICE REJECT (if the EMM cause is not #25).
+所有ESM信息都被受完整性保护.
+这些消息会被UE以不经过完整性保护的方式接收,它们发送于网络端建立激活安全性之前.
+
+一旦NAS消息的安全交互已经建立,UE里的EMM/ESM的接收实体就不会再处理这些NAS信令消息,除非它们的NAS完整性保护check成功.
+如果NAS信令消息还没有成功通过完整性check,则UE会放弃掉该条消息.(信令"security_mode_cmd"还没有成功通过完整性check)
+如果NAS信令消息没有被完整性保护但是NAS消息的安全交互又已经建立的,NAS会放弃掉该条消息.
+
+2.MME的NAS信令消息的完整性check:
+除去以下列出的信令,没有其他的NAS信令消息会经过MME的EMM/ESM实体,除非网络端为NAS信令连接建立了NAS消息的安全交互.
+EMM messages:
+-	ATTACH REQUEST;
+-	IDENTITY RESPONSE (if requested identification parameter is IMSI);
+-	AUTHENTICATION RESPONSE;
+-	AUTHENTICATION FAILURE;
+-	SECURITY MODE REJECT;
+-	DETACH REQUEST;
+-	DETACH ACCEPT;
+-	TRACKING AREA UPDATE REQUEST.(不经过完整性保护发送,例如异系统切换中,还没有EPS安全上下文可用的时候)
+All ESM messages are integrity protected except a "PDN CONNECTIVITY REQUEST" message if it is sent piggybacked in "ATTACH REQUEST" message and NAS security is not activated.
+这些消息发送于UE建立激活安全性之前.
+
+一旦一个EPS安全上下文存在以后,直到为NAS信令连接建立NAS消息的安全交互为止,MME的EMM实体在这之前都会处理如下这些NAS信令消息,即使这些信息未通过完整性保护check或者当前网络端午可用的EPS安全上下文.
+-	ATTACH REQUEST;
+-	IDENTITY RESPONSE (if requested identification parameter is IMSI);
+-	AUTHENTICATION RESPONSE;
+-	AUTHENTICATION FAILURE;
+-	SECURITY MODE REJECT;
+-	DETACH REQUEST (if sent before security has been activated);
+-	DETACH ACCEPT;
+-	TRACKING AREA UPDATE REQUEST;
+-	SERVICE REQUEST;
+-	EXTENDED SERVICE REQUEST.
+例子:
+(1)非紧急性服务承载的attach_Request完整性check失败,MME会进行鉴权,在这之后再进行其他操作.
+(2)TAU_Request完整性check失败,MME初始化一个安全模式控制程序去take一个新的映射来的EPS安全上下文来使用,另外的情况如果UE有非紧急服务承载的PDN连接建立的话,MME会初始化一个鉴权程序.
+(3)service_Request和ext_service_Request完整性check失败,UE有唯一的非紧急服务承载的PDN连接,MME会发送"service_reject"(拒绝原因#9),当UE有一个紧急服务承载的PDN连接时,如果还是check失败,则MME会跳过鉴权直接进入安全模式控制程序,在成功完成service_Request程序之后,网络端会"去激活"所有本地的非紧急EPS承载,所有的紧急EPS承载表现正常.
+
+一旦NAS消息的安全交互已经建立,MME里的EMM/ESM的接收实体就不会再处理这些NAS信令消息,除非它们的NAS完整性保护check成功.
+这一部分和UE那一部分的相同.
+
+[4]NAS信令消息 的 加密
+加密与否取决于网络端配置,EEA0-->无加密算法策略,通过"security_header_type"可以设置.
+
+UE建立一个新NAS信令连接-->无加密
+"attach_Request"-->无加密
+"TAU Request"-->无加密
+在NAS消息安全交互建立之后-->UE端开始加密(MME同理,除去"security_mode_cmd"以外的所有NAS信息)
+一旦加密模式使用以后,那些应该加密传输的非加密的NAS信息会被丢弃掉.
 
 ===service Request===
 一开始我们判断NAS消息的时候是没有把"service_Request"算在内的,因此这部分单独介绍一下和这一条信令相关的NAS消息的格式是什么样的.
 
+一共有4octet.
+Security header type / Protocol discriminator	octet 1
+后面还有3octet暂时不清楚什么内容?
+
+
+===short-MAC===
+用于service_Request的完整性保护.
+short-MAC结构:
 Short MAC IEI					octet 1
 Short MAC value 				octet 2
 Short MAC value(continued)		octet 3
 
 Bit 1 of octet 3 contains the least significant bit, and bit 8 of octet 2 the most significant bit of these 2 octets.
+
+===EMM_cause总结===
+8	7	6	5	4	3	2	1	
+EMM cause IEI					octet 1
+Cause value						octet 2
+
+TS24.307 - P317
+
+==文件参考==
+TS24.301 //参考文件的源头,主要是第4章节的完整性保护(4.4 NAS security 全部)和加密的相关内容和第9章各类标准格式介绍(9.1-9.8全部, 9.9部分)
+TS33.401 //对24.301一些详细概念的扩展
+TS24.007 //算法的一些定义,对23.301一些详细概念的扩展,TS24.301 9.1-9.8章节中有几部分关键定义在此文件里
+TS24.008 //TS24.301中9.9章节 other IEs中有大量的定义都在这个文件里,需要时查阅
+
+各类响应请求消息以及他们包含的信息的格式,例如KSI,TMSI状态,TAI,TAI-list,UEcapability信息,NAS具体采用的安全算法类别是什么,...
