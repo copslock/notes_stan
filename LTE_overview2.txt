@@ -76,7 +76,7 @@ initial_context_setup_response(eNB发给MME)-->UL_direct_transfer/UL_NAS_transpo
 
 *RSRP是LTE网络中可以代表无线信号强度的关键参数以及物理层测量需求.
 RSRP(Reference-Singnal-Received-Power,参考信号接收功率)是终端接收到的小区公共参考信号(CRS)功率值,数值为测量带宽内单个RE功率的线性平均值,反映的是本小区有用信号的强度.
-RSSI(Received-Singnal-Strengthen-Indicator,接收信号强度指示)是终端接收到的所有信号(包括同频的有用和干扰、邻频干扰、热噪声等)功率的线性平均值,反映的是该资源上的负载强度.
+RSSI(Received-Singnal-Strengthen-Indicator,接收信号强度指示)是终端接收到的所有信号(包括同频的有用和干扰、邻频干扰、热噪声等)功率的线性平均值,反映的是该资源上的负载强度,大概范围在[-93,-113]之间.
 RSRQ(Reference-Singnal-Received-Quality,参考信号接收质量)RSRQ=N*RSRP/RSSI,其中N表示RSRI的测量带宽内包含的RE数目,能反映出信号和干扰之间的相对大小.
 SINR(Signal-to-Interference&Noise-Ratio,信躁比)是有用信号功率与干扰和噪声功率之和的比值,直接反映接收信号的质量.
 
@@ -109,7 +109,7 @@ MME会向MSC发送位置区更新请求,完成LAU后VLR向MME返回LA更新接�
 发起原因:TA变化,从其他RAT返回LTE,周期性TAU,类型为combined_TA/LA_update_Request
 让LTE的TA和MSC的LA建立映射关系,所以需要联合更新,VLR向MME最后返回给UE建立了映射关系的LA和新分配的TMSI.
 
-CSFB的主叫流程参见之前写的一个qxdm_log_analysis.
+CSFB的主叫流程参见之前写的一个"qxdm_log_analysis".
 CSFB的被叫流程:
 寻呼由主叫CSFB后发出,经过GSM中的BSC,MSC,网关等等网元传到被叫端的MSC,被叫归属HLR,在这里通过MSC和MME的接口SGs路由至被叫端的LTE网络中下发寻呼,被叫端响应寻呼,从而CSFB回落到GSM,后面的通话流程和传统GSM中没有什么大变化.
 
@@ -162,31 +162,35 @@ SIB7GERAN邻小区列表"CarrierFreqInfoListGERAN",列表中小区重选信息"c
 SIB8CDMA2000重选信息(详略)
 
 SI中关于重选的重要参数:
-1.QHyst,SIB3-"CellReselectionInfoCommon",小区的滞后擦数,增加重选的难度,避免频繁重选
+1.QHyst,SIB3-"CellReselectionInfoCommon",小区的滞后参数,增加重选的难度,避免频繁重选
 
 2.ThreshServing,low
 SIB3-"CellReselectionServingFreqinfo",重选到低优先级的异频小区的门限值,服务小区小于该值就会进行重选,目标小区信号大于该值
+设定值Integer(0..62 by step of 2)dB
 
-3.cellreselectionPriority-重选优先级设定(0-7)
+3.cellreselectionPriority-重选优先级设定(0-7)()
 SIB3-"CellReselectionServingFreqinfo"	
 SIB5-"InterFreqCarrierFreqInfo"
 
 4.S-intrasearch
-SIB3同频小区重选信息"intraFreqCellReselectionInfo",同频小区重选门限,服务小区小于该值就会进行同频小区重选
+SIB3同频小区重选信息"intraFreqCellReselectionInfo",同频小区重选门限,服务小区小于该值就会进行同频小区重选的相关测量.
 
 5.S-nonIntraSearch
-SIB3异频/异系统重选信息"CellReselectionServingFreqInfo",异频/异系统重选门限,服务小区小于该值就会进行异频/异系统小区重选
+SIB3异频/异系统重选信息"CellReselectionServingFreqInfo",异频/异系统重选门限,服务小区小于该值就会进行异频/异系统小区重选相关测量.
+设定值Integer(0..62 by step of 2)dB
 
-6.Treselectionst-RAT
+6.T-Reselectionst-RAT
 SIB3-"intraFreqCellReselectionInfo",减小频间重选震荡
 SIB5-"InterFreqCarrierFreqInfo",减小异频重选震荡
+设置值0-7秒
 
 7.Qrxlevmin,服务小区最低接入电平(dBm)
 SIB3-"intraFreqCellReselectionInfo",避免UE在接收信号电平过低时接入系统,但是后续服务质量不好
 SIB5-"InterFreqCarrierFreqInfo",避免UE在接收信号电平过低时接入系统,但是后续服务质量不好
 
-8.Threshx,low/High
-SIB5-"InterFreqCarrierFreqInfo",UE重选到目标小区的信号门限,切换到高优先级RAT,目标小区信号强度一定时间内大于threshx,high...
+8.Thresh,x,low/High
+SIB5-"InterFreqCarrierFreqInfo",UE重选到目标小区的信号门限,切换到高优先级RAT,目标小区信号强度在一个时间间隔后大于threshx,high,即满足条件,向高优先级的RAT切换.
+设定值Integer(0..62 by step of 2)dB
 
 9.Qoffsetcell(该值越小进入该小区倾向越大)
 SIB4-"IntraFreqNeighCellInfo",服务小区和同频目标小区的频率偏移量,减少重选震荡
@@ -195,8 +199,16 @@ SIB5-"InterFreqNeighCellInfo",服务小区和异频目标小区的频率偏移�
 10.Qoffsetfrequency
 SIB5-"InterFreqNeighCellInfo",服务小区和通优先级目标小区的频率偏移值
 
-小区选择的接收功率等级srxlev = 测量到的接收信号功率 - 该小区最低接入电平 - 小区最低接入电平的偏移量 - pcompensation
-pcompensation = max(UE随机接入的最大传输功率, 终端RF的最大发射功率, 0)
+*小区选择的接收功率等级srxlev = 测量到的接收信号功率RSRP - 该小区最低接入电平 - 小区最低接入电平的偏移量 - pcompensation
+pcompensation = max(UE随机接入的最大发射功率p-max - 终端RF的最大发射功率, 0)
+*小区选择质量squal = 测量到的小区质量RSRQ - 小区最小需求质量值 - 最小需求质量值的偏移量
+以上两个值都大于0,才满足小区选择的"S"(suitable)标准.
+以上两个值都小于对应的"S-intrasearch-P"和"S-intrasearch-Q",会触发小区重选.
+
+*Rs服务小区等级 = 服务小区Qmeas(RSRP) + 滞后参数Qhyst
+*Rn邻小区等级 = 邻小区Qmeas(RSRP) - Qoffset(服务小区和邻小区间的差值)
+以上两个值是小区重选的"R"(ranking)标准,通过接收到的Qmeas等数据计算所得,值越大越不容易发生重选过程.
+
 
 ==UE不同RRC状态的行为==
 idle:PLMN选网,DRX(寻呼周期1.28s),接收SI和paging,邻小区测量,小区重选和TAU,UE在当前TA的唯一标识,无RRC连接.

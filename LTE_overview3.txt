@@ -24,13 +24,11 @@ RAT Priority List (/sd/rat_acq_order) – Determines the RAT priority list for P
 	PBCH探测:MIB的获取(40ms的TTI,在"子帧0"里传输4个OFDM-symbols,SFN,PHICH信息,系统带宽)
 With acquiring PSS/SSS/MIB, UE can obtain Reference Signal position, which is based on Cell ID, and read to all scheduled SIBs in DLSCH.-->结论:找到并驻留到一个合适小区,进入"idle-camped"状态.
 
-LOG-PACKET::LTE::ML1::0xB176(LTE_ML1_initial_acquisition_results) 此条log里包含着接入的详细信息报告,可选择性接收.
-
 ==随机接入-补充==
 contention-based:UE发起,使用正常的报头
 no contention-based:eNB发起,使用系统指配的报头
 
-RRC连接建立完成的log里返回的信息的10进制数字中第3位开始的数据对应有一个table,有各种操作情况完成的指示.
+RRC连接建立完成的log里返回的信息的16进制数字中第3位开始的数据对应有一个table,有各种操作情况完成的指示.
 参见另一个分析文件-->"L3_message_format"
 
 ==TAU-recall==
@@ -48,18 +46,64 @@ LTE_CPHY_, acq req, acq cnf, cell id, pbch_dec, MIB cell, service ind, barred,
 CSP, Phy_cell_Id, Plain OTA, RRC OTA,TAU COMPLETE, acq succ,
 EMM:,mmr_service_ind, TAU accept
 
-==小区选择 - qxdm常用的分析工具==
+==小区选择 - qxdm常用的分析功能==
 filtered view, ML1 acquisition, PBCH serving measurements, ML1 Real time RSRP, RRC state change plot
 
+------------------------------------
+小区重选:更具网络端的邻小区信息,UE自行判断选择更适合的小区.
+小区重定向:由网络端直接控制的操作,为UE指定一个目标RAT.
+所有的重选都有间隔,在当前小区必须驻留过"一段时间".
+
+重选参数在"LTE_overview2"里已经有比较详尽的介绍.
+
+==频内重选重要参数==
+Qoffset,n
+Qoffsetfrequency
+Qhyst
+T-ReselectionRAT(重选间隔定时器)
+S-intrasearch-P
+S-intrasearch-Q
+
+小区频内重选log信息中
+下行共享信道的系统消息中关键字"q-Rxlevmin"该小区最小接入电平,该数值*2即等于实际值大小.
+
+==LTE->2/3G的异系统和异频重选==
+连接状态下转换通过切换,空闲状态下转换通过重选,2/3G连接态到4G空闲态通过重选,4G连接态到2G空闲态通过"CCO"?
+
+基于优先级的重选:
+UE处于空闲态,测量了服务小区和邻小区的判断标准S和R的相关数据,异系统或异频的小区重选只能发生在已经被指定了优先级的小区里,异系统或异频的重选优先级由对应的系统消息或信令"RRCconnectionrelease"中给出.(看出现的定时器也可以看出,T320 in EUTRA, T322 in UTRA, and T3230 in GERAN)
+
+对于高优先级的RAT或异频,UE会自动去测量相关的重选参数,只要当相应的Srxlev或Squal比thresh,x,high值大即满足条件,UE会发起去选择高优先级的小区.
+对于低优先级或相同优先级的,当Srxlev小于S-nonintersearch或是参数S-nonintersearch没有被发送,UE才会去进行小区重选的相关测量,服务小区Squal/Srxlev小于thersh,serving,low,目标小区squalSrxlev大于thresh,x,low,UE会向低优先级小区发起重选.(由此可见thersh,serving,low的值比S-nonintersearch还要小,所以比它更严重时才触发)
+
+在重选中LTE的RRC和WRRC/GRR之间会有信息交互,提醒对方进行小区选择/激活stack,相应的自己将自己的stack和各类服务功能"去激活".
+
+???在实际log里看到的某以些值,例如q-Rxlevmin,q-qualmin,thershX-high,thershX-low都需要乘上2才是实际要去计算的值.
+
+==WCDMA->LTE 异系统小区重选==
+重选标识:WCDMA的SIB-19,专用信令"UTRAN_mobility_information".
+UE接收到重选指示后会去测量那些具有更高优先级的RAT的小区信息,对于那些优先级低于当前小区的,只有当Srxlev/Squal的值小于或等于对应的S-prioritysearch1/2时,会开始进行相关的异频小区测量.
 
 
 
 
 
 
+==一些特别的参数==
+LTE					wcdma
+enodeB				CI(cell_identity)
+PCI(由PSS+SSS构成)	PCS(Primary scrambling code/主扰码)
+
+CGI=MCC+MNC+LAC+CI; LAC 唯一标识符; CI=cell identity 地区唯一标识; PSC 
+Cell-identity不等于cell-id
+PCS:
+下行物理信道是从2的18次方+1的GOLD_CODE中选择了其中的8192个作为扰码来使用,8192个扰码被分为512个扰码组,每个扰码组由16个扰码组成,每个扰码组中第一个扰码为主扰码,其余15个为辅扰码,每8个扰码组组成一个主扰码组,共有512/8=64个主扰码组.
+上行物理信道是从2的25次方+1中选择40960个作为扰码使用.
 
 
-
-
-
+==LOG-PACKET::LTE::ML1==
+0xB176(LTE_ML1_initial_acquisition_results) 此条log里包含着接入的详细信息报告,可选择性接收.
+0xB181(LTE_intra_frequency_cell_Reselection) LTE网络频内重选的详细信息.
+0xB186(LTE_ML1_reselection_candidates) 重选目标小区的候补名单
+0xB187(LTE_ML1_idlle_IRAT_measurement_request) IRAT的测量请求
 

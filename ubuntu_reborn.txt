@@ -19,7 +19,7 @@ mount device dir...
 vim /etc/fstab
 根据提示,完成系统添加磁盘的分区,格式化,和自动挂载的设置.
 
-[5]安装一些常用软件,例如vim(~/.vimrc的配置,各类插件的使用因人而异),看一下python,perl等等的版本,hexagon(modem编译会用到的东西,可能需要建立相应的软链接"ln -s 6.4.01 target-version")等等.
+[5]安装一些常用软件,例如vim(~/.vimrc的配置,各类插件的使用因人而异),看一下python,perl等等的版本,hexagon(modem编译会用到的东西,可能需要建立相应的软链接"ln -s 6.4.01 target-version"),repo代码管理工具等等.
 #HEXAGON PATH
 export HEXAGON_ROOT="/home/eminem/software/hexagon_tools/"
 export ARMTOOLS=QDSP6GCC
