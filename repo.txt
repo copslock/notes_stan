@@ -1,20 +1,26 @@
 repo的环境准备：
-	mkdir ~/bin
-	PATH=~/bin:$PATH
+	
+	PATH=$PATH:"path/to/your/repo"
 	curl http://storage.googleapos.com/git-repo-downloads/repo > ~/bin/repo
 	chmod a+x ~/bin/repo
 
 repo help command
-	repo init -u git://10.120.10.101/msm/platform/manifest.git 配置仓库地址
-        --repo-url=git://10.120.10.101/msm/tools/repo.git repo代码的仓库地址
-        -b ckt 分支 默认是master
-        -m baseline_MSM8939.LA.2.1.xml 对应分支确定配置文件 默认default.xml
-	repo sync
-	repo start 创建分支
-		repo start <newbranchname> [--all | <project>...]
-	repo upload 上传提交代码
-		repo upload [<project>] 接目录地址或者cd到目录下 直接用repo upload .
-	repo forall -c cmd  对所有git仓库执行-c后面所接的cmd命令
-	repo forall -p -c git branch  遍历所有仓库并打印每个仓库的分支情况,-p参数是打印出每个仓库的路径
-	repo foreach -c cmd 对每一个project执行-c后面的cmd的命令
-	
+1.repo init -u git://10.120.10.101/msm/platform/manifest.git 	//配置仓库地址
+    --repo-url=git://10.120.10.101/msm/tools/repo.git 			//repo工具本身的仓库地址(更新repo工具自己?)
+    -b ckt 														//代码分支,默认是default.xml
+    -m baseline_MSM8939.LA.2.1.xml 								//对应分支确定配置文件,默认default.xml
+有时候需要单独修改分支或对应配置文件,即"repo init -b XXX", "repo init -m XXX.xml"即可.
+
+2.repo sync 	//实际的下载指定项目-分支的代码
+	repo sync [<project1> <project2> ...]		//单独下载某一些项目代码库
+3.repo start 	//创建分支
+	repo start <newbranchname> [--all | <project>...]		//将"全部或几个指定的项目代码"创建到一个新的分支
+4.repo upload 	//提交代码
+	repo upload [--re --cc] [<project> ...] 	//直接用repo upload,一次提交并push所有或指定的几个仓库代码的改动.
+
+其他的可用操作:
+repo forall [<project> ...] -c cmd  对所有git仓库执行-c后面所接的git/shell命令
+repo forall -p -c cmd  遍历所有仓库并打印每个仓库的分支情况,-p参数是打印出每个仓库的路径
+repo status [<project>...]	//这个命令的功能和git_status几乎一样,查看有哪些文件被修改,添加,删除.
+repo diff [<project>...]	//功能类似git diff.git diff 很灵活,后面可以参数.repo diff 后面没有参数,结果是所以不一样的地方都输出.
+repo stage -i [<project>...]//参数-i是必须的,是interactive的意思,类似git add、git revert、git status等功能. 

@@ -182,7 +182,7 @@ SIB3异频/异系统重选信息"CellReselectionServingFreqInfo",异频/异系�
 6.T-Reselectionst-RAT
 SIB3-"intraFreqCellReselectionInfo",减小频间重选震荡
 SIB5-"InterFreqCarrierFreqInfo",减小异频重选震荡
-设置值0-7秒
+设置值0-7s
 
 7.Qrxlevmin,服务小区最低接入电平(dBm)
 SIB3-"intraFreqCellReselectionInfo",避免UE在接收信号电平过低时接入系统,但是后续服务质量不好

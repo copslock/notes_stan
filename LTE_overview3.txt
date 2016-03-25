@@ -74,7 +74,7 @@ S-intrasearch-Q
 UE处于空闲态,测量了服务小区和邻小区的判断标准S和R的相关数据,异系统或异频的小区重选只能发生在已经被指定了优先级的小区里,异系统或异频的重选优先级由对应的系统消息或信令"RRCconnectionrelease"中给出.(看出现的定时器也可以看出,T320 in EUTRA, T322 in UTRA, and T3230 in GERAN)
 
 对于高优先级的RAT或异频,UE会自动去测量相关的重选参数,只要当相应的Srxlev或Squal比thresh,x,high值大即满足条件,UE会发起去选择高优先级的小区.
-对于低优先级或相同优先级的,当Srxlev小于S-nonintersearch或是参数S-nonintersearch没有被发送,UE才会去进行小区重选的相关测量,服务小区Squal/Srxlev小于thersh,serving,low,目标小区squalSrxlev大于thresh,x,low,UE会向低优先级小区发起重选.(由此可见thersh,serving,low的值比S-nonintersearch还要小,所以比它更严重时才触发)
+对于低优先级或相同优先级的,当Srxlev小于S-nonintersearch或是参数S-nonintersearch没有被发送,UE才会去进行小区重选的相关测量,服务小区Squal/Srxlev小于thersh,serving,low,目标小区squalSrxlev大于thresh,x,low,UE会向低优先级小区发起重选.
 
 在重选中LTE的RRC和WRRC/GRR之间会有信息交互,提醒对方进行小区选择/激活stack,相应的自己将自己的stack和各类服务功能"去激活".
 
@@ -82,21 +82,78 @@ UE处于空闲态,测量了服务小区和邻小区的判断标准S和R的相关
 
 ==WCDMA->LTE 异系统小区重选==
 重选标识:WCDMA的SIB-19,专用信令"UTRAN_mobility_information".
+
+重选数据测量:
 UE接收到重选指示后会去测量那些具有更高优先级的RAT的小区信息,对于那些优先级低于当前小区的,只有当Srxlev/Squal的值小于或等于对应的S-prioritysearch1/2时,会开始进行相关的异频小区测量.
+对于没有优先级的UE,不会对其进行异频的相关测量.
 
+重选执行的判定和上面LTE重选到2/3G的标准一样.(主要看服务小区和邻小区和thersh-x-low/high1,thersh-x-low/high2,thersh-serving-low的关系)
 
+小区测量周期T-measureEUTRA = DRX周期 * DRX周期数
+前三种在idle模式不可用.
+DRX cycle length [s]	TmeasureEUTRA [s](# of DRX cycles)
+0.08 					2.56 (32 DRX cycles)
+0.16 					2.56 (16)
+0.32 					5.12 (16)
+0.64 					5.12 (16)
+1.28 					6.4 (5)
+2.56 					7.68 (3)
+5.12 					10.24 (2)
 
+==GERAN->LTE 异系统小区重选==
+[1]测量规则
+SI2quater:包含LTE邻小区信息,LTE小区重选列表最多有8个频点信息,每一个频点都会标注出来那些禁止被作为目标重选小区的邻区,这些参数定义在"not_allowed cells IEs"中.
+小区重选发生时机:idle,packet-transfer-mode.
 
+LTE小区的重选优先级信息会在SI2quater或信令"channel_release"中发送.
+重选目标是高优先级,每"60*Nhpf"(number of high priority frequency)时间内测量一次服务小区和目标小区的数据.
+重选目标是低优先级,当RLA_C/RLA_P(GSM/GPRS的一个参数)的值小于thersh_xx_search的值时,会开始执行低优先级异系统目标小区的数据测量.
 
+[2]S值
+如下的是服务小区和每一个邻小区都要计算的值,用于进一步计算小区重选判断的值.
+S_GSM: GSM的C1值
+S_non_serving_EUTRAN: 目标LTE小区的RSRP减去EUTRAN_qrxlevmin(最小接收电平)即目标小区的srxlev
+
+[3]重选规则	P44
+目标是高优先级,目标小区的S-value大于thersh_EUTRAN_high.
+目标是低优先级,S_GSM即C1小于thersh_gsm_low,S_non_serving_EUTRAN大于thersh_EUTRAN_low.(如果无小区满足以上条件,当满足S_no_serving_EUTRAN大于S_GSM超过一个滞后参数"H_PRIO"也可以???)
+
+==异系统重定向程序==
+重定向发生在RRC连接释放时,关键信令"RRCconnectionrelease",关键字段"releaseCause"(连接释放原因),"redirectionCarrierInfo"(包含着重定向的目标RAT即频点信息).
+
+==log关键词==
+LTE→WCDMA
+ rrc conn|sib6|camped on phy|IRAT_WCDMA:|L2W:|acq succ|cell resel ind|IRAT_LTE_TO_W:|activation_ind|activation_rsp|Deactivate Confirm|CRP:
+
+LTE→GERAN
+ rrc conn|sib7|camped on phy|cell resel ind|L2G|IRAT_LTE_TO_G:|lte_resel|tone
+seen|sch decoded|sending rau|deactivate confirm|rr_service_ind|activation_rsp
+
+GERAN→LTE
+ Si2Q|rr_resel|rr_general|g2l|g2w|CELL_RESELECTION|tau|lte_rrc_irat|camped
+on phy|_service on
+
+WCDMA→LTE
+ sib19|W2L|lte_rrc_irat|cel resel ind|tracking area|rrc conn|_service
+on|IRAT_LTE_FROM_W :|ABSOL_PRI:|WTOL:|wsrchlte|ABS_PRIO:
+
+==异频/异系统重选_重定向 qxdm常用分析功能==
+item-view/log-view/选择特定的OTA-log
+
+LTE ML1 Serving Cell Measurements display //这里可以看到服务小区的PCI和Earfcn,特别关注一下主天线和分集天线之间的RSRP/RSSI是否balance,不平衡的原因可能是天线本身或者是设备RF标准未校准问题??
+LTE ML1 Real-Time RSRP display	//服务小区和一些邻小区的功率实时测量
+
+IRAT Measurement Request window	//IRAT的相关测量的请求显示, 设置0xB187(LTE_ML1_idlle_IRAT_measurement_request)
+WCDMA Pilot Scanner window	//当前使用的PSC-主扰码,获得小区的Ec/Io和RSCP(WCDMA中的概念,类似于LTE的RSRP?)值
+
+GSM 2G/3G Serving and Neighbor Cell Information	// 2/3G的服务小区和邻小区信息(band,arfcn,rxlev,)
 
 ==一些特别的参数==
-LTE					wcdma
-enodeB				CI(cell_identity)
-PCI(由PSS+SSS构成)	PCS(Primary scrambling code/主扰码)
-
-CGI=MCC+MNC+LAC+CI; LAC 唯一标识符; CI=cell identity 地区唯一标识; PSC 
+PCI(由PSS+SSS构成):物理小区ID.
+GCI和CGI应该是同一个东西吧,称呼区别,CGI=LAI+CI=MCC+MNC+LAC+CI; LAC 唯一标识符; CI=cell identity 地区唯一标识;
 Cell-identity不等于cell-id
-PCS:
+
+PCS(主扰码):
 下行物理信道是从2的18次方+1的GOLD_CODE中选择了其中的8192个作为扰码来使用,8192个扰码被分为512个扰码组,每个扰码组由16个扰码组成,每个扰码组中第一个扰码为主扰码,其余15个为辅扰码,每8个扰码组组成一个主扰码组,共有512/8=64个主扰码组.
 上行物理信道是从2的25次方+1中选择40960个作为扰码使用.
 
@@ -105,5 +162,35 @@ PCS:
 0xB176(LTE_ML1_initial_acquisition_results) 此条log里包含着接入的详细信息报告,可选择性接收.
 0xB181(LTE_intra_frequency_cell_Reselection) LTE网络频内重选的详细信息.
 0xB186(LTE_ML1_reselection_candidates) 重选目标小区的候补名单
-0xB187(LTE_ML1_idlle_IRAT_measurement_request) IRAT的测量请求
+0xB187(LTE_ML1_idlle_IRAT_measurement_request) IRAT的测量请求告知
 
+==LTE频带分配==
+中国移动共130MHz(TDD),分别为：
+F频段：1880 - 1900 MHz;20M
+E频段：2320 - 2370 MHz;50M
+D频段：2575 - 2635 MHz;60M
+
+中国联通共40MHz(TDD),分别为：
+2300 - 2320 MHz;20M
+2555 - 2575 MHz;20M
+
+中国电信共40MHz(TDD),分别为：
+2370 - 2390 MHz;20M
+2635 - 2655 MHz;20M
+
+TD-LTE信道带宽可配置类型6种:: 1.4M, 3M, 5M, 10M, 15M, 20M,典型配置20M(速率更快),目前中国移动常配置20M带宽.
+详细的频带分析信息可以参考另一个文件"eUTRAN_band_arrangement"
+
+==GSM中小区包含的频点数量==
+GSM中一个小区中最多可以有多少个ARFCN(频点),理论上时64个,一般实际上是12个.
+
+1]0位图格式(bit map 0)
+0位图格式用于900M的频点,其小区实际可配频点数可达64个,而且频点可以随意,只要满足1≤ARFCN≤124即可.
+2]1024范围格式(1024_range)
+使用该格式,小区实际可配频点数n≤16,但频点不受限制,对于900M,1≤ARFCN≤124；对于1800M,512≤ARFCN≤885.
+3]512范围格式(512_range)使用该格式,小区实际可配频点数n≤18,还需满足如下条件：假定所配频点中,某两个频点的最大间距为m,还需满足m<512.
+4]256范围格式(256_range)使用该格式,小区实际可配频点数n≤22,还需满足如下条件：假定所配频点中,某两个频点的最大间距为m,还需满足m<256.例如,在此种格式下,频点512和频点812就不能同时配.
+5]128范围格式(128_range)
+使用该格式,小区实际可配频点数n≤29,还需满足如下条件：假定所配频点中,某两个频点的最大间距为m,还需满足m<128.例如,在此种格式下,频点512和频点712就不能同时配.
+6]可变长位图(variable bit map)
+使用该格式,小区实际可配频点数也能达到64,但必须满足如下条件：假定所配频点中,某两个频点的最大间距为m,还需满足1≤m≤111.例如：若配置512,513,514,...,575(以1递增）共64个频点,是可行的.但若配置512,514,516,...,638(以2递增）共64个频点,就有问题.

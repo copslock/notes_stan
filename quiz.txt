@@ -21,7 +21,7 @@ LTE_CSFB_signaling      over
 diag_system_architecture    	P26/104
 AS_carrier_x_log_analysis 		P13-24
 LTE_cell_select_registered_TAU	over
-LTE_Cell_Reselection_and_Redirection	P31
+LTE_Cell_Reselection_and_Redirection	over
 
 
 [z]3GPP协议文件:

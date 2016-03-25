@@ -1,0 +1,28 @@
+==operating bands==
+这一部分的bands都能支持上行的MIMO
+P11
+
+==bands for CA(载波聚合)==
+P12-20
+
+==bands for Dual connectivity==
+5G-LTE双连接(5G-LTE Dual Connectivity,网络间的无缝切换)和5G多点连接(5G Multipoint Connectivity,多网络接入提供服务)
+P21
+
+==bands for Prose==
+Prose(邻近服务,类似D2D)
+P23
+
+==信道的带宽设置==
+Channel bandwidth BWChannel [MHz]			1.4	3 	5	10	15	20
+Transmission bandwidth configuration N-rb	6	15 	25	50	75	100
+(传输带宽对应的RB数量配置? 1Mhz对应5个?)
+
+一个EUTRAN载波中,最中间有一个DC(直流信号载频),两侧都是普通的子载波,信道的带宽大小设置如上所示有6种方案.
+P24有详细每一个band对应可以设置的信道带宽大小.
+
+==preference==
+所有出处来自TS36.101_s00-07中第5章内容
+
+
+后略
