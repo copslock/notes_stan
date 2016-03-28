@@ -47,7 +47,10 @@ CSP, Phy_cell_Id, Plain OTA, RRC OTA,TAU COMPLETE, acq succ,
 EMM:,mmr_service_ind, TAU accept
 
 ==小区选择 - qxdm常用的分析功能==
-filtered view, ML1 acquisition, PBCH serving measurements, ML1 Real time RSRP, RRC state change plot
+filtered view
+ML1 acquisition_PBCH serving measurements //小区eARFCN,PCI,带宽
+ML1 Real time RSRP
+RRC state change plot
 
 ------------------------------------
 小区重选:更具网络端的邻小区信息,UE自行判断选择更适合的小区.
@@ -144,12 +147,13 @@ LTE ML1 Serving Cell Measurements display //这里可以看到服务小区的PCI
 LTE ML1 Real-Time RSRP display	//服务小区和一些邻小区的功率实时测量
 
 IRAT Measurement Request window	//IRAT的相关测量的请求显示, 设置0xB187(LTE_ML1_idlle_IRAT_measurement_request)
-WCDMA Pilot Scanner window	//当前使用的PSC-主扰码,获得小区的Ec/Io和RSCP(WCDMA中的概念,类似于LTE的RSRP?)值
+WCDMA Pilot Scanner window	//当前使用的PSC-主扰码,获得小区的Ec/Io和RSCP(WCDMA中的概念,类似于LTE的RSRP值?)
 
 GSM 2G/3G Serving and Neighbor Cell Information	// 2/3G的服务小区和邻小区信息(band,arfcn,rxlev,)
 
 ==一些特别的参数==
-PCI(由PSS+SSS构成):物理小区ID.
+PCI:物理小区ID.
+PSS/SSS:主/辅助同步信号.
 GCI和CGI应该是同一个东西吧,称呼区别,CGI=LAI+CI=MCC+MNC+LAC+CI; LAC 唯一标识符; CI=cell identity 地区唯一标识;
 Cell-identity不等于cell-id
 
