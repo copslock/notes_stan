@@ -3,7 +3,6 @@
 大话通信	    over
 gsm原理			chapter7和11未看,其余over
 程序员自我修养			P191/P483
-c prime 				expiry
 c the programming lang	P46/P296
 
 [x]总结:

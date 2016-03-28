@@ -49,8 +49,8 @@ EMM:,mmr_service_ind, TAU accept
 ==小区选择 - qxdm常用的分析功能==
 filtered view
 ML1 acquisition_PBCH serving measurements //小区eARFCN,PCI,带宽
-ML1 Real time RSRP
-RRC state change plot
+ML1 Real time RSRP	//实时的RSRP显示
+RRC state change plot //
 
 ------------------------------------
 小区重选:更具网络端的邻小区信息,UE自行判断选择更适合的小区.
