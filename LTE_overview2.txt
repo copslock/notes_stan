@@ -15,7 +15,7 @@ GUTI		全球唯一临时标识,由MME分配,TMSI是GUTI的一部分,在SIM附着
 ETWS:EarthquakeandTsunamiWarningSystem	地震和海啸预警系统
 CMAS:Commercia/MobileAlertService
 
-ML1:L1的信令处理后的输出?? LTE信令中经常出现的东西,指的是idle_mode??
+ML1:L1的信令处理后的输出??
 
 ==LTE系统消息==
 类型:MIB(最重要的传输参数),SIB1(其他所有SIB的调度信息和小区接入信息),SI承载的SIB2-SIB12

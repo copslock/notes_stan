@@ -36,7 +36,7 @@ firefox OS porting 	task-->总结错误,被停止掉
 
 [3]计划:
 1.protocol-->ue config pics done-->umts/wcdma/gsm 一些零散文件去看 --> over
-2.C --> ready-to-go
+2.C --> doing
 *3.设计模式 --> 近段时间暂时不考虑
 4.LTE的空口协议和系统结构 --> doing
 5.CSFB/SGLTE/voLTE(简单了解概念) --> over
