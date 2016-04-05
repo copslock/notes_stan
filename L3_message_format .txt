@@ -88,6 +88,9 @@ NAS-message的组成部分,对于EPS-MM和SM都适用.
 IE的组成:IEI,LI(长度指示),value-part.
 还有太多暂略P309
 
+
+
+
 ==很特别的地方==
 ===NAS security===
 在eUTRAN中为了将完整性保护,加密,鉴权都绑在一起应用在EPS安全性验证中,设置了一个新的e-KSI(key_set_identifier_for_eUTRAN).

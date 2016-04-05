@@ -1,0 +1,38 @@
+只记录文字部分,格式自己去调.
+
+【1】页边距,正文页眉"成都理工大学2012届学士学位论文",页脚即页码,字符间距默认.
+
+【2】
+题目: 基于高通平台的系统移植设计与实现
+作者姓名：何旋
+专业班级：成都理工大学信息科学与技术学院信息工程3班
+指导教师：贾勇
+
+摘要内容：目的 方法 成果 结论；
+随着android，ios等智能系统的手机终端的攻城略地，一个优秀的手机操作系统是手机质量高低的必要判决条件之一，带着对智能手机系统的好奇心，自己决定用一定的时间内去了解这个生态圈中并不火热的一个操作系统--firefox-OS，通过本过程去学习相关工具的使用和了解手机系统共通的部分，抱着学习系统移植基础知识为目的，通过查阅firefox的官方移植手册和学习相关爱好者论坛的文章和技术博客等方法，并参考android系统移植的先例，尝试性的去将firefox的系统移植到我们正在使用的使用高通芯片的android设备上面，该论文最终并没有完全达到系统完整性移植的目的，但却是firefox这一冷门手机系统移植的一次尝试，总结出许多在移植过程中遇到的实际问题，作者本人也还需要多多学习总结，在今后的工作中将其融会贯通。
+
+关键词：火狐系统；系统移植；高通；智能手机
+
+【3】
+英文题目：Firefox OS porting based on Qualcomm platform
+。。
+
+abstract：
+With the development of smart phone‘s OS，such as android，ios，the mobilephone OS‘s cake was carved up by these two OSs gradually。there is no doubt that a better OS will affect our judgement about a smart phone 。
+
+
+keywords：firefox OS；OS porting；qualcomm；smart phone；
+
+【4】目录
+【5】第一章 前言
+
+
+【6】正文部分
+
+
+【7】结论
+
+【8】致谢
+
+【9】参考文献（文献的格式）
+找几本自己看的书，c的，编译链接的，网站的电子文献、论坛文章、技术博客参考，
