@@ -18,16 +18,73 @@
 。。
 
 abstract：
-With the development of smart phone‘s OS，such as android，ios，the mobilephone OS‘s cake was carved up by these two OSs gradually。there is no doubt that a better OS will affect our judgement about a smart phone 。
-
+With the development of smart phone，such as android，ios，the mobilephone OS‘s cake was carved up by these two OSs gradually。there is no doubt that a better operating system will affect our judgement to a smart phone。With the curiousity about the smart phone system，i decide to learn about the firefox OS even if which is not popular in the smart phone ecosystem，Through this process to learning some correlative developer tools and understand the common parts of the mobile phone OS。
+For the purpose of learning basic knowledge of system porting，with the help of the firefox system porting documents and relevant forum articles or technical blogs，also refer to the android system porting precedent，intending to porting the firefox OS to the android devices which is using qualcomm chip。
+This paper hasn't completely achieve the goal of system porting very well，but a good attempt on this unpopular mobile phone OS，it sums up a lots of actually issues in the porting process，the author also need more study and summary，digest these knowledge in the future work。
 
 keywords：firefox OS；OS porting；qualcomm；smart phone；
 
 【4】目录
-【5】第一章 前言
+【5】前言
+
+现在，智能手机已经成为我们生活中不可或缺的一部分，每个人几乎都有一个或多个的智能手机，而手机系统也是人们判断一个手机好坏的标准之一，从2007,2008年ios和android的初出茅庐，到如今的智能手机系统市场的平分天下，它们的发展势头有目共睹。为什么一个好的智能手机系统能带来如此大的竞争力？这引起了笔者对于智能手机系统的兴趣，作为一个信科院的学生，为了选择适合自己的研究方向，于是最终决定了从底层基础出发，以学习智能手机系统的架构和实用开发工具为目的，尝试将系统整体移植到一个新设备上，从而去更深入的了解在这个手机生态圈的发展趋势和技术难点。最终我选择了一个并不热门的火狐的手机系统，为什么我没有选择android或者ios作为调研的目标？一是android和ios已经存在很多相关的技术文档，在系统移植这方面实际上也是已经有很多现成的开发成果，我们重复去做的意义不大，二则是借助一个并不是很通用的手机系统，去了解所有手机系统的共通点，由点发散为面，增强自己的综合学习能力。
 
 
 【6】正文部分
+第一章 需求目标和可行性分析
+1.1 开始之前
+如果你是第一次接触到这一类的文档或开发日志，那么下面的内容会让你对这篇文章中的基础概念有一定了解。
+1.“智能手机系统”，顾名思义类比于桌面操作系统的windows和linux等等，简单来说，硬件方面以各类硬件为基础，软件方面则是由kernel作为底层，以各类驱动，库文件为中间层，上层辅以开发者的应用框架组成的一个操作系统，在这样一个操作系统上可以搭载开发者定制的各类应用程序，我们最熟悉的android便是这样的组成架构。
+2.“火狐手机操作系统”，firefox-OS，原计划名为B2G，是由mozilla公司提出并研发的一个开源项目，它于android之类最大的不同大概就是它是基于html5的技术，也就是说它的上层整体都是基于网页开发的一个操作系统，但由市场情况来看，firefox-OS自推出以来就主要面向中低端的手机市场，不过在ios和android两个巨头的无情掠夺之下，在2015年末，mozilla公司因为firefox-OS一直以来的低迷现象真是宣布了放弃部署手机平台的战略计划，火狐操作系统也由此真正的失去了官方援助。不过我们此次决定的事和这些变故也关系不大，只需要知道这是一个和android一样使用linux-kernel作为底层，但是架构上有所区别的手机系统即可，详细的架构会在后面详细介绍。
+3.“系统移植”，指在允许的硬件条件，驱动相似的设备上，将目标的操作系统成功运行在该设备上，常见的嵌入式系统移植中，一般是经过环境搭建，bootloader移植，kernel移植，最后到根文件系统的移植，手机本身也算是一种ARM架构的嵌入式的设备，因此总的流程也大同小异。
+
+1.2 所以我们要做的是什么？
+联系到个人的实际情况，因为个人当前在某ODM公司实习工作的情况，所以firefox-OS系统移植的目标设备，选定是当前实习公司已经量产的一款android手机，主芯片是高通msm8939系列（snapdragon-615），我们需要做的即是对比已经量产手机android系统和将要移植的firefox系统之间的差异，在合适的开发环境下，通过hacking或者参考现有文档或例子的基础上进行源码的裁剪修改，然后完成源码的编译，烧录调试，理想结果当然是手机能成功启动修改后的bootloader（高通平台中一般叫LK），从而成功挂载根文件系统，使手机顺利打开运行。当然这其中必定会遇到很多的问题，也是个人积累开发经验和问题的最佳阶段。
+
+1.3 高通平台介绍
+msm8939芯片，对外一般称为高通骁龙615，属于高通600系的芯片，就现在来看，一般用在上一代中高端旗舰手机中，选择高通手机一个原因是现在公司有这样的多余机器允许让我调试，另一个重要原因即是在firefox-OS官方给出的参考移植手册中可以找到相关的基于高通平台的手机（公司namek使用的也是8939平台，google的nexus-5使用的8974，在firefox官方也有对其支持的源码），因此选择相同平台的芯片，即使型号不是完全一致，但很多架构的东西也会有类似，很多XML文件和板级文件需要修改的也会很少，所以移植的难度会减小很多。
+
+msm8939和如今高通的800系一样，大多都采用的AP+BP的双核心合一的解决方案，即将modem芯片和AP芯片集成在一起，msm这三个字母即代指“mobile station modem”，在代码部分，modem的代码和android的代码属于从属关系，modem部分是高通的私有代码，包括modem，trustzone，wcnss，rpm，boot等多个部分，主要是基于当前平台和硬件所进行的配置，而目录/LINUX/android/下的即为android的开源项目源码（aosp），用户根据自己的需要对源码进行修改和剪裁，进行代码的编译烧录，以达成最终的需求目标。
+
+详细的8939芯片的规格信息和本篇论文后面的内容关系不大，我们的开发过程也不会很关心这些部分，因此在这里也就不做详细说明（如果感兴趣可以自行wiki和google，高通的官方技术文档网站如下，需要高通的注册账号，芯片的细节内容一般是不对非使用高通芯片开发人员开放的。https://createpoint.qti.qualcomm.com/dashboard/public/ ）
+
+1.4 大概流程
+确定firefox OS的移植目标；
+选定目标硬件设备；（经过相关资料和官方支持芯片的查询，当前自己觉得将firefoxOS移植到高通8939平台的手机上是可以一试的）
+开发环境，编译环境的建立；（由VMware建立的ubuntu14.01LTS的虚拟机环境，各类工具sdk，git，repo，hexagon，opengrok等等）
+了解学习相关的开发工具；（因为自己也是此次移植尝试才第一次接触到诸如git、repo这些工具，所以熟悉这些工具，更可以在以后工作中增加debug效率）
+参考之前查阅资料里的移植开发文档和相关技术博客，概述开发过程；（这一部分基本都是参考标准去做，所以内容也以摘抄为主）
+分析解决实际遇到的问题；（这一部分较为实际，没有什么固定的格式，只能一一列举）
+得到结果，总结得失；（因为多方面原因，实际是并没有成功完成firefox的porting，因此尽可能总结自己的得失，概述自己目前得到的成果）
+
+
+第二章 环境搭建和系统配置
+2.1 简要说明
+根据标准文档的建议，一般推荐在OSX或ubuntu中进行开发工作，另一方面开发流程中也会涉及到源码的下载和编译，这些操作在ubuntu中进行是比window方便很多的，因此最终选择使用vmware软件建立ubuntu虚拟机作为开发环境的基础。
+
+2.2 VMware搭建ubuntu虚拟机
+首先，我们现在是处于windows的操作系统环境下，我使用的是VMware-workstation-full-10.0.1软件工具，成功安装软件后，打开软件进行“新建虚拟机”操作，选择“自定义”，选择默认的兼容性配置，虚拟机系统镜像源选择的是我在ubuntu官网下载的ubuntu-14.04.1-desktop-amd64.iso镜像，下一步确认你的linux主机名和登录用户名及密码，继续下一步选择建立虚拟机的名字和目录地址，之后选择虚拟机的处理器数量和核心数量，内存大小，这些都取决于你自己当前电脑的配置情况而定，“网络连接部分”选择NAT连接即可，磁盘大小选择默认20GB即可，因为后面我们需要下载源代码还会新建磁盘所以这里20GB的磁盘作为系统盘已经足够了，SCSI控制器和虚拟磁盘类型选择推荐设置即可，最后点击“完成”，vmware软件会根据你以上的配置马上开始为你建立虚拟机，这一过程根据你的电脑情况可能会持续几十分钟到数小时，完成之后即会进入到ubuntu虚拟机的登录界面，这里我们先不要进入系统的桌面，先关闭掉虚拟机，如我上面所说我们还需要新添加一个磁盘作为代码保存的磁盘，至于为什么我们不把代码和系统盘放在一起，最重要的原因是因为高通项目的代码一般都较大，仅android源码都有编译前都有20多G，后期包含modem代码完全编译完成之后大小可以大到接近100G，如果虚拟机崩溃不能正常打开，代码的下载是非常耗时的，因此一般我们将代码单独新建一个磁盘存放，这样即使虚拟机崩溃，我们也可以重新新建一个虚拟机，直接向新的虚拟机添加旧的磁盘文件即可，而我们只需要在新的虚拟机做一些小工具和环境变量的配置即可，不需要再一次去重新下载体积过大的源码再进行编译过程，完成“新建磁盘”的操作后，最后再重新开机进入虚拟机，输入登录密码，进入到ubuntu的图形环境中，由此我们的第一步，虚拟机建立也就完成了。
+
+2.3 vmware-tools的安装
+在上一步中，使用ubuntu镜像生成虚拟机的过程中，vmware会自动去安装vmware-tools，因为各种原因vmware-tools可能会出现安装失败或者是无法链接到下载点的提示，这里直接取消掉vmware-tools的自动安装即可，在进入ubuntu图形界面后，我们可以进行手动的安装。
+在进入系统之后,选择“虚拟机”选项卡中的“可移动设备”中的“CD/DVD”的“设置”,选择使用ISO镜像文件，手动找到vmware软件安装目录下的linux.iso文件作为要加载到虚拟机中的镜像,点击确定，同样在“虚拟机”选项卡中的“可移动设备”中的“CD/DVD”选择“连接”，可以在系统中打开光驱对应的目录,选择vmwaretools的压缩文件,解压该文件,用终端进入目录".../.../vmware-tools-distrib"中执行"sudo ./vmware-install.pl",安装过程会需要确认一些目录信息,接下来根据提示来操作即可完成vmware-tools的安装。（因为我的虚拟机已经安装过了，这里不再演示安装过程）
+
+vmware-tools的作用主要是可以让我们可以更方便的操作虚拟机,例如可以实现在ubuntu虚拟机和windows主机的剪贴板的共享,虚拟机的全屏和边框自动调整等等.
+
+
+
+
+
+第三章 我们需要的工具
+
+
+
+第四章 我们做了些什么（抄开发流程）
+
+
+
+第五章 问题和解决方法
+
 
 
 【7】结论
@@ -36,3 +93,14 @@ keywords：firefox OS；OS porting；qualcomm；smart phone；
 
 【9】参考文献（文献的格式）
 找几本自己看的书，c的，编译链接的，网站的电子文献、论坛文章、技术博客参考，
+
+
+
+
+
+
+
+
+
+
+
