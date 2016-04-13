@@ -1,27 +1,90 @@
-== VoLTE的架构(包括网络结构,核心网IMS,handset) ==
-===能够支持VoLTE的网络结构===
-主要分为EPS,IMS两部分(面分别:signaling plane and media plane)
+== VoLTE的架构(IMS网络结构,用户的信令面和media面,对应handset的设备结构) ==
 
-====EPS的结构=====
-和LTE的长期演进的网络结构相似,扁平化的网络结构,主要网元有eNB,MME,S-GW,P-GW,PCRF,HSS等等,普通网元之间的信令面(包含UE-->eNB-->MME的控制面,UE-->eNB-->S-GW-->P-GW/PCRF之间的用户数据面),还有UE和internet之间直接连接的media面,除此以外支持VoLTE,IMS功能的还增加了网元P-CSCF,作为链接P-GW,PCRF和IM-CN双方之间的接口.
+===站在EPS的角度来看的网络结构===
+EPS即LTE中提到的EPC和eUTRAN的集合,扁平化的网络结构,主要网元有eNB,MME,S-GW,P-GW,PCRF,HSS等等,网元之间的plane(包含UE-->eNB-->MME的控制面,UE-->eNB-->S-GW-->P-GW/PCRF之间的用户面,还有UE和internet之间直接连接的media面),除此以外支持VoLTE,在此基础上添加了IMS相关的网元(添加的网元集中在核心网部分,也就是说接入网没变化),例如网元P-CSCF,作为链接P-GW,PCRF和IM-CN双方之间的接口,详细见IMS结构部分详细介绍.
 
-呼叫会话控制功能（Call Session Control Function, CSCF）是IP多媒体子系统(IP Multimedia Subsystem,IMS)内部的功能实体，是整个IMS网络的核心，主要负责处理多媒体呼叫会话过程中的信令控制。它管理IMS网络的用户鉴权，IMS承载面QoS，与其它网络实体配合进行SIP会话的控制，以及业务协商和资源分配等。CSCF根据功能分为代理CSCF(Proxy CSCF, P-CSCF)，查询CSCF(Interrogating CSCF,I-CSCF)，服务CSCF(Serving CSCF,S-CSCF)。
+呼叫会话控制功能（Call Session Control Function, CSCF）是IP多媒体子系统(IP Multimedia Subsystem,IMS)内部的功能实体,是整个IMS网络的核心,主要负责处理多媒体呼叫会话过程中的信令控制.它管理IMS网络的用户鉴权,IMS承载面QoS,与其它网络实体配合进行SIP会话的控制,以及业务协商和资源分配等.CSCF根据功能分为代理CSCF(Proxy CSCF, P-CSCF),查询CSCF(Interrogating CSCF,I-CSCF),服务CSCF(Serving CSCF,S-CSCF).
 
+
+===站在IMS-CN的角度来看网络结构===
+主要IMS新增网元的核心即S-CSCF,I-CSCF,BGCF部分,另外由P-CSCF作为IMS-CN和普通CN网络之间的接口,S-CSCF,I-CSCF功能如下介绍,S-CSCF的SIP-AS触发再链接到MRFC,MRFP等多媒体资源控制和处理网元,最后接入MGW,BGCF和S-CSCF互相连接,BGCF还和其他非本地域的BGCF之间允许相互路由,再通过相应的MGCF,MGW媒体网关和其控制网元可以连接到网络或CS域.具体结构和接口见图.
+
+[1]信令部分
 代理CSCF(P-CSCF):
-P-CSCF(Proxy-CSCF)是IMS拜访网络的统一入口点。所有IMS终端发起和终止于IMS终端的会话消息都要通过P-CSCF。P-CSCF作为一个SIP Proxy，负责与接入网络无关的用户鉴权与IPSec管理，网络防攻击与安全保护，为节约无线网络资源进行SIP信令压缩与解压，用户的漫游控制，通过PDF(Policy Decision Function)进行承载面的NAT与QoS等功能等。
+P-CSCF(Proxy-CSCF)是IMS拜访网络的统一入口点,所有IMS终端发起和终止于IMS终端的会话消息都要通过P-CSCF.
+P-CSCF作为一个SIP-Proxy,负责与接入网络无关的用户鉴权与IPSec管理,网络防攻击与安全保护,为节约无线网络资源进行SIP信令压缩与解压,用户的漫游控制,通过PDF(Policy Decision Function)进行承载面的NAT与QoS等功能等.
 
 查询CSCF(I-CSCF):
-I-CSCF(Interrogating-CSCF)是IMS归属网络的入口点。在注册过程中，I-CSCF通过查询HSS，为用户选择一个S-CSCF。在呼叫过程中，去往IMS网络的呼叫首先路由到I-CSCF，由I-CSCF从HSS获取用户所注册的S-SCSCF地址，将消息路由到S-CSCF。
+I-CSCF(Interrogating-CSCF)是IMS网络的入口点.
+在SIP注册过程中,I-CSCF通过查询HSS,为用户选择一个S-CSCF.在呼叫过程中,去往IMS网络的呼叫首先路由到I-CSCF,由I-CSCF从HSS获取用户所注册的S-SCSCF地址,将消息路由到S-CSCF.
+前向的SIP请求/响应-->S-CSCF.
 
 服务CSCF(S-CSCF):
-S-CSCF(Servlng-CSCF)在IMS网络会话控制中处于核心地位，它接受来自拜访网络通过P-CSCF转发来的注册请求，与HSS配合进行用户鉴权。并从HSS处下载用户签约的业务数据。S-CSCF对于用户主叫及被叫侧进行路由管理，根据用户签约的初始过滤规则(Initial Filter Criteria,iFC)，进行SIP AS触发，实现丰富的IMS业务功能。
+S-CSCF(Servlng-CSCF)在IMS网络会话控制中处于核心地位,它接受通过P-CSCF转发来的注册请求,与HSS配合进行用户鉴权.并从HSS处下载用户签约的业务数据.
+S-CSCF对于用户主叫及被叫侧进行路由管理,根据用户签约的初始过滤规则(Initial_Filter_Criteria,iFC),进行SIP-AS触发,实现丰富的IMS业务功能.
+决定用哪一个AS去接收SIP消息,从而去提供相应的IMS服务.
 
-====IMS-CN内部结构====
+PCRF:前面在EPS部分也提过了,负责计费策略和规则判断的网元.
 
+[2]HSS
 
+[3]AS:application-server,用于建立和实现IMS/VoLTE需要的各种服务.
 
+[4]media
+Breakout Gateway Control Function (BGCF)
+ S-CSCF inserts BGCF into the signaling path, which in turns sends requests to MGCF
+Media Gateway (MGW)/Media Gateway Control Function (MGCF)
+ 向其他的IP domain发出呼叫
+ 向PSTN发出呼叫
+ PSTN和IMS-CN这两侧的解码编码(in case of codec mismatch)
+Media Resource Function Controller (MRFC)
+ 信令面网元,接收来自AS和S-CSCF的信息,控制MRFP.
+Media Resource Function Processor (MRFP)
+ 多媒体资源的实际处理网元
+   Customized Ringback Tone (CRBT), a.k.a. Personalized Ringback Tone (PRBT)
+ Network announcements, e.g., “cannot establish call,” “call forwarded to voicemail,” etc.
+
+===信令面和media面===
+QCI等级这个概念的详细内容参考TS23.203的table-6.1.7
+QCI(qos_class_indication)是EPS中一个判定QoS的参数,一共分为9个等级,qci的值都代表着一个等级,每一种信令和数据EPS承载都会对应一个且不重复的QCI值,qci决定了该承载上的应该受到怎样的处理.
+
+不同于控制面,信令面和media面都可以算作是用户面的一部分.
+[1]信令面
+协议栈结构: SIP(Session Initiation Protocol), SIGCOMP, UDP, IP, 空口
+功能: UE和P-CSCF之间,主要内容是SIP的IMS注册/注销,VoLTE的主叫/被叫流程启动标识.
+IMS的信令承载默认是no-GBR模式,QCI=5.(GBR表示受限定的速率,一般用于保证传输的速率)
+
+[2]media面
+协议栈结构: vocoder-frames, RTP, UDP, IP, ROHC(可靠性文件头压缩), 空口
+功能: UE之间仅通过eUTRAN无线接入网,不过CN或MME部分,会通过S-GW和P-GW接入到互联网,然后在互联网中通过RTP协议实现的audio数据包的交互.
+media的专用数据承载是GBR模式,QCI=1.
+
+实时传送协议(Real-time_Transport_Protocol或简写RTP)是一个网络传输协议,RTP协议详细说明了在互联网上传递音频和视频的标准数据包格式,IP电话产业的技术基础,RTP协议和RTP控制协议RTCP一起使用,而且它是建立在用户数据报协议上的.
+
+===Lab setup for VoLTE===
+P22-24
+
+===使用VoLTE的设备的硬件结构===
+MPSS:
+IMS(USIM + call_manager + data_services(LTE协议栈))
+
+APSS:
+直接和MPSS连接的audio的DSP;
+MPSS的call_manager通过QMI_voice连接到APSS的QMI_RIL;
+QMI_RIL连接framework的telephony相关(RIL_interface和call_manager)和IMS-QMI-IF(qcom/proprietary/imsservice);
+Framework的call_manager和上层的phone-app沟通;
 
 == VoLTE的呼叫流程 ==
+
+
+
+
+
+
+
+
+
+
 
 == VoLTE的相关log分析 ==
 
