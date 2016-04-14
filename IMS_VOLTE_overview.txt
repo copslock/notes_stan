@@ -1,4 +1,6 @@
 == VoLTE的架构(IMS网络结构,用户的信令面和media面,对应handset的设备结构) ==
+IMS:IP Multimedia Subsystem -- IP多媒体子系统
+VoLTE: voice over LTE,即经过PS域的呼叫实现
 
 ===站在EPS的角度来看的网络结构===
 EPS即LTE中提到的EPC和eUTRAN的集合,扁平化的网络结构,主要网元有eNB,MME,S-GW,P-GW,PCRF,HSS等等,网元之间的plane(包含UE-->eNB-->MME的控制面,UE-->eNB-->S-GW-->P-GW/PCRF之间的用户面,还有UE和internet之间直接连接的media面),除此以外支持VoLTE,在此基础上添加了IMS相关的网元(添加的网元集中在核心网部分,也就是说接入网没变化),例如网元P-CSCF,作为链接P-GW,PCRF和IM-CN双方之间的接口,详细见IMS结构部分详细介绍.
@@ -75,12 +77,81 @@ QMI_RIL连接framework的telephony相关(RIL_interface和call_manager)和IMS-QMI
 Framework的call_manager和上层的phone-app沟通;
 
 == VoLTE的呼叫流程 ==
+===High-level VoLTE呼叫流程===
+[1]VoLTE初始化
+UE和EUTRAN/PDN: UE附着到LTE网络-->Domain选择(所有的呼叫流程都从IMS经过)-->IMS-PDN连接(信令承载的QCI=5)-->SIP-QoS流程
+UE和IMS-CN: IMS注册和鉴权等等
+ICSI(IMS Communication Services Identifier): 对于IMS服务都会分配一个tag与其对应,作为识别的标志?
 
+[2]VoLTE事件处理流程
+UE和IMS-CN: IMS事务建立
+UE和EUTRAN/PDN: 建立VoLTE-QoS流程-->ROHC-->VoLTE数据交互(数据由eUTRAN路由,通过分组核心网之间传输呼叫通话需要的数据;voice帧由RTP数据包产生包含在UDP数据包中,再承载在IP协议上.)
+UE和IMS-CN: IMS事务终止(释放清理资源)
+UE和EUTRAN/PDN: 释放VoLTE-QoS流程
 
+[3]VoLTE结束
+UE和IMS-CN: IMS反注册
 
+===High-level 终端之间的VoLTE呼叫===
+UE模块集成了IMS用户机和LTE协议栈.
+[1]发起呼叫,IMS收到呼叫管理的提醒,IMS用户机建立并向网络端发送"invite"消息
+[2]LTE协议栈发起上行接入程序,发出"service-request"消息,开始尝试RRC连接建立
+[3]LTE栈传送"invite"消息
+(中间会经过eNB,EPC,由P-CSCF进入IMS-cn部分,通过I-CSCF路由到S-CSCF,再由S-CSCF判决该呼叫消息应该被导向哪一个I-CSCF,再到达目标UE对应的I-CSCF,最终通过目标UE的P-CSCF传递到P-GW,最后寻呼到目标UE;UE2接收寻呼并启动上行接入程序作为响应;"invite"消息最终也会路由到目标UE的IMS用户机处)
+[4]P-CSCF1发送"100",从IMS-client2一直路由到IMS-client1的消息,去通知"invite"消息已经传递成功
+[5]如果IMS-client2支持Client1的编码推荐?,IMS-client2会向IMS-client1发送一条"180(Ringing)"消息作为响应,和上一条信令的路由路径相同(表明SDP的编码选择?)
 
+[6]当P-CSCF1和2接收到传递的"180(Ringing)"消息时,会触发EPS专用承载在网络部分的建立,P-CSCF1和2会各向PCRF发送一个"AA-Request"
+(该请求包含IMS-PDN分配给UE的IP地址,还包含了media部件描述,该描述定义了编码和来自于"180(Ringing)消息中的"Traffic_Flow_Template(TFT)部分)
+[7]PCRF使用接收的IP地址去验证当前这个"IP-CAN"事务,在IP-can事务建立阶段使用从HSS/SPR(Subscriber_Profile_Repository)下载的QoS策略信息,media描述信息决定QoS和话音的EPS专用承载中要过滤的信息,具体表现为一个IP-CAN事务的修改操作,发送"RAR_cmd"消息给PGW及网络端.
+(消息包含QoS信息(QCI,ARP(Address_Resolution_Protocol地址解析协议),GBR/MBR(最低/高速率限制)),GPRS_Tunneling_Protocol(GTP))
+[8]PGW接收命令,发送"create_bearer_request"到SGW
+(包含信息EPS bearer QoS, S5/S8-Tunnel-ID, TFT, and LBI)
+[9]SGW发送"create_bearer_request"到MME
+(包含信息EPS bearer QoS, S1-Tunnel-ID, TFT, and LBI)
+[10]MME选择为承载选择一个ID,发送一条NAS层消息"bearer Setup Request(Activate Dedicated EPS Bearer Context Request)"消息到eNB
+(包含信息EPS bearer-ID, EPS QoS,S1-Tunnel-ID, NAS-message;激活专用EPS承载报文请求消息定义了EPS-bearer-ID,QoS参数,TFT and LBI)
+[11]eNB向UE端发送"RRC-configuration-reconfiguration",将EPS承载映射和无线承载建立映射关系(承载ID,QoS等内容)
+[12]UE接收激活承载,向eNB段做出响应"RRCconnection_reconfiguration_complete",eNB再向MME发送"bearer_setup_response"消息
+(消息包含了EPS承载的ID,S1-tunnel-ID)
+[13]UE向eNB发送上行直传的NAS层消息"activate_dedicated_EPS_bearer_context_accept"
+()
+[14]eNB继续上行直传给MME消息"activate_dedicated_EPS_bearer_accept"
+[15]MME--"create_bearer_response"-->SGW-->PGW
+[16]PGW--"RAR_response"-->PCRF
+[17]PCRF--"AA-answer"-->P-CSCF,报告专用承载已经建立成功.
 
+[18]IMS-client1发送"PRACK-SIP"消息给IMS-Client2
+[19]IMS-client2响应消息"200(OK)",提示PRACK消息已接收,接收SDP-offer.
+[20]当目标用户接受呼叫后(接听),IMS-client2会再发送一次消息"200(OK)"给IMS-client1端
+[21]IMS-client1的响应"ACK"
+最后进入实际voice通话过程中,两个IMS-Client接通,PCRF相关开始计费等等.
 
+===IMS注册流程===
+[1]DS提醒IMSLTE服务处于可用状态
+CM--"serving-system-changed-event"-->IMS
+[2]IMS根据rat和策略管理器的配置,获得APN列表,APN的各类属性,然后允许服务开始在IMS-PDN上发起
+IMS--"feature-tag-add"-->IMS
+[3]UE当前已经驻留在IMS的RAT中了,通过PDP连接去尝试IMS数据呼叫的启动
+[4]DS提醒IMS数据呼叫的基础已经建立
+DS<--"IMS_PDN的建立"和"DS_rat_indication"-->IMS
+[5]IMS根据RAT
+IMS--"register"-->SIP_Service--"401 unauthorized"-->IMS
+IMS<--"ISIM Authenticate"-->UIM
+IMS--"register(携带对于401的回应)"-->SIP_service--"200 OK"-->IMS--"IMS已经准备就绪"-->CM
+
+IMS--"SIP_subscribe"-->SIP_service--"SIP 200 OK"-->IMS
+SIP_service--"SIP notify"-->IMS--"SIP 200 OK"-->SIP_service
+
+实际log部分:
+[1]qpDcm.c	PDPHandler.cpp	qipcalliface.c
+//获取到pref_rat_value值,RAT的值
+[2]qplMSPolicyManager.cpp		//RAT的值,APN的类型值(例如1对应IMS),APN的状态是否可用,APN允许的服务值ServiceMask(某个数值对应着一系列服务,例如7对应着VoLTE + VT视频电话 + SMS),IP地址的类型(例如2就是表明是属于ipv6的)
+[3]PDPRATHandlerVoLTE.cpp	qpDcm.c
+//获得当前驻留IMS的RAT,APN-type,对应的ServiceMask,PDP连接激活状态,qpDcmEstablishPDPConnection | pDcmProfile=b3eea90 dsAppID=29
+[4]qpDcm.c	qpdpl.c	PDPRATHandlerVoLTE.cpp	
+//event(200) DS_enetnonet(202) appID(29);	eventPdpActivated(pdp连接激活这个事件)raise了一个宏"QPE_RM_PDP_ACTIVATED_EV"
+[5]
 
 
 
