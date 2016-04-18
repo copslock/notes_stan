@@ -175,9 +175,49 @@ SIP_service--"SIP notify"-->IMS--"SIP 200 OK"-->SIP_service
 //Changing VoIP Service Status From 0 to 2, Changing VT Service Status From 0 to 2, Changing SMS Service Status From 0 to 2
 
 ===MO呼叫流程===(不同于之前看的那种规范式的呼叫流程)
-[1]UI上层发起呼叫"qmi_voice_dial_call_req"经过函数voice_call_dial_req()得到dial request发送或者code error的返回值,
-[2]QMI向CM"voice call is dialed",CM向IMS发送"MO呼叫,IMS服务启动"类似的消息,QMI向UI上层返回消息
-[3]IMS知己启动RTP初始化,提供经过互联网直接的语音通话数据交互,
+[1]UI上层发起呼叫"qmi_voice_dial_call_req"经过函数voice_call_dial_req()得到返回消息"dial request"发送或者code error的返回值.
+[2]QMI向CM"voice call is dialed",CM向IMS发送"MO呼叫,IMS服务启动"类似的消息,QMI向UI上层返回消息做出响应.
+[3]IMS启动RTP的初始化,提供经过互联网直接的语音通话数据交互的基本准备,于此同时QMI再次向上层发送"QMI_voice_all_call_status_IND"类似的指示呼叫状态的消息,提示现在是MO呼叫"origination".
+[4]IMS向SIP-server发送"invite"请求(基于UE设置创建SDP offer),发起SIP的服务/VoLTE事务的建立.
+[5]SIP-server响应消息"100"(收到invite消息提示)和"180 Ringing"(相关的编码设置,专用承载的建立消息等等)
+[6]IMS-->CM-->QMI-->上层UI,播放来电铃声,"IMS call is Ringing"-->"QMI_voice_all_call_status_IND"(进入到了alerting状态)
+[7]两端UE确认各种信息OK,承载也建立成功,IMS-client1发送"PRACK-SIP"消息给IMS-Client2,IMS-client2响应消息"200(OK)",提示PRACK消息已接收,接收SDP-offer.当目标用户接受呼叫后(接听),IMS-client2会再发送一次消息"200(OK)"给IMS-client1端,IMS-client1的响应"ACK",至此正式的呼叫已经接通.
+[8]IMS-->cm-->QMI-->UI:告诉上层通话已接通,"QMI_voice_all_call_status_IND"处于conversation状态.
+
+关键源码: /msm8939_modem_2-1_baseline/LINUX/android/vendor/qcom/proprietary/qmi/tests/qmi_voice_call.c
+
+HD voice使能-->NV-65964置位为1(1=AMR-WB,0=AMR-NB)
+AMR-NB的速率标准-->NV-66301
+	0 = AMR 4.75 kpbs
+	1 = AMR 5.15 kpbs
+	2 = AMR 5.90 kpbs
+	3 = AMR 6.70 kpbs
+	4 = AMR 7.40 kpbs
+	5 = AMR 7.95 kpbs
+	6 = AMR 10.20 kpbs
+	7 = AMR 12.10 kpbs
+AMR-WB的速率标准-->NV-67239
+	0 = AMR-WB 6.60 kbps
+	1 = AMR-WB 8.85 kbps
+	2 = AMR-WB 12.65 kbps
+	3 = AMR-WB 14.25 kbps
+	4 = AMR-WB 15.85 kbps
+	5 = AMR-WB 18.25 kbps
+	6 = AMR-WB 19.85 kbps
+	7 = AMR-WB 23.05 kbps
+	8 = AMR-WB 23.85 kbps
+octet排列方式/bandwidth排列方式选择-->"NV-67241" for AMR-NB and "NV-67240" for AMR-WB
+(0 = bandwidth efficient 1 = octet aligned)
+AMR-WB且NV-67248=1位octet排列方式情况下,用一个bitmask来存放数值.
+读取实例: 149 = 1001 0101 = 23.05 kbps, 15.85 kbps, 12.65 kbps, 6.60 kbps
+对应的第7,4,2,0位为1,所以对应AMR-WB对应的速率标准.
+
+NV-67281设置UE等待时间(单位是毫秒),超过此等待时间则主叫UE会取消这次VoLTE呼叫建立.
+
+===携带预准备的MO流程===
+
+
+===MT被叫流程===
 
 
 == VoLTE的相关log分析 ==
@@ -225,5 +265,6 @@ SIP_service--"SIP notify"-->IMS--"SIP 200 OK"-->SIP_service
 
 
 
+发送: KTVOLTE到10086
 
 
