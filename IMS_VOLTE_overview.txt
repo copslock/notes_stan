@@ -130,31 +130,54 @@ UE模块集成了IMS用户机和LTE协议栈.
 ===IMS注册流程===
 [1]DS提醒IMSLTE服务处于可用状态
 CM--"serving-system-changed-event"-->IMS
+
 [2]IMS根据rat和策略管理器的配置,获得APN列表,APN的各类属性,然后允许服务开始在IMS-PDN上发起
 IMS--"feature-tag-add"-->IMS
+
 [3]UE当前已经驻留在IMS的RAT中了,通过PDP连接去尝试IMS数据呼叫的启动
 [4]DS提醒IMS数据呼叫的基础已经建立
 DS<--"IMS_PDN的建立"和"DS_rat_indication"-->IMS
-[5]IMS根据RAT
-IMS--"register"-->SIP_Service--"401 unauthorized"-->IMS
-IMS<--"ISIM Authenticate"-->UIM
-IMS--"register(携带对于401的回应)"-->SIP_service--"200 OK"-->IMS--"IMS已经准备就绪"-->CM
 
+[5]IMS根据RAT,CM域的选择添加服务的tags，去触发IMS的注册流程
+[6]获取IMS的配置信息,IMS注册流程开始
+[7]注册请求通过空口由IMS发出
+IMS--"register"-->SIP_Service
+
+[8]接收到401 unauthorized的响应,IMS和UIM进行鉴权
+SIP_Service--"401 unauthorized"-->IMS
+IMS<--"ISIM Authenticate"-->UIM
+
+[9]IMS注册请求携带着answer发向网络端,网络端做出响应"200 OK"
+IMS--"register(携带对于401的回应)"-->SIP_service--"200 OK"-->IMS
+
+[10]IMS提醒CM,VoLTE呼叫已经可以使用
+IMS--"IMS已经准备就绪"-->CM
+---------------------------------------------------------
 IMS--"SIP_subscribe"-->SIP_service--"SIP 200 OK"-->IMS
 SIP_service--"SIP notify"-->IMS--"SIP 200 OK"-->SIP_service
 
 实际log部分:
 [1]qpDcm.c	PDPHandler.cpp	qipcalliface.c
 //获取到pref_rat_value值,RAT的值
-[2]qplMSPolicyManager.cpp		//RAT的值,APN的类型值(例如1对应IMS),APN的状态是否可用,APN允许的服务值ServiceMask(某个数值对应着一系列服务,例如7对应着VoLTE + VT视频电话 + SMS),IP地址的类型(例如2就是表明是属于ipv6的)
+[2]qpIMSPolicyManager.cpp		//RAT的值,APN的类型值(例如1对应IMS),APN的状态是否可用,APN允许的服务值ServiceMask(某个数值对应着一系列服务,例如7对应着VoLTE + VT视频电话 + SMS),IP地址的类型(例如2就是表明是属于ipv6的)
 [3]PDPRATHandlerVoLTE.cpp	qpDcm.c
 //获得当前驻留IMS的RAT,APN-type,对应的ServiceMask,PDP连接激活状态,qpDcmEstablishPDPConnection | pDcmProfile=b3eea90 dsAppID=29
 [4]qpDcm.c	qpdpl.c	PDPRATHandlerVoLTE.cpp	
 //event(200) DS_enetnonet(202) appID(29);	eventPdpActivated(pdp连接激活这个事件)raise了一个宏"QPE_RM_PDP_ACTIVATED_EV"
-[5]
+[5]qipcalliface.c	qimfif_cbs.cpp
+//RAT,apn信息,qipcall_aval_domain=9, 所在域支持SMS&VOIP功能
+[6]//获取各类IMS的配置信息:Public:sip:+11234567890@one.att.net,  Domain:one.att.net, Retrieved IP address: 2600:380:5de0:532f:0:32:f701:f201, ENTER - eRatInfo=10 pServingStatus=a4181ef, returning ACCTYPE_3GPP_E_UTRAN_FDD, utran-cell-id-3gpp=310410411C335CB84, RegisterService state is 0.
+[7]//构建IMS注册请求的消息,write_event event for socket[98], Sent SIP Message:REGISTER sip:one.att.net
+[8]//EVENT_SIP_MESSAGE_RECV:SIP/2.0 401 Unauthorized 接收到消息的对应事件,UIM和IMS之间传递各种参数进行鉴权(例如RAND,ALGO,AUTN,计算得到的CK,LK),最终鉴权成功qpAMSS_GetAuthResponse - Setting Authstatus to QC_AUTH_SUCCESS, EVENT_SIP_REQUEST_SEND: REGISTER 发送注册消息的对应事件
+[9]//为了去获得IMS注册状态网络的提醒,在事件"EVENT_SIP_REQUEST_SEND: SUBSCRIBE"发生之后就会进行消息"200 OK"的发送
+[10]qipcalliface.c	ims_reg_service_status.cpp
+//向CM更新IMS的状态,QIPCALL_IFACE_EPC is up, indicating CM about Active status,
+//Changing VoIP Service Status From 0 to 2, Changing VT Service Status From 0 to 2, Changing SMS Service Status From 0 to 2
 
-
-
+===MO呼叫流程===(不同于之前看的那种规范式的呼叫流程)
+[1]UI上层发起呼叫"qmi_voice_dial_call_req"经过函数voice_call_dial_req()得到dial request发送或者code error的返回值,
+[2]QMI向CM"voice call is dialed",CM向IMS发送"MO呼叫,IMS服务启动"类似的消息,QMI向UI上层返回消息
+[3]IMS知己启动RTP初始化,提供经过互联网直接的语音通话数据交互,
 
 
 == VoLTE的相关log分析 ==

@@ -105,6 +105,35 @@ vmware-tools的作用主要是可以让我们可以更方便的操作虚拟机,�
 【9】参考文献（文献的格式）
 找几本自己看的书，c的，编译链接的，网站的电子文献、论坛文章、技术博客参考，
 
+[1]书
+[2]电子文献
+
+
+[1]Mozilla Developer Network and individual contributors.Introduction to Firefox OS[EB/OL].[2005-2016].https://developer.mozilla.org/en-US/Firefox_OS/Introduction.
+[2]Android Open Source Project.Establishing a Build Environment[EB/OL].[2008-2016].https://source.android.com/source/initializing.html.
+[3]Mozilla-b2g.B2G source code[CP/OL].[2012-2015].https://github.com/mozilla-b2g/B2G.
+[4]Qualcomm Technologies,Inc.CreatePoint[J/OL].[2011-2016].https://createpoint.qti.qualcomm.com/dashboard/public/.
+[5]三星手机开发者论坛.Firefox-os(B2G)移植流程概谈[EB/OL].[2012-9-23]http://www.sanxing.org/thread-2855-1-1.html.
+
+[6]Robert Love(著)，陈莉君，康华(译).Linux内核设计与实现[M].北京：机械工业出版社，2011.6.
+[7]俞甲子，石凡，潘爱民.程序员的自我修养——链接、装载与库[M].北京：电子工业出版社，2009.4.
+[8]Brian W. Kernighan，Dennis M. Ritchie.The C Programming Language，Second edition[M].Prentice Hall PTR，1988.
+[9]鸟哥，王世江.鸟哥的Linux私房菜：基础学习篇(第三版)[M].北京：人民邮电出版社，2010.7
+[10]刘民博，邓中亮.基于ARM的嵌入式Linux操作系统移植的研究[J].计算机系统应用，2006(11)：87-88.
+[11]Mozilla Developer Network.Mozilla wiki B2GOS[EB/OL].[2012-2016].https://wiki.mozilla.org/B2G.
+
+
+
+赵凯华，罗蔚茵.新概念物理教程：力学[M].北京：高等教育出版社，1995.
+
+
+
+
+
+
+
+
+
 
 
 题外话:
