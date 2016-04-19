@@ -181,7 +181,7 @@ SIP_service--"SIP notify"-->IMS--"SIP 200 OK"-->SIP_service
 [4]IMS向SIP-server发送"invite"请求(基于UE设置创建SDP offer),发起SIP的服务/VoLTE事务的建立.
 [5]SIP-server响应消息"100"(收到invite消息提示)和"180 Ringing"(相关的编码设置,专用承载的建立消息等等)
 [6]IMS-->CM-->QMI-->上层UI,播放来电铃声,"IMS call is Ringing"-->"QMI_voice_all_call_status_IND"(进入到了alerting状态)
-[7]两端UE确认各种信息OK,承载也建立成功,IMS-client1发送"PRACK-SIP"消息给IMS-Client2,IMS-client2响应消息"200(OK)",提示PRACK消息已接收,接收SDP-offer.当目标用户接受呼叫后(接听),IMS-client2会再发送一次消息"200(OK)"给IMS-client1端,IMS-client1的响应"ACK",至此正式的呼叫已经接通.
+[7]两端UE确认各种信息OK,SIP-server发送消息"200(OK)"给IMS端,IMS做出响应"ACK",至此正式的呼叫已经接通.
 [8]IMS-->cm-->QMI-->UI:告诉上层通话已接通,"QMI_voice_all_call_status_IND"处于conversation状态.
 
 关键源码: /msm8939_modem_2-1_baseline/LINUX/android/vendor/qcom/proprietary/qmi/tests/qmi_voice_call.c
@@ -215,45 +215,135 @@ AMR-WB且NV-67248=1位octet排列方式情况下,用一个bitmask来存放数值
 NV-67281设置UE等待时间(单位是毫秒),超过此等待时间则主叫UE会取消这次VoLTE呼叫建立.
 
 ===携带预准备的MO流程===
+和普通MO流程的区别:
+多了网元EUTRAN/EPC的部分,IMS-CN和IMS之间多了"SIP-PRACK","SIP 180"消息变成了"SIP 183 SDP",建立完专用承载后的"SIP update"等消息,IMS和EPS之间多了专用承载建立部分的消息,"SIP 200 OK"响应消息有两条.
 
+在接收到SIP_183消息后,QIPcall在数据层注册qos事件,并启动QoS相关的定时器.该定时器如果没有被设定,则QIPcall会直接释放本次MO呼叫,并且发送"SIP_cancel"消息给网络端.
+
+[*]发向IMS的响应消息"200(OK)",第一次发出提示SIP_PRACK消息已接收.当专用承载建立,SIP_update之后会再发送一次消息"200(OK)"给IMS端,IMS响应"ACK",至此正式的呼叫已经接通.
+
+NV-71572: qipcall_qos_reservation_timer= 2000 毫秒,设定qos相关定时器,必须设置的一个东西
+NV-65957: 去使能qipcall_precondition_enable这个宏
 
 ===MT被叫流程===
+[1]被叫端接收到"invite"消息,被叫端UE-->IMS-CN-->IMS--(被呼叫提示)-->CM,提示有呼叫出现.
+(在RTP定时器的时间范围内,打开RTP功能,传送IMS内部的呼叫ID,向上层报告呼叫到来的请求)
+[2]CM-->IMS-->IMS-CN,发送"180"消息.
+(IMS等待来自CM的响应"wait_for_invite_rsp",去确定VoLTE呼叫是被允许的)
+[3]IMS-->CM-->QMI-->上层UI,被呼叫的铃声提示-->CM_call_event_incoming-->QMI_voice_call_status_IND.(处于incoming状态)
+[4]上层UI做出反应,选择接听-->QMI-->CM-->IMS-->IMS-CN,发送消息"200"作为SDP的应答.
+[5]IMS-CN-->IMS-->CM-->QMI-->UI, QMI_voice_answer_call_msg-->响应"ACK"消息,进入"conversation"状态.
 
+is_alert_info_set: 这个标志位值表示当前进程中是否有活动中的呼叫,0表示无,1表示有.
 
-== VoLTE的相关log分析 ==
+NV-70213: LTE的RSRP的配置门限,单位dBm
+NV-69673: IMS operation mode
+NV-67280: 响铃定时器,单位毫秒,超时则终止通话,如果拒绝则回返"486 buys here"的提示给MO端
 
+===携带预准备的MT被叫流程===
+区别点基本和前面MO路程一样,不做赘述
+P79-84
 
+===VoLTE通话的前提条件===
+当前RAT是LTE; CM域选择选择了IMS; 没有活动的1X呼叫; 当前无MO-VoLTE呼叫建立; 当前没有或只有一个活动的VoLTE呼叫; LTE-RSRP有设置门限值(NV-70213).
 
+===Call_termination(近距离建立)===
+CM接收QMI的结束命令,CM请求IMS去结束VoLTE呼叫,IMS内部清除VoLTE呼叫并发送"BYE"请求,得到相应"200_OK",呼叫终止提示发给QMI和上层.
 
+DPL: Data Protection Layer 数据保护层,IMS的内部结构??
 
+===Call_termination(远距离建立)===
+略. P90
 
+===Call_Hold呼叫保持===
+在VOIP通话已经建立成功的前提下:
+[1]UI-->QMI, QMI_voice_manage_IP_calls(hold_active_accept_watting_or_held)
+[2]QMI-->CM, cm_mm_call_cmd_sups(),CM_call_sups_type_hold_call callid=15...
+[3]CM-->IMS-->CM, CM_call_event_sups.
+[4]IMS-->SIP-server-->IMS, "invite"消息和对应的响应"200 OK"
+[5]SIP-stack<-->IMS, 消息"QPE_SIP_reinvite_established_EV"和reinvite的"ack"
+[6]IMS-->CM, CM_ip_call_IND_call_hold指示,cm_ip_call_IND_sups_conf
+[7]CM-->QMI, CM_call_event_call_on_hold,CM_call_event_MNG_calls_conf
+[8]QMI-->UI, QMI_voice_manage_IP_calls(qmi_results_success),给提供呼叫当前的状态,处于hold(保持)的状态.
+QMI_VOICE_ALL_CALL_STATUS_IND(CALL_STATE_HOLD)
+QMI_VOICE_CM_IF_CALL_TYPE_VOIP
+QMI_VOICE_CM_IF_MODE_LTE
 
+call state=6即QMI_VOICE_CM_IF_CALL_STATE_HOLD, call type=2即VOIP call.
 
+===Call_resume呼叫重启===
+流程和call_hold基本一样,指示传递的内容区别而已.
 
+point: 只有CM-->QMI的CM_call_event_call_on_hold事件变成了CM_call_event_retrieved,最终qmi_voice_all_call_status_IND是"conversation"状态.
 
+===Call_add===
+在已有一个IP通话存在的基础上,添加一个VoIP通话.
+由上层UI向QMI,CM,IMS发起将当前呼叫置为hold状态的请求,这部分和call_hold流程一样,在这一步完成后,执行建立MO-call的基本流程,再结束该MO-call流程后,由QMI向上层UI指示从"hold"变为"conversation"状态.
 
+===Call_waiting===
+UE1和UE2的Voip通话建立的基础上:
+UE1被寻呼,接收到"invite"消息,UE1在UI中看到有新的呼叫的提示,UE1选择先接通和UE3的通话,则UE1和2之间的呼叫被置为"hold"状态,然后UE1和3之间的连接建立,这一部分即在MT-call中的流程,IMS向CM,QMI,UI逐级传递连接的事件消息.
 
+===Call_conference===
+====Setup====
+建立一个多UE互相之间通过一个conference-server(类似于SIP-server)联通,从而能互相通信的电话会议.
 
+前提: UE1和2处于hold,UE1和3处于conversation
+[1]上层UI/UE1发起电话会议的请求,将UE1和3之间的状态置为"Hold".
+[2]UE1通过发送"invite"到"conference-URI"(需要参加会议的所有UE的对应的一个标识?)来创建一个会议.
+[3]UE1发送"REFER"到conference-server,由其将invite消息发给每一个被指定的UE.
+[4]对应UE(例如这里是UE2)接收到"invite"消息,UE1接收到各种"notify"消息.
+[5]UE1接收到notify后结束和UE2的呼叫,UE2接受和conference-server的呼叫建立.
+[6]以此过程一个一个去添加要加入会议的UE到conference-server中去.
 
+====Subscribe event package====
+前提: UE1,2,3之间建立了一个conference.
+[1]UE1"订阅"这个会议相关的event_package,会接收到所有的会议内容?
+[2]UE2和3随后"订阅".
+[3]如果UE和conference-server需要断开,通过信息"BYE"实现,与此同时同会议组的其他UE会收到一个notify.
 
+====LOG====
+[1]UI发起请求QMI_voice_manage_ip_calls: make_conference_call
+[2]UE1和3之间呼叫状态置为hold: qipcall_dpl_ctrl_cb: eCallCbType = 13
+[3]QMI向UI反馈此时所有呼叫处于hold状态
+[4]UI发起conference call到IMS: qipcall_dpl_ctrl_cb: eCallCbType = 0
+[5]IMS发送invite消息到conference-server
+[6]CM-->QMI-->UI: 电话会议的状态报告反馈给上层: CALL EVENT RECEIVED from CM : id = 65542, name = CM_CALL_EVENT_CONNECT
+[7]QMI向UI发送指示信息: 建立电话会议
+[8]to UE2: EVENT_SIP_REQUEST_SEND: REFER
+[9]CALL EVENT RECEIVED from CM : id = 65539, name = CM_CALL_EVENT_END
+[10]UE1和2之间呼叫结束
+[11]to UE3: EVENT_SIP_REQUEST_SEND: REFER
+[12]IMS和UE3断开连接: EVENT_SIP_REQUEST_SEND: BYE
+[13]CALL EVENT RECEIVED from CM : id = 65539, name = CM_CALL_EVENT_END
+[14]UE1和3之间呼叫结束
+[15]conference call成功指示返回给IMS
+[16]IMS-->CM
+[17]CM-->QMI-->UI: CALL EVENT RECEIVED from CM : id = 65579, name = CM_CALL_EVENT_MNG_CALLS_CONF
+[18]QMI向UI返回消息QMI_VOICE_MANAGE_IP_CALLS: QmiResult = QMI_RESULT_SUCCESS
 
+===DTMF===
+Dual Tone Multiple Frequency 双音多频
 
+前提: UE1和2正处于VoIP呼叫通话中.
+[1]QMI_voice_start_cont_DTMF_msg: Continuous DTMF Information Tlv(digit = 49)
 
+//Command CM IF START CONT DTMF (7) pending receipt of CM_INBAND_EVENT_REV_START_CONT_DTMF_CONF
+//=CM= CMIPAPP: Send start inband DTMF for call 6
 
+[2]DTMF通过RTP发送
+IMS/High 02:19:39.113 qipcallh.c 15230 -----> Sending dtmf for digit 49 duration :20
+IMS/High 02:19:39.133 qipcallh.c 15230 -----> Sending dtmf for digit 49 duration :40
+IMS/High 02:19:39.155 qipcallh.c 15230 -----> Sending dtmf for digit 49 duration :60
+IMS/High 02:19:39.175 qipcallh.c 15230 -----> Sending dtmf for digit 49 duration :80
+IMS/High 02:19:39.195 qipcallh.c 15230 -----> Sending dtmf for digit 49 duration :100
+IMS/High 02:19:39.216 qipcallh.c 15230 -----> Sending dtmf for digit 49 duration :120
 
+[3]释放
+QMI_voice_stop_cont_DTMF_msg: 
 
-
-
-
-
-
-
-
-
-
-
-
-
+//Stop DTMF event: 0x31 Duration :120
+//qipcall_stop_dtmf_rpt_conf: call modify rpt ind. eCALL_IND_STOP_DTMF_CNF Call Id=6, status = 1
 
 
 
