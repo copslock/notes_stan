@@ -345,16 +345,5 @@ QMI_voice_stop_cont_DTMF_msg:
 //Stop DTMF event: 0x31 Duration :120
 //qipcall_stop_dtmf_rpt_conf: call modify rpt ind. eCALL_IND_STOP_DTMF_CNF Call Id=6, status = 1
 
-
-
-
-
-
-
-
-
-
-
 发送: KTVOLTE到10086
-
 
