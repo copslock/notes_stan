@@ -56,6 +56,8 @@ sudo apt-get install lib32ncurses5 lib32stdc++6
 PATH=$PATH:"/home/eminem/software/sdk/platform-tools/"
 PATH=$PATH:"/home/eminem/software/sdk/tools/"
 
+
+
 [6.5]git/repo代码库的ssh链接建立.操作如下:
 下载git(ubuntu-14.04里git不再是自带安装的,所以需要我们自己下载)
 ssh-keygen -t rsa -C "youremail@example.com"		//获取ssh的密钥,添加id_rsa.pub到你需要建立ssh连接的网站的设置里,例如github.
