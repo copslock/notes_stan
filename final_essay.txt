@@ -119,37 +119,76 @@ PATH=$PATH:"/home/eminem/software/sdk/platform-tools/"
 PATH=$PATH:"/home/eminem/software/sdk/tools/"
 
 2.6.4 opengrok建立源码索引
+Precondition：Ubuntu12.04及以上的64位系统，正常连接互联网。
+Steps：
+sudo -i
+apt-get install -y openjdk-7-jdk tomcat7 ctags
+wget https://java.net/projects/opengrok/downloads/download/opengrok-0.12.1.5.tar.gz
+tar zxvf opengrok-0.12.1.5.tar.gz -C /usr/local/share/
+/usr/local/share/opengrok-0.12.1.5/bin/OpenGrok deploy
+浏览器打开http://localhost:8080/source，检查Tomcat和OpenGrok是否已正常工作
 
+生成索引
+/usr/local/share/opengrok-0.12.1.5/bin/OpenGrok index /path/to/your_source # 数据将保存在 /var/opengrok/
 
+假定你期望每天凌晨零点自动更新，执行 sudo crontab -e，增加以下行
 
-因为我这里都是已经安装好的状态，也就不再做过多的示范过程.
+0 0 * * * /usr/local/share/opengrok-0.12.1.5/bin/OpenGrok index /path/to/your_source
 
 2.7 后期编译所需的工具准备
 
-检查python,perl的版本
+2.7.1 检查python,perl的版本
+自己编译安装python,下载对应python的源码,解压并进入相应目录,可能会用到的命令参考如下:
+./configure --prefix=${pwd},	进行配置
+make,	编译
+sudo make install,	安装
+sudo grdit /etc/profile		修改环境变量
+PATH="$PATH:/自己的路径/Python-2.7.x"		在文件末尾加上你自己python的安装路径
+export PATH
 
-hexagon(modem编译会用到的东西,可能需要建立相应的软链接"ln -s 6.4.01 target-version")
+mv /usr/bin/python /usr/bin/python.bak
+ln -s 自己新安装的python地址 /usr/bin/python  			//建立软连接
+python -V
 
-安装编译boot镜像必需的arm的编译器
+
+2.7.2 hexagon(modem编译会用到的东西,可能需要建立相应的软链接"ln -s 6.4.01 target-version")
+#HEXAGON PATH
+export HEXAGON_ROOT="/home/eminem/software/hexagon_tools/"
+export ARMTOOLS=QDSP6GCC
+export HEXAGON_RTOS_RELEASE=6.4.01
 
 
+2.7.3 安装编译boot镜像必需的arm的编译器
+https://developer.arm.com/products/software-development-tools/compilers/arm-compiler-6/downloads
+
+2.8 在ubuntu上手机相关的一些usb驱动设置:
+在/etc/udev/rules.d/android.rules   目录下创建一个文件"android.rules"作为android设备的识别文件,里面内容的格式:
+SUBSYSTEM=="usb", ATTR{idVendor}=="901b", MODE="0666", GROUP="plugdev"
+chmod修改一下这个文件的权限
+sudo service udev restart
+sudo udevadm control --reload-rules
+
+添加这个文件"~/.android/adb_usb.ini",在里面加设备的vid
+
+这里遇到了一个问题:正确设置了路径之后,显示无此目录或文件,网上查询问题结果是adb是32位的,linux是64位,缺少某些32位库文件所致,解决如下:
+sudo apt-get install lib32bz2-1.0
+sudo apt-get install lib32ncurses5 lib32stdc++6
 
 
 
 
 第三章 我们需要的工具
 3.1 repo/git
+git/repo代码库的ssh链接建立.操作如下:
+下载git(ubuntu-14.04里git不再是自带安装的,所以需要我们自己下载)
+ssh-keygen -t rsa -C "youremail@example.com"		//获取ssh的密钥,添加id_rsa.pub到你需要建立ssh连接的网站的设置里,例如github.
+
+后面就可以进行正常的代码clone和同步.
+
 
 3.2 vim
 
 3.3 
-
-Hexagon，python，perl，arm编译器等等
-
-#HEXAGON PATH
-export HEXAGON_ROOT="/home/eminem/software/hexagon_tools/"
-export ARMTOOLS=QDSP6GCC
-export HEXAGON_RTOS_RELEASE=6.4.01
 
 第四章 我们做了些什么（抄开发流程）
 
@@ -170,18 +209,18 @@ export HEXAGON_RTOS_RELEASE=6.4.01
 [2]电子文献
 
 
-[1]Mozilla Developer Network and individual contributors。Introduction to Firefox OS[EB/OL]。[2005-2016]。https://developer。mozilla。org/en-US/Firefox_OS/Introduction。
-[2]Android Open Source Project。Establishing a Build Environment[EB/OL]。[2008-2016]。https://source。android。com/source/initializing。html。
-[3]Mozilla-b2g。B2G source code[CP/OL]。[2012-2015]。https://github。com/mozilla-b2g/B2G。
-[4]Qualcomm Technologies，Inc。CreatePoint[J/OL]。[2011-2016]。https://createpoint。qti。qualcomm。com/dashboard/public/。
-[5]三星手机开发者论坛。Firefox-os(B2G)移植流程概谈[EB/OL]。[2012-9-23]http://www。sanxing。org/thread-2855-1-1。html。
+[1]Mozilla Developer Network and individual contributors.Introduction to Firefox OS[EB/OL].[2005-2016].https://developer.mozilla.org/en-US/Firefox_OS/Introduction.
+[2]Android Open Source Project.Establishing a Build Environment[EB/OL].[2008-2016].https://source.android.com/source/initializing.html.
+[3]Mozilla-b2g.B2G source code[CP/OL].[2012-2015].https://github.com/mozilla-b2g/B2G.
+[4]Qualcomm Technologies，Inc.CreatePoint[J/OL].[2011-2016].https://createpoint.qti.qualcomm.com/dashboard/public/.
+[5]三星手机开发者论坛.Firefox-os(B2G)移植流程概谈[EB/OL].[2012-9-23]http://www.sanxing.org/thread-2855-1-1.html.
 
-[6]Robert Love(著)，陈莉君，康华(译)。Linux内核设计与实现[M]。北京：机械工业出版社，2011。6。
-[7]俞甲子，石凡，潘爱民。程序员的自我修养——链接、装载与库[M]。北京：电子工业出版社，2009。4。
-[8]Brian W。 Kernighan，Dennis M。 Ritchie。The C Programming Language，Second edition[M]。Prentice Hall PTR，1988。
-[9]鸟哥，王世江。鸟哥的Linux私房菜：基础学习篇(第三版)[M]。北京：人民邮电出版社，2010。7
-[10]刘民博，邓中亮。基于ARM的嵌入式Linux操作系统移植的研究[J]。计算机系统应用，2006(11)：87-88。
-[11]Mozilla Developer Network。Mozilla wiki B2GOS[EB/OL]。[2012-2016]。https://wiki。mozilla。org/B2G。
+[6]Robert Love(著)，陈莉君，康华(译).Linux内核设计与实现[M].北京：机械工业出版社，2011.6.
+[7]俞甲子，石凡，潘爱民.程序员的自我修养——链接、装载与库[M].北京：电子工业出版社，2009.4.
+[8]Brian W. Kernighan，Dennis M. Ritchie.The C Programming Language，Second edition[M].Prentice Hall PTR，1988.
+[9]鸟哥，王世江.鸟哥的Linux私房菜：基础学习篇(第三版)[M].北京：人民邮电出版社，2010.7
+[10]刘民博，邓中亮.基于ARM的嵌入式Linux操作系统移植的研究[J].计算机系统应用，2006(11)：87-88.
+[11]Mozilla Developer Network.Mozilla wiki B2GOS[EB/OL].[2012-2016].https://wiki.mozilla.org/B2G.
 
 
 
