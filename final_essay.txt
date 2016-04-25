@@ -226,7 +226,7 @@ ssh-keygen -t rsa -C "youremail@example.com"		//获取ssh的密钥,添加id_rsa.
 
 
 
-
+买书：“金枝”
 
 
 
