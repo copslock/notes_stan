@@ -31,8 +31,8 @@ Gaia：
 全部都是由Html5，CSS，js编写，允许用户利用提供的API来实现系统调用和编写个人的web应用。
 
 ------------------------------------------------------------
-Gecko：
-本身是web引擎，作为火狐系统的引擎和表现层，作为借口连接着gonk和gaia，向上层提供各种web-API，让上层能通过安全的web-API访问下层的硬件，形成一个完整的框架，去更新管理各种核心的服务。
+Gecko：（Trident，WebKit，Presto）
+本身是一个开源的web排版引擎，在这里作为火狐系统的引擎和表现层，作为借口连接着gonk和gaia，向上层提供各种web-API，让上层能通过安全的web-API访问下层的硬件，形成一个完整的框架，去更新管理各种核心的服务。
 
 火狐系统的runtime，提供所有的标准规范的支持（html，css，javascript），让那些API在gecko上运行更加顺畅，它大体包含了网络栈，图像栈，布局引擎，一个JavaScript的虚拟机，以及可移植层。
 类比于android的运行环境（ART），预先将字节码转化机器码，减少每次程序启动到实际运行的这一段缓冲时间，让应用的运行更加流畅。
@@ -49,31 +49,66 @@ Gonk是主要的移植目标，火狐系统的所有控制都会通过它，gonk
 
 kernel space-->native-->user space-->browswe layer
 
-bootloader：
+【1】bootloader：
 bootloader本身只是一段开机引导程序，根据引导程序的指示去加载系统启动所需的关键进程，bootloader最终将系统控制权交给linux的内核。
 bootloader的显示即我们说的开机动画，由png格式的图作为每一帧的图像构成最终的动画，编译结果为splash.img。
 bootloader的结束伴随着modem镜像的加载。
 
-linux内核：
+【2】linux内核：
 这一部分基本和AOSP项目中对linux内核的应用是一样的，设备商也有可能对linux源码进行一些客制化的修改，不过一般来说这一部分是不会改动的。
-linux内核会启动设备同时建立运行必要的进程，根据init.rc和init.b2g.rc中的配置信息去启动一些关键的进程例如b2g，rild，最终启动用户空间的init进程。
 
-https://developer.mozilla.org/en-US/docs/Mozilla/Firefox_OS/Platform/Architecture
+linux内核会启动设备同时建立运行必要的进程例如init，通过解释init.rc和init.b2g.rc中的配置信息去启动一些关键的进程例如b2g（不同于Android的地方，也是火狐系统最重要的子进程），rild，最终启动用户空间的init进程。
 
+init进程启动以后，linux内核就会开始处理来自用户空间的各种系统调用和硬件中断，通过sysfs文件系统将硬件设备的特性展示给用户空间，下面这一段就是关于读取gecko中电池状态的代码：
 
+FILE *capacityFile = fopen("/sys/class/power_supply/battery/capacity", "r");
+double capacity = dom::battery::kDefaultLevel * 100;
+if (capacityFile) {
+  fscanf(capacityFile, "%lf", &capacity);
+  fclose(capacityFile);
+}
 
+gonk的init进程负责挂在需要的文件系统，同时生成启动系统的服务，它的作用就如同一个进程管理器一样，它根据init.rc文件的定义和命令去启用相应的系统服务，firefox和Android的init.rc所定义的服务有所区别。以下是init.rc中的一段示例代码：
 
+service b2g /system/bin/b2g.sh
+  class main
+  onrestart restart media
 
+------------------------------------------------------
+用户空间运行流程：
+图-用户空间运行流程结构图
+init和b2g进程作为基础的系统进程，用户通过运行在gecko层的b2g进程和其他诸如modem，fb，gps，camera等设备进行交互。
+（implemented by libxul.so）
 
+大部分daemon都是有init建立，然后又b2g去控制，后期init一般作为监管进程。
 
+【1】b2g
+作为最重要的子进程在和其他模块交互的过程中会建立很多子进程，同时也会加载很多web应用和相关信息，这些子进程都是通过gecko的一个消息传递系统IPDL来沟通的。
 
+b2g通过运行libxul，它参考b2g/app/b2g.js去获取默认的偏好设置？从偏好设置中它会打开一个用于描述的网页文件 b2g/chrome/content/shell.html，它会和文件omni.ja一同被编译。
 
+shell.html包括b2g/chrome/content/shell.js文件会触发gaia自带的系统应用。
 
+【2】rild
+该进程是面向modem编译处理器的接口，rild进程定义了硬件设备和modem硬件在无线接口层的沟通方式，它让客户机代码可以通过socket的方式连接到unix域，它在init.rc的定义实例如下：
 
+service ril-daemon /system/bin/rild
+  socket rild stream 660 root radio
 
+【3】rilproxy
+rild客户机对应的进程，作为b2g和rild之间的代理接口，它和rild，b2g进程之间都是通过socket交互。
 
+【4】mediaserver
+该进程控制着audio和video的播放，gecko（b2g进程）和mediaserver的交互通过一个叫做Android 远程程序调用(RPC)的机制，gecko可以解码OGG-vorbis，OGG-theora，webM格式的多媒体文件，直接将其传递给mediaserver，其他的多媒体文件就需要由libstagefright通过专有的编/解码器、硬件编码器去完成解码。
 
+【5】netd
+该进程控制关于网络层的配置
 
+【6】wpa_supplicant
+这是一个标准unix类服务，控制着设备对wifi热点的连接功能
+
+【7】dbus-daemon
+一个消息总线系统，火狐将其用在了蓝牙的通讯中。
 
 
 
