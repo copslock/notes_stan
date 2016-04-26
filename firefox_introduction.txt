@@ -1,0 +1,30 @@
+火狐系统是一个基于web的移动系统，这是一个基于linux、开放web标准、mozilla的gecko技术的移动端开源操作系统，是一个完全不同于以往的移动手机平台。
+
+我们对用户提供的适合于各种硬件特性的webAPI，Mozilla相信web会给开发者提供很大的机遇去创造一个非凡的产品。
+
+目标受众：
+web开发者、火狐平台开发者，面向对火狐平台感兴趣，告诉你如何去创建项目，编译适合设备的客制化的火狐系统，面对web开发者可以编写自己的web应用。
+
+火狐系统的基础：
+系统的整个用户接口UI即是一个web的应用，这个应用可以展示或者加载其他的web应用，你所做的任何操作，例如对用户接口的修改或者你自己开发的web应用，都必须遵循web开发的标准。
+从产品的角度来看，火狐系统是Mozilla公司对B2G项目的支持服务，B2G即boot-to-gecko，是一个项目的名字，火狐的用户接口UI被称为gaia，它包含着系统的预装应用和系统的函数。
+
+当前和未来的计划：
+当前支持和未来支持的手机类型 https://developer.mozilla.org/en-US/Firefox_OS/Phone_guide
+鉴于Mozilla官方已经宣布放弃了火狐系统在手机市场的竞争，可能会考虑进入到家用电器包括电视等电器系统的整合，这一部分不做展开。
+
+当前提供给web应用开发者的系统最新版本是Firefox OS 2.5。
+https://developer.mozilla.org/en-US/Firefox_OS/Releases
+
+开发者社区：
+略
+
+Building the operating system：
+B2G操作系统是基于Mozilla的Gecko引擎，建立在linux内核和用户空间硬件抽象层之上，这个硬件抽象层在android被称为HAL，在firefox这里被称为Gonk，它是Gecko移植的基础目标。
+
+Contributing to Gaia：
+让gaia能够启动起来。
+
+Developing apps for Firefox OS：
+利用网页前端的开发技术开发web应用。
+
