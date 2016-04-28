@@ -21,6 +21,10 @@ ML1:L1的信令处理后的输出??
 类型:MIB(最重要的传输参数),SIB1(其他所有SIB的调度信息和小区接入信息),SI承载的SIB2-SIB12
 终端在接收SIB1后,通过其中的"SchedulingInfoList"字段才能接收其他的SI消息...
 
+SIB9: 家庭nodeB名称信息
+SIB10-12: 地震和海啸预警消息提示
+SIB13: 请求获取跟一个或多个MBSFN区域相关的MBMS控制信息的信息
+
 ==LTE关键流程==
 [1]开机SIM附着-->PLMN/ACT选择-->小区选择-->合适小区位置登记更新-->UE进入idle状态
 
@@ -151,7 +155,7 @@ UE可以有多个DRB,每一个DRB和一个EPS-bearer对应.
 ==重选优先级==
 网络配置的频段组/频点优先级,通过"SI"或者是"RRCconnectionrelease"下发给用户,特定字段"cellReselectionPriority",取值0-7.
 
-GSM会在SI2quater中广播LTE邻区及本小区的优先级信息,3G网络会在SIB9中广播.
+GSM会在SI2quater中广播LTE邻区及本小区的优先级信息,3G网络会在W网的SIB9中广播.
 
 SIB1有是否允许RAT之间重选的开关"intraFreqReselection"
 SIB3同频/异频/异系统重选通用参数"CellReselectionInfoCommon",异频/异系统重选通用信息"CellReselectionServingFreqinfo",同频小区重选的信息"IntraFreqCellReselectionInfo"
