@@ -19,10 +19,12 @@ LTE_overview1			over --> 总结?
 LTE_CSFB_signaling      over
 diag_system_architecture    	P26/104
 AS_carrier_x_log_analysis 		P13-24
-LTE_cell_select_registered_TAU	over
+LTE_cell_select_registered_TAU			over
 LTE_Cell_Reselection_and_Redirection	over
-IMS VOLTE OVERVIEW		over --? 整理总结
-QMI architecture		next target
+IMS VOLTE OVERVIEW		over --> 整理总结
+QMI architecture		cut
+eMBMS overview and log	ready
+
 
 [z]3GPP协议文件:
 TS21.905 - vocabulary of 3GPP	//3GPP中涉及到的所有英文首字母缩写
@@ -46,4 +48,5 @@ firefox OS porting 	task-->总结错误,被停止掉
 8.NV-3446 TRM setting  P96的实例  PICS和NV值之间各参数之间的联系 --> 遇到问题再回看
 
 [4]毕设:
-??????
+论文第1,2,3,5章完成,第4章五一假期完成初稿,第6,7章需要实际操作收集log和反馈情况,大体的条目大纲已经列出.
+当前字数17000,完成第4章估计20000字左右,最后两章+致谢+总结,估计会在30000字左右,之后再做论文的裁剪工作.

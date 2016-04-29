@@ -1,0 +1,108 @@
+eMBMS,即使用LTE网络的组播broadcast服务,概念上没有区别.
+
+==eMBMS的概况==
+[1]特点
+高效,可扩展的一对多的广播解决方案; 
+LTE单频网络的广播模式; 
+标准定义在3GPP-LTE-rel-9中;
+0到60%的广播服务量可以提高eMBMS的10%增量;
+OFDM,MBSFN,和宽带宽可以提高网络的传输速率;
+对不同服务地区提供适用的网络服务;
+
+[2]组播和单播
+组播可以在高峰时期减轻单播的需求压力.
+
+[3]eMBMS服务
+在网络覆盖区域内,被分为单独的MBSFN区域,在MBSFN这个区域内的所有小区可以使用eMBMS服务,LTE的小区可以存在在不同MBSFN区域中(包含关系),MBSFN的区分不是以地理分布来区分,MBSFN可以允许UE同时接收多个小区的传输数据并且具有更低的误码率和速率.
+
+[4]eMBMS服务承载信道
+eMBMS的广播服务都承载在MTCH信道上.
+关系基本上是: eMBMS小区-->MBSFN分区-->PMCH-->MCCH和MTCH
+
+[5]对广播的接收
+UE可以在connected-mode下持续接收单播或组播数据,可以在idle的被寻呼状态下接收组播数据,eNB会让UE知道当前子帧是单播的还是MBSFN的,MBSFN的子帧的第1个或第2个symbols可以提供上行的单播控制信令,发射功率控制,但下行中不适用.
+
+==eMBMS的关键支持特性==
+eMBMS支持物理信道;
+可以发生在idle或connected状态;
+对无线链路失败和不在服务区的处理;
+eMBMS的移动性管理;
+持续的组播和单播服务;
+---
+Service announcements (USD/MPD)
+为音视频流媒体提供的Dynamic Adaptive Streaming over HTTP(DASH)协议
+文件下载中的自动修复(文件通过Unidirectional Transport (FLUTE)传输,前向纠错FEC算法策略);
+接收文件的报告;
+
+==eMBMS结构==
+图-硬件结构
+eMBMS提供系统,数据广播内容提供者,DASH编/译码器,BM-SC,eNB,modem,eMBMS服务层,DASH客户机,上层应用
+
+图-协议层
+主要分为AP的eMBMS服务层和MP的modem-LTE协议栈层
+
+图-modem层结构
+AP-->MP和AP的沟通链接-->modem侧主要分为三个连接对象: QMI_NAS,QMI_WDS,周边驱动
+
+图-AP的服务层结构
+面向应用层流媒体播放和文件下载两大功能的接口,组播服务的客户机MSDC(包含实时流媒体服务,文件下载服务,Service discovery/announcement,DASH网关,文件修复,接受报告,数据的FLUTE/FEC处理,面向modem侧的接口),HLOS这边的处理流媒体的DASH客户机,DRM代理,沟通MSDC和modem数据传输的IP栈,沟通MSDC和modem的QMI的eMBMS服务.
+
+==eMBMS功能==
+Service discovery/announcemen: 定义并发布用户服务的定义给UE
+流媒体/直播: 通过DASH的数据传输服务
+文件下载: 应用内容数据传输
+ADP: 获取并上报用户体验的报告,修复下载的损坏文件
+服务层配置: 特有的操作参数??
+
+==eMBMS流程==
+启动
+[1]上层应用注册MSDC,使能eMBMS接收服务
+[2]激活eMBMS后modem会去开始接收SIB-13(提供MCCH配置信息)
+[3]通过操作和提供的参数配置去建立单播的连接
+[4]接收到SDCH USD用户服务描述(包含SDP,TMGI,IP配置,FLUTE配置),它会根据相关配置之后开始通过组播接收"服务宣告".
+//在第一次之后,要再一次接收到"服务宣告"消息需要重复"x"次的重发.
+
+服务发现
+[1]SL请求modem去激活"服务宣告"TMGI信息
+[2]modem根据eMBMS子帧的配置和对MCCH信道的配置去接收SIB-2和SIB-13,modem通过接收MTCH配置去接收TMGI的信息
+[3]根据服务宣告对应的TMGI,modem初始化MTCH
+[4]SL接收用户服务描述,具体内容略
+//服务宣告的频率配置由操作者设定
+
+服务接收
+[1]根据信道指示,用户选择可用的服务/信道
+[2]SL决定和选择服务相关的用户服务描述
+[3]SL请求modem去激活服务TMGI
+[4]SL接收到需求的数据内容
+
+关联的传输流程:
+UE根据接收的USD的配置信息,初始化建立单播连接,完成配置后变成组播,开始传递数据内容?
+
+从SI的角度来看:
+UE驻留小区-->从SIB-1确认子帧信息,得到SIB-2和SIB-13的调度-->SIB-2认证用于下行MBSFN的所有子帧信息-->SIB-13获取MCCH配置信息,MCCH对应的MBSFN区域,调度MCCH等等
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
