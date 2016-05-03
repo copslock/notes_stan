@@ -29,30 +29,129 @@ gecko引擎会去解析并运行网页内容，依规定的形式向上层即用
 b2g进程：
 作为gecko的底层部件，和面向gonk的接口，是一个拥有特权高优先级的系统进程，将各种应用作为子进程启动管理。
 
-【2】和火狐系统相关的gecko的各类文件
+【2】和火狐系统相关的gecko的各类文件介绍
 b2g/：包含了火狐系统主要相关的函数
 
 b2g/chrome/content：包含了运行在系统应用上的js文件
 
 b2g/chrome/content/shell.html：对gaia层的入口，系统应用必须的html文件，shell.html文件关联了setting.js和shell.js这两个文件，settings.js包含了系统默认的设置参数，
-<script type="application/javascript;version=1.8" src="chrome://browser/content/settings.js"> </script>
-<script type="application/javascript;version=1.8" src="chrome://browser/content/shell.js"> </script>
+	
+	<script type="application/javascript;version=1.8" src="chrome://browser/content/settings.js"> </script>
+	<script type="application/javascript;version=1.8" src="chrome://browser/content/shell.js"> </script>
+
+b2g/chrome/content/shell.js：这个文件是在gaia层第一个被加载的系统应用，它会引入更多的需求模块，定义“sendCustomEvent”和“sendChromeEvent”去和gaia进行交互，提供之后的web应用的安装帮助，诸如indexedDB quota，RemoteDebugger，keyboard helper，screenshot tool之类。
+总之该文件最重要是去启动gaia系统应用，然后将整个系统的管理工作都交给这个gaia的上层应用。
+
+	let systemAppFrame =
+	  document.createElementNS('http://www.w3.org/1999/xhtml', 'html:iframe');
+		...
+	  container.appendChild(systemAppFrame);
+  
+b2g/app/b2g.js：该文件包含了预定义的设置，就像浏览器的设置文件一样，作用等同于gaia的pref.js文件，这些设置自己都是可以在设置中进行更改的，当然也可以在gaia的user.js中对其进行完全的重写再编译该脚本文件。
+----------
+dom/{API}
+新提供的API陈述都会放在dom/目录下，那些旧的API会放在dom/base/目录下，例如navigator.cpp
+
+dom/apps：加载.jsm文件，.js的API陈述例如webapp.js会被安装得到其本身。
+
+dom/apps/PermissionsTable.jsm：包含所有的权限定义都放在这个文件里。
+----------
+dom/webidl：webIDL是在定义web-API时用到的“特定语言”，更多内容可以参考如下。https://developer.mozilla.org/en-US/docs/Mozilla/WebIDL_bindings
+
+hal/gonk：该目录包含和gonk层移植相关的文件。
+
+----------
+module/libpref/src/init/all.js：所有的配置文件。
+
+/system/b2g/omni.ja和/system/b2g/omni.js：设备里资源的pack类型/Contains the pack of styles for resources in the device.
+
+【3】处理输入事件
+在gecko层中发生最多的事件就是用户操作的触发事件，诸如在上层你按下按钮，对屏幕的触屏操作等等都会以“输入事件”的方式表现反馈回上层，这些操作事件通过gonk里的一个nsIAPPShell进入到gecko，这是一个gecko的接口用于表示gecko应用的入口点，因此当输入设备驱动调用nsAPPShell对象时，gecko子系统就会发送对应的事件给上层的用户接口。
+https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIAppShell
+http://mxr.mozilla.org/mozilla-central/source/widget/gonk/nsAppShell.cpp
+
+	void GeckoInputDispatcher::notifyKey(nsecs_t eventTime,
+										 int32_t deviceId,
+										 int32_t source,
+										 uint32_t policyFlags,
+										 int32_t action,
+										 int32_t flags,
+										 int32_t keyCode,
+										 int32_t scanCode,
+										 int32_t metaState,
+										 nsecs_t downTime) {
+	  UserInputData data;
+	  data.timeMs = nanosecsToMillisecs(eventTime);
+	  data.type = UserInputData::KEY_DATA;
+	  data.action = action;
+	  data.flags = flags;
+	  data.metaState = metaState;
+	  data.key.keyCode = keyCode;
+	  data.key.scanCode = scanCode;
+	  {
+		MutexAutoLock lock(mQueueLock);
+		mEventQueue.push(data);
+	  }
+	  gAppShell->NotifyNativeEvent();
+	}
+
+这些“事件源”来自于标准LINUX的输入事件系统，火狐系统在这之上加了一个抽象层，向上层提供更适用于该系统的特性和过滤功能。
+源码参考，你可以自己修改源码，通过“EventHub::getEvents()”函数创建定义新的“输入事件”：http://mxr.mozilla.org/mozilla-central/source/widget/gonk/libui/EventHub.cpp
+图 - EventHub::getEvents函数
+一旦事件从gonk层传递到gecko层之后，它们就会被nsAppShell调度分配进入到“dom/”，事件最终由gecko本身使用或者调度给web应用作为反馈的DOM事件。
+
+	一个在dom/里已经封装好的“输入事件”
+	static nsEventStatus sendKeyEventWithMsg(uint32_t keyCode,
+											 uint32_t msg,
+											 uint64_t timeMs,
+											 uint32_t flags) {
+		nsKeyEvent event(true, msg, NULL);
+		event.keyCode = keyCode;
+		event.location = nsIDOMKeyEvent::DOM_KEY_LOCATION_MOBILE;
+		event.time = timeMs;
+		event.flags |= flags;
+		return nsWindow::DispatchInputEvent(event);
+	}
+
+【4】图形功能
 
 
 
+【5】HAL
 
 
 
+【6】DOM API
 
 
 
+===RIL===
+
+
+Communicating from rild to the DOM
+
+
+3G data
+
+
+Related DOM APIs
+
+===WIFI===
+
+WifiWorker.js
+
+
+DOMWifiManager.js
+
+
+DHCP
 
 
 
+===Network Manager===
 
 
-
-
+===Processes and threads===
 
 
 

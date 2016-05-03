@@ -54,6 +54,9 @@ bootloader本身只是一段开机引导程序，根据引导程序的指示去�
 bootloader的显示即我们说的开机动画，由png格式的图作为每一帧的图像构成最终的动画，编译结果为splash.img。
 bootloader的结束伴随着modem镜像的加载。
 
+The splash screen is displayed during the apps bootloader (also called the LK). 
+The display driver in LK will read the splash image data from a separate eMMC partition named as 'splash'
+
 【2】linux内核：
 这一部分基本和AOSP项目中对linux内核的应用是一样的，设备商也有可能对linux源码进行一些客制化的修改，不过一般来说这一部分是不会改动的。
 
