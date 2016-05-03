@@ -114,24 +114,120 @@ http://mxr.mozilla.org/mozilla-central/source/widget/gonk/nsAppShell.cpp
 	}
 
 【4】图形功能
+在底层上，gecko使用“OpenGL ES 2.0”去画出一个GL的报文，该报文会去封装硬件的“缓冲帧”。这个操作是在gonk层的nsWindow.cpp里面完成，参考代码如下：
+	OpenGL ES 2.0：https://www.khronos.org/opengles/2_X/
+	nsWindow文件：http://mxr.mozilla.org/mozilla-central/source/widget/gonk/nsWindow.cpp
+	gNativeWindow = new android::FramebufferNativeWindow();
+	sGLContext = GLContextProvider::CreateForWindow(this);
 
+“FramebufferNativeWindow”类是直接由Android启动，“FramebufferNativeWindow.cpp”
+这个使用gralloc-API去将显卡驱动的帧缓存区映射到内存中。
 
+gecko使用它的层级系统将帧内容画在屏幕上，具体发生的过程如下：
+1.Gecko draws separate regions of pages into memory buffers. Sometimes these buffers are in system memory; other times, they're textures mapped into Gecko's address space, which means that Gecko is drawing directly into video memory. This is typically done in the method BasicThebesLayer::PaintThebes().
+2.Gecko then composites all of these textures to the screen using OpenGL commands. This composition occurs in ThebesLayerOGL::RenderTo().
+
+gecko负责处理渲染需求的web内容的详细在此不做赘述。
 
 【5】HAL
+HAL作为火狐系统的硬件抽象层，同时也是被移植的层级之一，它控制底层硬件设备访问系统接口，通过使用c++的API去访问gecko的高层。
+这些API在不同平台的实现依赖于自身gecko的HAL，这里的HAL层并不是完全向gecko的js代码开放，这一部分的交互是有web-API来控制操作。
 
+当用户发起一个电话相关的请求，诸如拨号，接入wifi，连接蓝牙等操作，火狐系统的所有相关堆栈都会关联到这一个请求操作，上层发起，gaia层的应用和web内容通过web-API调用尝试访问底层设备，gecko层作为中间层将请求发送给gonk层，gonk层收到请求后触发各种响应，然后初始化建立并由gonk层管理。
+-----------------
+How the HAL works：
+以Vibration这个功能为例，这个API定义在hal/hal.h文件中：
+http://mxr.mozilla.org/mozilla-central/source/hal/Hal.h
 
+	void Vibrate(const nsTArray<uint32> &pattern);
+
+//vibrate函数经过上层操作然后被gecko调用向底层传递，gonk层对应的调用函数定义在这里：http://mxr.mozilla.org/mozilla-central/source/hal/gonk/GonkHal.cpp
+	
+	void Vibrate(const nsTArray<uint32_t> &pattern) {
+	  EnsureVibratorThreadInitialized();
+	  sVibratorRunnable->Vibrate(pattern);
+	}
+
+//发送请求让手机开始震动，同时从而启动了一个新线程，这个新线程定义在“VibratorRunnable::Run”中，主循环过程如下所示：
+	
+	while (!mShuttingDown) {
+	  if (mIndex < mPattern.Length()) {
+		uint32_t duration = mPattern[mIndex];
+		if (mIndex % 2 == 0) {
+		  vibrator_on(duration);
+		}
+		mIndex++;
+		mMonitor.Wait(PR_MillisecondsToInterval(duration));
+	  }
+	  else {
+		mMonitor.Wait();
+	  }
+	}
+
+//“vibrator_on”函数是gonk层的一个HAL-API，它会控制设备去启动一个震动马达，就内核来说，实际上这个API会使用sysfs向特定内核对象写入一个值，从而去发送相应的控制信息到内核驱动。
+
+-----------------
+Fallback HAL API implementations：
+当提供的HAL-API出现在某些不完全开放接口的平台，可能需要将HAL-API回退，即提供一些闲置接口函数，需要你自己去编写这个函数实现的具体内容。
+		void Vibrate(const nsTArray<uint32_t> &pattern) {
+	}
+	
+-----------------
+Sandbox implementations：沙盒实现
+不同的web应用和内容运行时具有不同的特权和优先级，需要一个中心进程来管理它们之间可能出现的竞争，所以使用了一个在HAL层中叫做“沙盒”的实现方式，即各进程的代理请求都会通过使用“IPDL”传递给b2g进程。
+
+以之前的那个手机振动的功能为例，“Vibrate()”函数定义在“hal/sandbox/SandboxHal.cpp”文件中：http://mxr.mozilla.org/mozilla-central/source/hal/sandbox/SandboxHal.cpp
+
+	void Vibrate(const nsTArray<uint32_t>& pattern, const WindowIdentifier &id) {
+	  AutoInfallibleTArray<uint32_t, 8> p(pattern);
+
+	  WindowIdentifier newID(id);
+	  newID.AppendProcessID();
+	  Hal()->SendVibrate(p, newID.AsArray(), GetTabChildFrom(newID.GetWindow()));
+	}
+//发送由PHal接口定义的消息，具体描述在hal/sandbox/PHal.ipdl文件中：http://mxr.mozilla.org/mozilla-central/source/hal/sandbox/PHal.ipdl
+
+	Vibrate(uint32_t[] pattern);
+	
+//该消息的接受者“HalParent::RecvVibrate()”，函数具体内容如下，定义在文件“hal/sandbox/SandboxHal.cpp”中：http://mxr.mozilla.org/mozilla-central/source/hal/sandbox/SandboxHal.cpp
+
+	virtual bool RecvVibrate(const InfallibleTArray<unsigned int>& pattern,
+				const InfallibleTArray<uint64_t> &id,
+				PBrowserParent *browserParent) MOZ_OVERRIDE {
+
+	  hal::Vibrate(pattern, newID);
+	  return true;
+	}
+
+以上流程只是简单展示了消息是如何从上层的内容进程通过gecko传递到gonk，最终通过gonk的HAL层的相关API，完成对实际硬件设备驱动的控制。
 
 【6】DOM API
 
 
 
+
+
+
 ===RIL===
+无线接口层的细节，主要模块部件如下：
+rild：
+用于专用的调制解调器固件的服务进程。
 
+rilproxy：
+rild和b2g进程沟通的接口，rild的代理消息端口。
 
+b2g：
+定义在gecko里的关键进程，
+
+Gecko's content process：
+“nsIRILContentHelper”接口提供一个XPCOM服务，让它
+
+----------
 Communicating from rild to the DOM
 
 
-3G data
+3G data：
+
 
 
 Related DOM APIs
