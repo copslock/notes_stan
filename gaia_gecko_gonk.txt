@@ -202,7 +202,7 @@ Sandbox implementations：沙盒实现
 以上流程只是简单展示了消息是如何从上层的内容进程通过gecko传递到gonk，最终通过gonk的HAL层的相关API，完成对实际硬件设备驱动的控制。
 
 【6】DOM API
-
+留白
 
 
 
@@ -217,39 +217,179 @@ rilproxy：
 rild和b2g进程沟通的接口，rild的代理消息端口。
 
 b2g：
-定义在gecko里的关键进程，
+定义在gecko里的关键进程，通常也被叫做“chrome”进程，相关的这个文件dom/system/gonk/ril_worker.js会新建一个工作队列通过rildproxy和rild沟通，去实现RIL状态机。
+“nsIRadioInterfaceLayer”接口，是b2g这个主进程中的XPCOM服务的实现，它负责了ril_work.js线程和其他gecko部件及其线程的消息交互。
 
 Gecko's content process：
-“nsIRILContentHelper”接口提供一个XPCOM服务，让它
+伴随着gecko的内容进程，“nsIRILContentHelper”接口会提供一个XPCOM服务，它能让代码实现部分文件对象模型，例如在b2g进程中电话和短信的API和无线接口的交互。
 
 ----------
-Communicating from rild to the DOM
+rild进程和DOM之间的交互：
+当modem侧收到呼叫来电，它会提醒rild进程使用相应的通信协议去准备一条适用于客户机的消息，ril.h文件这里的定义和Android系统中的电话部分一样，rild会生成并向rildproxy发送一条消息“RIL_UNSOL_RESPONSE_CALL_STATE_CHANGED”，rildproxy和rild连接后一直在执行它自己函数的主循环部分，一旦接收到rild的消息以后，它会将消息写入套接字从而连接rildproxy和b2g进程。
+	
+	ret = read(rilproxy_rw, data, 1024);
+	if(ret > 0) {
+	  writeToSocket(rild_rw, data, ret);
+	}
 
+	int ret = read(fd, mIncoming->Data, 1024);
+	// ... handle errors ...
+	mIncoming->mSize = ret;
+	sConsumer->MessageReceived(mIncoming.forget());
+	
+b2g进程接收，最终由一个系统统一的消息管理器将所有消息解包再调配给ril_worker.js线程，去实现RIL状态机，参考如下函数RILReceiver::MessageReceived()的功能：
 
+	virtual void MessageReceived(RilRawData *aMessage) {
+	  nsRefPtr<DispatchRILEvent> dre(new DispatchRILEvent(aMessage));
+	  mDispatcher->PostTask(dre);
+	}
+	
+ril_worker.js这个任务会去调用到onRILMessage()函数，这里使用了java的一个API实现：
+
+	return JS_CallFunctionName(aCx, obj, "onRILMessage", NS_ARRAY_LENGTH(argv),
+							   argv, argv);
+
+onRILMessage()函数将消息字节按照一定格式进行排列打包，每一个打包好的消息包会被单独发送给需要的处理程序中去。
+
+	handleParcel: function handleParcel(request_type, length) {
+	  let method = this[request_type];
+	  if (typeof method == "function") {
+		if (DEBUG) debug("Handling parcel as " + method.name);
+		method.call(this, length);
+	  }
+	}
+
+通过获取目标的请求类型，找到对应处理程序，RIL_UNSOL_RESPONSE_CALL_STATE_CHANGED的处理程序如下：
+
+	RIL[UNSOLICITED_RESPONSE_CALL_STATE_CHANGED] = function UNSOLICITED_RESPONSE_CALL_STATE_CHANGED() {
+	  this.getCurrentCalls();
+	};
+
+状态机通过调用getCurrentCall()函数获取当前的呼叫状态
+
+	getCurrentCalls: function getCurrentCalls() {
+	  Buf.simpleRequest(REQUEST_GET_CURRENT_CALLS);
+	}
+
+一方面呼叫接通的请求发向rild，伴随着“RIL_UNSOL_RESPONSE_CALL_STATE_CHANGED”消息，反方向rild也对ril_worker.js的处理程序发出响应“REQUEST_GET_CURRENT_CALLS”获取当前呼叫状态，如果确认呼叫状态发生变化，ril_worker.js会向nsIRadioInterfaceLayer服务发出呼叫状态变化的提醒消息。
+	
+	_handleChangedCallState: function _handleChangedCallState(changedCall) {
+	  let message = {type: "callStateChange",
+					 call: changedCall};
+	  this.sendDOMMessage(message);
+	}
+
+onmessage()接收到呼叫状态变化的提醒事件。
+
+	onmessage: function onmessage(event) {
+	   let message = event.data;
+	   debug("Received message from worker: " + JSON.stringify(message));
+	   switch (message.type) {
+		 case "callStateChange":
+		   // This one will handle its own notifications.
+		   this.handleCallStateChange(message.call);
+		   break;
+	   ...
+
+以上所有的消息调度都是使用了PPMM父进程消息管理器。
+	handleCallStateChange: function handleCallStateChange(call) {
+	  [some internal state updating]
+	  ppmm.sendAsyncMessage("RIL:CallStateChanged", call);
+	}  
+
+在内容进程中，消息由CPMM子进程消息管理器的nsIRILContentHelper服务的receiveMessage()函数接收。
+
+	receiveMessage: function receiveMessage(msg) {
+	  let request;
+	  debug("Received message '" + msg.name + "': " + JSON.stringify(msg.json));
+	  switch (msg.name) {
+		case "RIL:CallStateChanged":
+		  this._deliverTelephonyCallback("callStateChanged",
+										 [msg.json.callIndex, msg.json.state,
+										 msg.json.number, msg.json.isActive]);
+		  break;
+
+在每一个电话呼叫注册时，反过来调用nsIRILTelephonyCallback.callStateChanged()函数。
+每一个web应用去访问“window.navigator.mozTelephony”API中已经注册的一个呼叫对象，从而将消息事件分配到对应的web应用中去，例如呼叫状态变化或者新的呼叫事件。
+
+	NS_IMETHODIMP Telephony::CallStateChanged(PRUint32 aCallIndex, PRUint16 aCallState,
+											  const nsAString& aNumber, bool aIsActive) {
+	  [...]
+
+	  if (modifiedCall) {
+		// Change state.
+		modifiedCall->ChangeState(aCallState);
+
+		// See if this should replace our current active call.
+		if (aIsActive) {
+		  mActiveCall = modifiedCall;
+		}
+
+		return NS_OK;
+	  }
+
+	  nsRefPtr<TelephonyCall> call =
+			  TelephonyCall::Create(this, aNumber, aCallState, aCallIndex);
+	  nsRefPtr<CallEvent> event = CallEvent::Create(call);
+	  nsresult rv = event->Dispatch(ToIDOMEventTarget(), NS_LITERAL_STRING("incoming"));
+	  NS_ENSURE_SUCCESS(rv, rv);
+	  return NS_OK;
+	}
+
+上层应用可以接受这些事件并更新自身的用户接口。
+
+	handleEvent: function fm_handleEvent(evt) {
+	  switch (evt.call.state) {
+		case 'connected':
+		  this.connected();
+		  break;
+		case 'disconnected':
+		  this.disconnected();
+		  break;
+		default:
+		  break;
+	  }
+	}
+	
+----------
 3G data：
+移动网络通信服务部分，控制数据在modem的传输模式等等。
 
-
-
-Related DOM APIs
+----------
+所有和RIL交互相关的DOM-API：略
 
 ===WIFI===
+wifi_backend作为火狐系统wifi控制的最重要部分，辅助去管理控制wifi的驱动使能和网络的接口使能等等，backend也类似于一个状态机。
 
-WifiWorker.js
+----------
+WifiWorker.js：
+wifi状态机的实现和完成驱动需要的代码
 
+实现wifi接口的主要逻辑部分的文件，运行在b2g进程之中，由SystemWorkerManager将其实例化，这个文件可以分为一个匿名函数和这个函数的原型wifiworker共两部分，匿名函数最终被WiFi管理器作为一个本地API提供出来，包含着各种事件提示信息
 
-DOMWifiManager.js
+这个匿名函数包含了各种逻辑关系让用户可以单独控制它与请求者之间去完成请求和响应的交互。
 
+wifiworker对象位于wifi管理器和DOM之间，它从dom处接收请求向dom发送对应事件信息响应，保持着请求者的状态信息并控制着下一步的行为操作。
 
+----------
+DOMWifiManager.js：
+wifi功能实现的相关API都在这里开放给上层web内容，API定义在nsIWifi.idl文件中。
+
+通过使用API传输调用者和wifiworker之间的信息，
+
+----------
 DHCP
-
-
+linux标准的DHCP客户程序“dhcpcd”负责处理着DHCP和DNS，但是它不能对网络连接状态做出响应，因此火狐系统在每一次连接无线网络时都会重启一次dhcpcd程序。它负责了路由相关的设置，使用网络管理器去告诉内核DNS服务器的相关内容。
 
 ===Network Manager===
-
+移动数据网络和wifi两大部分的管理
 
 ===Processes and threads===
+略
 
-
+根据进程状态分为了多个控制组，大约有6种优先级和5个控制组。
+一个应用的所有相关进程、线程都被分配到同一个控制组，线程优先级的变化只会发生在一个主要事件的发生时。
+POSIX可移植性操作系统接口
 
 
 
