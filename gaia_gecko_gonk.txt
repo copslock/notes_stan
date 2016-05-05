@@ -202,11 +202,17 @@ Sandbox implementations：沙盒实现
 以上流程只是简单展示了消息是如何从上层的内容进程通过gecko传递到gonk，最终通过gonk的HAL层的相关API，完成对实际硬件设备驱动的控制。
 
 【6】DOM API
-留白
+DOM的API实际上就是web内容和gecko沟通的方式，更多的细节不做赘述，可以自行参考“文档对象模型”资料，它包含了一个外来函数接口FFI和对象模型OM，在js和c++之间。
 
-
-
-
+例如上面的vibration的API就是通过IDL接口开放给上层的，IDL接口实例：
+	[implicit_jscontext] void mozVibrate(in jsval aPattern);
+jsval参数指示mozVibrate函数去接收所有的js值，IDL编译器xpidl会生成一个c++的接口，定义如下：
+	NS_IMETHODIMP Navigator::MozVibrate(const jsval& aPattern, JSContext* cx) {
+	  // ...
+	  hal::Vibrate(pattern);
+	  return NS_OK;
+	}
+这个接口会去调用HAL::Vibrate函数把DOM传递到gecko的HAL层，由此进入HAL层进一步操作控制设备驱动，DOM本身并不关心其运行的底层和平台（gonk，OSX，Windows），
 
 ===RIL===
 无线接口层的细节，主要模块部件如下：
