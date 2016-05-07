@@ -1,0 +1,278 @@
+===CyanogenMod porting===
+一个AOSP的分支，进行了大量的代码裁剪修改，以此去支持更多的类安卓设备。
+
+可移植运行库（NSPR）
+
+===porting basics(基于Android手机的移植)===
+
+b2g中使用了大量的安卓的驱动程序，在这之上我们会加上一个gecko的引擎和在其之上的用web开发的用户界面。
+
+【1】配置我们编译系统
+GNU/linux系统环境下，除去我们在第三章的开发环境准备之外，还需要对即将到来的b2g准备更多的工具和插件，linux系统的要求必须是64位的，根据官方的开发文档，在Ubuntu14.04LTS版本上，我们需要的操作如下：
+sudo dpkg --add-architecture amd64
+获取64位的架构包
+
+sudo apt-get install autoconf2.13 bison bzip2 ccache curl flex gawk gcc g++ g++-multilib git ia32-libs lib32ncurses5-dev lib32z1-dev libasound-dev libgconf2-dev libgl1-mesa-dev libx11-dev lzop make zip libxml2-utils nodejs unzip python
+上面这个命令包含了大多数我们需要的工具，其中gcc/g++，python，git这些本为系统自带不安装也可，不过可以再确认一次之前是否安装成功。
+
+【2】下载源码
+火狐代码部分：
+可以选择使用http或ssh的方式获取代码，推荐当然是ssh，连接稳定且安全。
+git clone https://github.com/mozilla-b2g/B2G.git
+git clone git@github.com:mozilla-b2g/B2G.git /workspace
+
+git clone https://github.com/mozilla-b2g/b2g-manifest.git
+git clone git@github.com:mozilla-b2g/b2g-manifest.git /workspace
+
+代码同步：repo sync
+
+安卓部分：
+git。。。
+repo。。。
+
+【3】原生Android系统/firmware的备份
+一些系统板层级的支持文件，在后续的移植和编译过程中也会被用到
+mkdir my_device_backup
+cd my_device_backup
+adb pull /system system
+
+【4】config.sh添加设备
+在config.sh中可以看到很多已有的被移植的设备列表，我们选取一个和我们目标设备最相近的已知设备，参考这个相似设备，我们将它的manifest进行修改并作为目标设备的config.sh所需的文件清单的引导。
+
+选择msm8974平台的nexus-5的manifest作为我们仿写的对象。
+修改成果如下：
+。。。
+
+【5】为设备创造对应的-配置树，即在/device/manufacturer/device_id/目录下可能需要包含如下的文件：
+
+B2G/glue/gonk-ics/device/<manufacturer>/<device_id>  (device configuration tree for ICS) 配置树
+
+AndroidKernel.mk
+AndroidBoard.mk
+AndroidProducts.mk
+BoardConfig.mk
+extract-files.sh
+full_<device_id>.mk
+idc files for touchscreen
+init files (init.rc, init.<target>.rc, uevent.rc, ...)
+
+关于 extract-files.sh：
+B2G 会用到一些原厂设备特有的 binary blobs，包括 execution files，shared libraries，WIFI firmware，system configuration 等。不同设备之间有相当的差异，要怎么判断哪些文件需要被提取呢？这部份需要一些经验。可以先参考相似 solution 设备的做法，再根据 flash 后，B2G 跑起来的 logcat 讯息来调整。
+
+截图-配置树目录图
+
+【6】修改并重新编译bootimg
+
+因为我们有当前Android项目源码，参照我们之前已经安装的ARM编译工具，hexagon等等，将Android项目源码编译之后得到了镜像文件诸如boot.img，system.img等等，（这里可以展示一下Android项目源码的分区表，包含的所有img列表都在这里）：
+。。。
+
+从Android项目代码的编译输出目录中找到我们需要的boot.img，利用unmkbootimg进行解压，得到linux核心的zImage和虚拟磁盘initramfs.cpio.gz（执行命令截图结果）
+。。。
+
+修改ramdisk即initramfs.cpio.gz文件，再次将其进行解压，参考命令如下：（执行命令截图结果）
+gunzip -c /path/to/your/boot.img | cpio -i
+。。。
+
+针对火狐和安卓系统的不同，对init.rc中启动的服务进行必要屏蔽和添加，这里需要学习init.rc的语法。
+前面提到，要在这个档案中移除不需要的进程并加入B2G的相关进程，实际的内容可以参考已经支持的设备。
+init.rc会由AndroidBoard.mk将其复制到目标的编译输出目录，最终它的相关内容会产生在boot.img之中。
+除此以外，AndroidBoard.mk还会将其它的系统文件(ex：init.qcom.rc，uevent.rc…)同样输出在编译结果的输出目录中。
+在init.rc文件中添加导入代码，导入init.b2g.rc
+on early-init
+    start ueventd
+    import /init.b2g.rc
+
+（修改内容待添加）。。。
+
+改动后的init.rc文件如下：
+。。。
+
+让某些目录文件在之后的已挂载系统中也可以被修改和读写
+chmod 0755 /system/b2g/b2g
+chmod 0755 /system/b2g/updater
+chmod 0755 /system/b2g/plugin-container
+
+修改BoardConfig.mk中的TARGET_PROVIDES_INIT_RC去指定你想要使用的init.rc文件
+
+
+bootimg中的所有修改都完成以后，再用到b2g项目源码目录下/out/host/linux_x86/bin里自带的两个工具mkbootfs和mkbootimg分别将ramdisk和bootimg整体进行打包操作：（执行命令截图保存）
+B2G/out/host/linux-x86/bin/mkbootfs initramfs_dir | cpio -o -H newc | gzip > ../newinitramfs.cpio.gz
+B2G/out/host/linux-x86/bin/mkbootimg --kernel zImage --ramdisk newinitramfs.cpio.gz --base 0x200000 --cmdline 'androidboot.hardware=aphone' -o new_boot.img
+
+这个new_boot.img即是我们移植完成的系统引导关键镜像。
+
+【7】编译烧写
+简单的来说只需要将你修改完成的bootimg移动到b2g项目代码编译输出的目录“out/target/product/$DEVICE/”下，然后使用fastboot单刷也行或者b2g项目自带的build.sh和flash.sh脚本也可以，即可完成此编译烧录过程。
+
+adb reboot bootloader
+fastboot flash boot newboot.img
+fastboot reboot
+
+./config.sh <device_id> default.xml
+./build.sh
+./flash.sh
+
+单刷：
+./flash.sh gaia
+./flash.sh gecko
+./flash.sh system
+./flash.sh boot
+./flash.sh user
+================================================================================================================
+================================================================================================================
+================================================================================================================
+
+===构建和编译===
+===B2G OS build process summary===
+【】
+构建的关键目标即以下这3个镜像文件：
+the boot.img
+包括linux内核的虚拟磁盘ramdisk和初始化"脚本"init.rc等等，在系统启动时ramdisk会被加载到内存中使用，即我们之前系统框架章节说到的初始化挂载的根文件系统。
+boot.img会被拷贝到设备上的boot分区，在系统启动之后，利用adb工具在根目录下看到的内容即是ramdisk。
+boot.img建立对于root用户的权限在目录root，文件default.prop中。
+
+the system.img
+包括gonk、gecko、gaia、b2g这些firefoxOS的核心部分system.img将会被复制到手机的system分区上，当系统成功启动后，可以在/system目录下查看。
+
+the recovery.img
+和bootimg一样，包含一个kernel.img和ramdisk，还包含了一个有一些差异的初始化脚本init.rc，会去引导用户设定一些恢复手机系统的命令(用于恢复的镜像)，recovery.img会被复制到设备的recovery分区，在正常的手机系统中，这个镜像并不会被挂载，只用于手机在进行OTA升级或者备份恢复时，类似于桌面系统windows的PE工具一样。
+
+
+
+
+
+
+
+
+
+
+
+
+===Preparing for your first build===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+===build b2g OS===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+===Building and installing FOTA community builds===
+可放弃掉这部分
+===================================================
+------------------------------------
+adb改为root权限：
+setprob.ro.debuggable=1
+------------------------------------
+安卓系统的编译文件makefile的参数介绍：http://www.kandroid.org/online-pdk/guide/build_system.html#androidBuildVariants
+编译文件makefile的参数详解：gaia和gecko模块
+【1】gaia
+gaia涉及参数太多，详细直接看源码
+https://github.com/mozilla-b2g/gaia/blob/master/Makefile
+
+【2】gecko：
+MOZ_BUILD_DATE
+Sets the build id to a specific build date/time.
+B2G_DEBUG
+xxx
+VARIANT
+Specifies the Gecko variant you want to build. Valid types are detailed below:
+eng	
+This is the default flavor. A plain make is the same as make eng.
+
+Installs modules tagged with: eng, debug, user, and/or development.
+Installs non-APK modules that have no tags specified.
+Installs APKs according to the product definition files, in addition to tagged APKs.
+ro.secure=0
+ro.debuggable=1
+ro.kernel.android.checkjni=1
+adb is enabled by default.
+marionette is enabled
+Does not have update notifications by default ( B2G_UPDATER=1 to turn on )
+user	
+This is the flavor intended for final release.
+
+Installs modules tagged with user.
+Installs non-APK modules that have no tags specified.
+Installs APKs according to the product definition files; tags are ignored for APK modules.
+ro.secure=1
+ro.debuggable=0
+adb is disabled by default.
+Optimizes by default
+userdebug	make userdebug
+The same as user, except:
+
+Also installs modules tagged with debug.
+ro.debuggable=1
+adb is enabled by default.
+marionette is enabled
+---------------------------------------
+编译命令参考：gaia和gecko模块
+【1】gaia
+make
+Makes only the profile.
+make reset-gaia
+Deletes the previous profile and installs a new Gaia profile.
+make install-gaia
+Installs Gaia on top without deleting anything.
+make production
+Does the same thing as PRODUCTION=1 make reset-gaia.
+make clean
+Removes the generated profile.
+make really-clean
+Removes the generated profile and the directory's xul-runner; you should only run this when things are totally borked.
+【2】gecko：
+./build.sh buildsymbols
+Makes build symbols for debugging; see Uploading symbols to Mozilla's symbol server.
+./build.sh gecko-update-full
+Creates an OTA mar file; see Firefox OS update packages.
+./build.sh gecko-update-fota
+Creates a FOTA mar/zip based on files containing only a subset of files and directories; see Firefox OS update packages.
+./build.sh gecko-update-fota-full
+Creates a FOTA mar/zip based on files; see Firefox OS update packages.
+./build.sh gecko-update-fota-fullimg
+Creates a FOTA mar/zip based on partitions; see Firefox OS update packages.
+================================================================================================================
+================================================================================================================
+================================================================================================================
+make reset-gaia
+make reset-gaia PRODUCTION=1
+重置gaia会删除所有的用户数据。
+
+B2G的通过OTA更新等等设置。
+新建一个用户配置文件去设置OTA的宏：/B2G/.userconfig
+export B2G_UPDATER=1

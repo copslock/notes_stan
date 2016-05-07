@@ -192,24 +192,28 @@ ssh-keygen -t rsa -C "youremail@example.com"		//获取ssh的密钥,添加id_rsa.
 
 第四章 我们做了些什么（抄开发流程）
 
-
+？？？？
+将你移植设备的安卓源码进行bulid，编译等操作，确认它的确可以让你的设备启动起来。
+在原生代码基础上，根据火狐系统的要求进行代码修改，然后重新编译烧录验证。
 
 第五章 问题和解决方法（调试）
 
+8939转到8974平台成功完成移植，mobee/mirage转到namek
 
+草稿完成
 
 【7】结论
+麻烦= =
 
 【8】致谢
+麻烦= =
 
 【9】参考文献（文献的格式）
-找几本自己看的书，c的，编译链接的，网站的电子文献、论坛文章、技术博客参考，
-
 [1]书
 [2]电子文献
 
 
-[1]Mozilla Developer Network and individual contributors.Introduction to Firefox OS[EB/OL].[2005-2016].https://developer.mozilla.org/en-US/Firefox_OS/Introduction.
+[1]Mozilla Developer Network and individual contributors.Introduction to Firefox OS[EB/OL].[2005-2016].https://developer.mozilla.org/en-US/docs/Mozilla/B2G_OS.
 [2]Android Open Source Project.Establishing a Build Environment[EB/OL].[2008-2016].https://source.android.com/source/initializing.html.
 [3]Mozilla-b2g.B2G source code[CP/OL].[2012-2015].https://github.com/mozilla-b2g/B2G.
 [4]Qualcomm Technologies，Inc.CreatePoint[J/OL].[2011-2016].https://createpoint.qti.qualcomm.com/dashboard/public/.
@@ -222,7 +226,7 @@ ssh-keygen -t rsa -C "youremail@example.com"		//获取ssh的密钥,添加id_rsa.
 [10]刘民博，邓中亮.基于ARM的嵌入式Linux操作系统移植的研究[J].计算机系统应用，2006(11)：87-88.
 [11]Mozilla Developer Network.Mozilla wiki B2GOS[EB/OL].[2012-2016].https://wiki.mozilla.org/B2G.
 
-
+[12]薛东升.Firefox OS的奇幻漂流——全面解析新一代Open Web移动操作系统.程序员[J/OL].http://www.csdn.net/article/2013-04-15/2814887，2013(4).
 
 
 
