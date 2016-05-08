@@ -196,6 +196,9 @@ ssh-keygen -t rsa -C "youremail@example.com"		//获取ssh的密钥,添加id_rsa.
 将你移植设备的安卓源码进行bulid，编译等操作，确认它的确可以让你的设备启动起来。
 在原生代码基础上，根据火狐系统的要求进行代码修改，然后重新编译烧录验证。
 
+安卓源码的下载：repo-->初始化repo客户机-->reposync同步安卓源码树-->下载
+
+
 第五章 问题和解决方法（调试）
 
 8939转到8974平台成功完成移植，mobee/mirage转到namek
@@ -214,7 +217,7 @@ ssh-keygen -t rsa -C "youremail@example.com"		//获取ssh的密钥,添加id_rsa.
 
 
 [1]Mozilla Developer Network and individual contributors.Introduction to Firefox OS[EB/OL].[2005-2016].https://developer.mozilla.org/en-US/docs/Mozilla/B2G_OS.
-[2]Android Open Source Project.Establishing a Build Environment[EB/OL].[2008-2016].https://source.android.com/source/initializing.html.
+[2]Android Open Source Project.The Android Source Code[EB/OL].[2008-2016].http://source.android.com/source/index.html.
 [3]Mozilla-b2g.B2G source code[CP/OL].[2012-2015].https://github.com/mozilla-b2g/B2G.
 [4]Qualcomm Technologies，Inc.CreatePoint[J/OL].[2011-2016].https://createpoint.qti.qualcomm.com/dashboard/public/.
 [5]三星手机开发者论坛.Firefox-os(B2G)移植流程概谈[EB/OL].[2012-9-23]http://www.sanxing.org/thread-2855-1-1.html.
@@ -261,7 +264,7 @@ If you are still looking for that one person who will change your life， take a
 
 想买的东西:
 1。一双鞋 预算400
-2。海贼浙美版的单行本(目前为止所有)+5本设定集公式书(红黄蓝绿深蓝) 预算600左右
+done2。海贼浙美版的单行本(目前为止所有)+5本设定集公式书(红黄蓝绿深蓝) 预算600左右
 2。箱娘xx
 
 3。filco键盘 圣手二代 预算1000

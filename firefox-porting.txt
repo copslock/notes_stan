@@ -63,6 +63,10 @@ B2G 会用到一些原厂设备特有的 binary blobs，包括 execution files�
 
 【6】修改并重新编译bootimg
 
+如果在没有项目源码情况下需要将当前手机中正在使用的镜像文件拉出来，也是有办法的：
+cat/proc/mtd
+cat/dev/mtd/mtdx > /sdcard/xxx.img
+
 因为我们有当前Android项目源码，参照我们之前已经安装的ARM编译工具，hexagon等等，将Android项目源码编译之后得到了镜像文件诸如boot.img，system.img等等，（这里可以展示一下Android项目源码的分区表，包含的所有img列表都在这里）：
 。。。
 
@@ -123,19 +127,112 @@ fastboot reboot
 ================================================================================================================
 
 ===构建和编译===
-===B2G OS build process summary===
-【】
+
+【1】构建的关键
+火狐系统的构建和编译需要相当长的时间和硬件准备，即使这样编译过程也可能出现很多错误，需要根据实际情况反馈对系统环境或代码结构做出改动和调整。
+
 构建的关键目标即以下这3个镜像文件：
+-------------
 the boot.img
 包括linux内核的虚拟磁盘ramdisk和初始化"脚本"init.rc等等，在系统启动时ramdisk会被加载到内存中使用，即我们之前系统框架章节说到的初始化挂载的根文件系统。
-boot.img会被拷贝到设备上的boot分区，在系统启动之后，利用adb工具在根目录下看到的内容即是ramdisk。
-boot.img建立对于root用户的权限在目录root，文件default.prop中。
 
+boot.img会被拷贝到设备上的boot分区，在系统启动之后，利用adb shell在根目录下看到的内容即是ramdisk，ramdisk还会向系统提供一套精简过的unix-like工具包。
+
+adb修改手机default.prop文件获得root权限：
+setprob.ro.debuggable=1
+
+我们将修改完成的镜像重新烧录时，通过adb进入并停留在手机bootloader见面（对于原生的系统来说就是显示splash.img，即linux小企鹅的界面），然后使用fastboot命令进行镜像对应分区的烧录即可。
+-------------
 the system.img
-包括gonk、gecko、gaia、b2g这些firefoxOS的核心部分system.img将会被复制到手机的system分区上，当系统成功启动后，可以在/system目录下查看。
+火狐操作系统的关键内容组成。
 
+少部分的gonk火狐系统的底层组件，这一部分是不需要修改的。
+大部分gecko的面向上层的火狐系统接口。
+b2g这样的核心进程和其他关键模块进程（ril，。。。）的可执行文件。
+system.img将会被复制到手机的system分区上，当系统成功启动后，可以在/system目录下查看。
+-------------
 the recovery.img
-和bootimg一样，包含一个kernel.img和ramdisk，还包含了一个有一些差异的初始化脚本init.rc，会去引导用户设定一些恢复手机系统的命令(用于恢复的镜像)，recovery.img会被复制到设备的recovery分区，在正常的手机系统中，这个镜像并不会被挂载，只用于手机在进行OTA升级或者备份恢复时，类似于桌面系统windows的PE工具一样。
+和bootimg一样，包含一个kernel.img和有一点差别的ramdisk，还有一个不同的初始化脚本，会去引导当前设备进行恢复手机系统的命令操作。
+recovery.img会被复制到设备的recovery分区，在正常的手机系统中，这个镜像并不会被挂载，只用于手机在进行OTA升级或者备份恢复时，类似于桌面系统windows的PE工具一样。
+recovery镜像中不同于bootimg的初始化脚本即执行恢复操作的脚本文件，除此之外还包含一个特殊的二进制文件，这个二进制文件即整个恢复执行操作的解释器。
+-------------
+userdata.img
+对应根目录下的/data分区，主要用户存放用户数据，同时在/data/b2g/目录下有Gecko层的界面配置信息，/data/local/webapps/目录下还包含着Gaia层的本地预装在手机上的web应用程序。
+（以上部分能在文件目录中有截图最佳）
+
+
+【2】准备，配置，构建，安装
+准备步骤已有。
+-------------
+配置：
+根据你下载的b2g可以找到一个config.sh的脚本文件，打开就可以看到如下很多已支持的硬件设备，现在我们要做的就是选用一个相似平台设备的配置文件，修改它的manifest文件，完成自己目标设备的源码编译前期的配置工作。
+在源码的配置过程中还会用到AOSP项目的repo工具，用于下载或更新构建过程中所需源码，不同版本的源码都会保存在.repo/projects目录下面，配置过程会花费很长时间。
+
+更新b2g代码：（只做参考，不用全部执行，一般fetch或者pull操作即可，有代码冲突时用rebase命令）
+git fetch origin
+git checkout origin/master
+git pull
+repo sync
+repo sync gaia
+。。。
+
+查看分支git show HEAD
+
+首先参考nexus5手机的manifest进行修改并保存为当前我们设备的manifest。
+./config.sh nexus-5-l
+用相应的config.sh(不同设备对应其manifest.xml文件)去拖源代码,repo工具公共管理多个仓库，config这里才是正式下载源代码的部分，前面只是同步代码树结构。
+
+其实config.sh脚本配置里列出了目标的所有仓库分，打开文件即可看到用repo管理的众多git仓库，如下：
+（截图-打开config.sh文件-仓库列表部分）
+
+-------------
+构建：
+利用源码中提供的build.sh脚本对源码进行整体的编译过程，当然也可以用makefile进行编译，初始化编译环境后选择相应的编译分支即可，自带的脚本工具会对所有源码进行编译，从AOSP项目工具到Linux内核，再到Gaia层的网络应用程序，为了避免编译失败停在我们不知道的模块，便于我们分析问题出处，建议在不确定代码的情况下分模块编译。
+
+只对某一特定模块例如Gecko，gaia部分编译。
+
+同样可以单独编译之前提到的关键的镜像文件比如system.img
+./build.sh out/platform/$target/system.img，
+这里 $target 参数要和配置过程中保持一致。
+
+./build.sh
+./build.sh gaia gecko
+./build.sh -j8         //根据你系统的实际情况选择多线程方式编译加快进度
+BUILD_APP_NAME=calendar ./build.sh gaia      //单独编译gaia的某一个web应用
+
+在/xxx/LINUX/android/源码目录下编译安卓源码：
+source build/envsetup.sh
+lunch 选择编译目标的平台和分支
+make -j8
+
+multilocale多语言环境编译：
+进入目录初始化下载代码：
+cd gaia/locales/
+hg clone https://hg.mozilla.org/releases/gaia-l10n/v2_5/es
+设置环境变量：
+export LOCALE_BASEDIR=$PWD/locales
+export LOCALES_FILE=$PWD/locales/languages_dev.json
+export GAIA_DEFAULT_LOCALE=es
+在gaia/locales/目录下修改languages-dev.json文件，在其中每一个repo管理的仓库中添加如下字段：
+{
+  "en-US"     : "English (US)",
+  "es"        : "Español"
+}
+使用宏GAIA_KEYBOARD_LAYOUTS添加西班牙和意大利的键盘布局：GAIA_KEYBOARD_LAYOUTS=en,es,it
+make clean && make production LOCALES_FILE=locales/languages-own.json
+rm -rf out objdir-gecko && LOCALES_FILE=locales/languages-dev.json ./build.sh
+
+构建编译一个官方模式的工程版本：
+VARIANT=eng MOZILLA_OFFICIAL=1 B2G_SYSTEM_APPS=1 GAIA_OPTIMIZE=1 B2G_UPDATER=1 B2G_UPDATE_CHANNEL=default MOZ_TELEMETRY_REPORTING=1 MOZ_CRASHREPORTER_NO_REPORT=1 LOCALES_FILE=locales/languages_all.json GAIA_KEYBOARD_LAYOUTS=en,pt-BR,es,de,fr,pl,zh-Hans-Pinyin,zh-Hant-Zhuyin,en-Dvorak ./build.sh
+
+-------------
+安装：
+使用flash.sh脚本完成完整的烧录过程。
+独立分开构建的部分可以通过在脚本中添加相应参数进行安装。
+./flash.sh gaia
+
+-------------
+计划先将下载的b2g源码成功编译一次，之后再对上面提到的这些镜像进行单独的解压修改，将修改完成的镜像放回到编译输出目录中，最后使用adb/fastboot工具或者flash.sh脚本文件进行烧录验证。
 
 
 
@@ -148,26 +245,12 @@ the recovery.img
 
 
 
-===Preparing for your first build===
 
 
+【2】构建b2g
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-===build b2g OS===
-
-
+【3】debug
 
 
 
@@ -194,10 +277,7 @@ the recovery.img
 ===Building and installing FOTA community builds===
 可放弃掉这部分
 ===================================================
-------------------------------------
-adb改为root权限：
-setprob.ro.debuggable=1
-------------------------------------
+
 安卓系统的编译文件makefile的参数介绍：http://www.kandroid.org/online-pdk/guide/build_system.html#androidBuildVariants
 编译文件makefile的参数详解：gaia和gecko模块
 【1】gaia
