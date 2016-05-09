@@ -1,0 +1,97 @@
+
+VoLTE中加了一个IMS网络结构，通过P-CSCF和HSS将其和LTE的EPC网元相连，同理，也可以将wifi的网络部分接入IMS网元，wifi和IMS之间的网关接口分为ePDG（普通热点）和TWAG（信任热点）两种。
+
+VoIP不同于以上两种，这个是直接接入网络的语音数据传输，不会再经过LTE和IMS网络。
+
+前者更稳定语音质量更高，后者成本最低。
+
+==针对Vowifi的MTP(Media Transfer Protocol)特性==
+【1】UE的配置
+需要改动的地方：NV，FS，Android系统参数，APN
+
+【2】checklist
+每一个PDN的APN；
+每一个APN支持的IP版本类型；
+ePDG服务ip或FQDN(完全合格域名)；
+ePDG鉴权中涉及到验证文件xxx.der；
+ePDG连接中的每一个APN的RAT偏好设置；
+Vowifi涉及到P-CSCF；
+预先的准备支持；
+对P-CSCF的IPSec支持；
+来自于RFC822的包含在NAI中的IKEv2-UE-ID是否需要包含MAC地址；
+
+【3】关键NV列表：
+70315		wifi功能的卸载配置						2 - 使能wifiIWLAN_S2b和本地中断
+67259		IMS-SMS配置								smsRATMaskString = 0x644E；RatMaskValue = 25678
+67264		IMS注册模块配置							regManagerPdpProfileName = <ims_apn>
+67332		IMS-media配置							Version – 3；audio_offload = 0 (MSM8974_MSM8994) / 3 (MSM8939)
+69744		IMS-SIP扩展配置							Version – 13
+69750		QP_IMS_配置								Version – 3；WFC_Status - 1/0(Enable/Disable)；Call_mode_preference – 0/1/2/3/4 (WFC_PREF_NONE/WFC_WIFI_PREFERRED/WFC_WIFI_ONLY/WIFI_CELLULAR_PREFERRED/WIFI_CELLULAR_ONLY)
+
+73545		wifi配置(用于紧急呼叫的)				cmph_wifi_config_s_type.is_wifi_only_mode_for_voice – 1；cmph_wifi_config_s_type.is_e911_over_wifi – 1；cmph_wifi_config_s_type.wifi_cs_scan_timer – 5
+71527		IMS请求配置-存储请求信息的数据库		0 - version；272 - ims_rat_apn_info[0].iRAT；17 - ims_rat_apn_info[0].iAPNType_APNindex
+
+====================================================================================================
+====================================================================================================
+====================================================================================================
+ims在vowifi切换中的这两个参数：WLANRssiThresholdHigh/最大 和 WLANRssiThresholdLow/最低接入值。
+
+配置RSSI门限：
+和wifi相关的软硬件模块都支持802.11标准，wifi平台用了RSSI参数去作为某些关键事件的触发点。当它低于某一个门限时即无线信号很差时就会出现掉话之类的现象。不同于普通wifi连接的数据交互，vowifi对语音质量要求很高，信号的小幅度衰弱都可能造成糟糕的用户体验。
+不同wifi模组对应RSSI门限设置可能有差别。
+
+网络拓扑图：
+待测UE---信号衰减器可以测量wifi信号的RSSI---wifi连接上热点APN---IP---ePDG---PDN_GW---IMS---EPC---eUTRAN---参考UE
+两个UE都从IMS接入网络
+
+【0】wifi热点要求：
+WLAN PHY Data Rates 	Auto
+MCS Rates 				1 to 15
+Channel Width 			20 MHz
+Beacon Period 			100
+MAX Data Retries 		7
+Fragmentation Threshold 2346
+DTIM 					2
+RTS Max Retries 		7
+RTS Threshold 			2347
+
+【1】VoWifi初始化条件：
+UE通过wifi和ePDG在IMS注册成功-->参考UE可以通过EPC接入IMS完成注册，发起volte流程-->wifi接入点信号强度至少-60dBm以上。
+
+【2】RSSI接出点
+调整衰减器使UE的wifi-RSSI是-60dBm；
+用衰减器慢慢减弱信号，直到完全断开wifi连接时停止，记录当前的RSSI为断开连接的RSSI点；
+再用衰减器慢慢增强信号，直到接入热点时停止；
+建立Vowifi呼叫同时测量MOS-score，如果MOS-score小于2.9则返回上一过程，增加1dBm的RSSI；
+如果MOS-score大于2.9，记下此时的RSSI值为WLANRssiThresholdLow。
+
+以上RSSI记录点，即当RSSI小于此值时，系统会认为无法再继续Vowifi而中断掉。
+
+
+【3】RSSI接入点
+调整衰减器使RSSI初始值为WLANRssiThresholdLow，建立Vowifi通话，每次增大RSSI值1dBm，直到MOS-score值不小于3.0时停止，记录此值为WLANRssiThresholdHigh。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+kernel + 自己清楚自卑但无法克服 + 自我封闭 + 伪装和修饰掩盖缺点 + 

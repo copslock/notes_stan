@@ -24,6 +24,8 @@ LTE_Cell_Reselection_and_Redirection	over
 IMS VOLTE OVERVIEW		over --> 整理总结
 QMI architecture		cut
 eMBMS overview and log	ready
+Vowifi_configuration_feature						over
+VoWiFi_Handoff_Threshold_Configuration_for_IMS		over
 
 
 [z]3GPP协议文件:
