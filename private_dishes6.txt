@@ -30,7 +30,7 @@ linux的档案“权限”和“目录配置”
 	单一文件或目录文件最多为255个字符，完整路径最多为4096个字符。
 	
 	linux目录配置依据 FHS：Filesystem Hierarchy Standard
-					可分享的(shareable) 		丌可分享的(unshareable)
+					可分享的(shareable) 		不可分享的(unshareable)
 不可变的(static) 	/usr (软件放置处) 			/etc (配置文件)
 					/opt (第三方协力软件) 		/boot (开机不核心档)
 					

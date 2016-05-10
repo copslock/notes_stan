@@ -30,6 +30,7 @@ Vowifi涉及到P-CSCF；
 
 73545		wifi配置(用于紧急呼叫的)				cmph_wifi_config_s_type.is_wifi_only_mode_for_voice – 1；cmph_wifi_config_s_type.is_e911_over_wifi – 1；cmph_wifi_config_s_type.wifi_cs_scan_timer – 5
 71527		IMS请求配置-存储请求信息的数据库		0 - version；272 - ims_rat_apn_info[0].iRAT；17 - ims_rat_apn_info[0].iAPNType_APNindex
+71781		IMS—QP_WIFI_config						rssi的门限设置
 
 ====================================================================================================
 ====================================================================================================
