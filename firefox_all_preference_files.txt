@@ -1,0 +1,18 @@
+文档对象模型（Document Object Model，简称DOM），是W3C组织推荐的处理可扩展标志语言的标准编程接口。
+
+OpenGL ES 2.0：https://www.khronos.org/opengles/2_X/
+	nsWindow文件：http://mxr.mozilla.org/mozilla-central/source/widget/gonk/nsWindow.cpp
+https://developer.mozilla.org/en-US/docs/Mozilla/Tech/XPCOM/Reference/Interface/nsIAppShell
+http://mxr.mozilla.org/mozilla-central/source/widget/gonk/nsAppShell.cpp
+http://mxr.mozilla.org/mozilla-central/source/widget/gonk/libui/EventHub.cpp
+以Vibration这个功能为例，这个API定义在hal/hal.h文件中：http://mxr.mozilla.org/mozilla-central/source/hal/Hal.h
+gonk层对应的调用函数定义在这里：http://mxr.mozilla.org/mozilla-central/source/hal/gonk/GonkHal.cpp
+以之前的那个手机振动的功能为例，“Vibrate()”函数定义在“hal/sandbox/SandboxHal.cpp”文件中：http://mxr.mozilla.org/mozilla-central/source/hal/sandbox/SandboxHal.cpp
+
+具体描述在hal/sandbox/PHal.ipdl文件中：http://mxr.mozilla.org/mozilla-central/source/hal/sandbox/PHal.ipdl
+
+该消息的接受者“HalParent::RecvVibrate()”，函数具体内容如下，定义在文件“hal/sandbox/SandboxHal.cpp”中：http://mxr.mozilla.org/mozilla-central/source/hal/sandbox/SandboxHal.cpp
+
+具体发生的过程如下：
+1.Gecko draws separate regions of pages into memory buffers. Sometimes these buffers are in system memory; other times, they're textures mapped into Gecko's address space, which means that Gecko is drawing directly into video memory. This is typically done in the method BasicThebesLayer::PaintThebes().
+2.Gecko then composites all of these textures to the screen using OpenGL commands. This composition occurs in ThebesLayerOGL::RenderTo().
