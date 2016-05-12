@@ -26,7 +26,7 @@ QMI architecture		cut
 eMBMS overview and log	ready
 Vowifi_configuration_feature						over
 VoWiFi_Handoff_Threshold_Configuration_for_IMS		over
-
+80-NP263-1 vowifi相关设置文档	ready
 
 [z]3GPP协议文件:
 TS21.905 - vocabulary of 3GPP	//3GPP中涉及到的所有英文首字母缩写
