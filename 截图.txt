@@ -1,0 +1,44 @@
+1.安卓源码编译的截图
+./build.sh
+./build.sh gaia gecko
+./build.sh -j8
+
+2.打包解包截图
+unmkbootimg -i boot.img
+gunzip -c /path/to/your/boot.img | cpio -i
+
+mkbootfs initramfs_dir | cpio -o -H newc | gzip > ../newinitramfs.cpio.gz
+mkbootimg --kernel zImage --ramdisk newinitramfs.cpio.gz --base 0x200000 --cmdline 'androidboot.hardware=aphone' -o new_boot.img
+
+
+3.修改后的init.rc文件内容截图
+
+
+4.Android代码分区表
+
+5.安卓项目modem镜像编译流程 和 截图
+
+6.手机插上，cat/proc/mtd命令截图，查看镜像对应的mtd
+
+7.配置树目录截图
+/device/manufacturer/device_id/
+B2G/glue/gonk-ics/device/<manufacturer>/<device_id> 
+
+8.安卓源码git branch -a 截图
+
+9.config.sh文件的具体内容
+
+10.最终保存的manifest文件内容
+
+11.B2G根目录截图，config.sh文件位置圈红标识
+
+12.B2G项目编译输出目录
+
+13.在安卓modem代码里用一下
+git status
+git log
+git diff
+
+
+
+
