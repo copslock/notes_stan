@@ -1,44 +1,124 @@
-1.安卓源码编译的截图
-./build.sh
-./build.sh gaia gecko
-./build.sh -j8
+1.安卓源码编译的截图，编译输出目录也截个图
+8线程编译一共用了2小时5分
 
-2.打包解包截图
+安卓编译过程做了一些什么事？根据makefile文件先预编译将所有关联文件including进来。
+关键点：加载的build/envsetup.sh这个文件是什么？make命令用到的makefile有什么用？
+
+2.打包解包截图，工具目录/out/host/linux_x86/bin
 unmkbootimg -i boot.img
 gunzip -c /path/to/your/boot.img | cpio -i
 
 mkbootfs initramfs_dir | cpio -o -H newc | gzip > ../newinitramfs.cpio.gz
 mkbootimg --kernel zImage --ramdisk newinitramfs.cpio.gz --base 0x200000 --cmdline 'androidboot.hardware=aphone' -o new_boot.img
 
-
 3.修改后的init.rc文件内容截图
 
-
-4.Android代码分区表
+4.Android代码分区表-->copy回去并截一部分图
 
 5.安卓项目modem镜像编译流程 和 截图
 
-6.手机插上，cat/proc/mtd命令截图，查看镜像对应的mtd
+参考命令：
+需要先编译安卓侧代码
+在此modem_proc/build/ms目录下：sh ./build.sh 8936.gen.prod -k
+生成文件在此目录下modem_proc/build/ms/bin/×××xxx
+
+在安卓源码modem根目录下选择正确的contents_xxx.xml修改名为contents.xml保存
+在/common/build目录下执行生成NON-HLOS：python update_common_info.py
+/common/build/bin/asic/中找到NON-HLOS文件进行烧写
+
+6.手机插上，cat /proc/mtd命令截图，查看镜像对应的mtd---》看不到
 
 7.配置树目录截图
-/device/manufacturer/device_id/
+B2G/device/manufacturer/device_id/
 B2G/glue/gonk-ics/device/<manufacturer>/<device_id> 
 
 8.安卓源码git branch -a 截图
 
-9.config.sh文件的具体内容
+9.config.sh文件的具体内容，当执行./config.sh nexus-5-l的结果导向
 
-10.最终保存的manifest文件内容
+9.build.sh和flash.sh文件copy（可能不会截图）
+
+10.最终保存的manifest文件内容，它回去包含Android-lolipop版本的相关仓库，Mozilla这边的，b2g特性的相关仓库等等
+nexus-5-l(17,nexus自己手机的) --> base-l-aosp.xml(5,Android-L版本的) --> base-l.xml(B2G特性的一共有13个，Stock Android有120个)
 
 11.B2G根目录截图，config.sh文件位置圈红标识
 
-12.B2G项目编译输出目录
+12.B2G项目编译输出目录截图
+
+B2G项目编译时要先将.tmp_config.sh文件改为为.config文件，否则执行build.sh时会报错找不到对应文件
 
 13.在安卓modem代码里用一下
 git status
 git log
 git diff
+------------------------------------------------
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+1)Android
+   a)source build/envsetup.sh。
+   b)android部分会编译两个版本lunch msm8916_64-userdebug和lunch msm8916_64-user。其中user版本用于软件发布和测试。
+   c)编译前可rm -rf out/。
+  2)MPSS编译：modem_proc/build/ms
+   a)build image：sh build.sh 8916.gen.prod -k
+   b)clean the build：sh build.sh 8916.gen.prod -k -c
+  3)Boot loaders编译：boot_images/build/ms
+   a)build image：sh ./build.sh TARGET_FAMILY=8916 --prod -j1
+   b)clean the build：sh ./build.sh -c TARGET_FAMILY=8916 --prod -j1
+  4)RPM编译：rpm_proc/build
+   a)build image：sh build_8916.sh -j1
+   b)clean the build：sh build_8916.sh -j1 -c
+  5)Trustzone&WCNSS编译：
+   a)这两个模块开发过程中不会有改动，不做编译。
+   b)Trustzone编译报错需要升级编译工具，WCNSS也有编译问题。
+  6)生成NON-HLOS.bin:common/build
+   a)执行python update_common_info.py
+
+2.打包
+   打包很简单，将需要打包的文件放到同一目录下，用tar命令打包即可。打包生成的文件即可用QFIL烧写。需要打包的文件如下
+    LINUX/android/out/target/product/msm8916_64/emmc_appsboot.mbn 
+    LINUX/android/out/target/product/msm8916_64/boot.img 
+    LINUX/android/out/target/product/msm8916_64/recovery.img 
+    LINUX/android/out/target/product/msm8916_64/splash.img  
+    
+	boot_images/build/ms/bin/8916/unsigned/prog_emmc_firehose_8916.mbn
+    boot_images/build/ms/bin/8916/sbl1.mbn 
+    
+	rpm_proc/build/ms/bin/8916/rpm.mbn 
+    
+	trustzone_images/build/ms/bin/MAVAANAA/tz.mbn 
+    trustzone_images/build/ms/bin/MAVAANAA/hyp.mbn 
+    
+	common/tools/sectools/resources/build/sec.dat
+    common/build/bin/asic/NON-HLOS.bin 
+    common/build/bin/asic/sparse_images/system_*.img 
+    common/build/bin/asic/sparse_images/persist_*.img 
+    common/build/bin/asic/sparse_images/cache_*.img 
+    common/build/bin/asic/sparse_images/userdata_*.img 
+    common/build/bin/asic/sparse_images/rawprogram_unsparse.xml 
+    common/build/gpt_main0.bin 
+    common/build/gpt_backup0.bin 
+    common/build/patch0.xml 
+    common/build/rawprogram0.xml 
+    
+	modem_proc/rfnv/etc/NvDefinition.xml 
+    modem_proc/rftarget_dimepm/common/MSM8916_CHILE_A_Reference_QCN.qcn  
+    modem_proc/rftarget_dimepm/common/MSM8916_CHILE_A_Reference_QCN_ssss.qcn 
+    modem_proc/rftarget_dimepm/common/qcn/wtr1605_chile_a/MSM8916_CHILE_A_Reference_QCN.xml  
+    modem_proc/rftarget_dimepm/common/qcn/wtr1605_chile_a/MSM8916_CHILE_A_Reference_QCN_ssss.xml  
+    modem_proc/rftarget_dimepm/common/qcn/wtr1605_chile_a/fsg.img  
+    modem_proc/rftarget_dimepm/common/qcn/wtr1605_chile_a/fsg_ssss.img 
+    modem_proc/rftarget_dimepm/common/qcn/wtr1605_chile_a/zero.bin
 
 
