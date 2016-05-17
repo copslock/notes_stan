@@ -1,3 +1,6 @@
+git reset 回退add操作
+git clean -n/i/q 删除所有未跟踪文件
+
 $cat filename.txt 查看filname这个TXT
 
 init:git init
