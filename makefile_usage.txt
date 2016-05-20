@@ -1,0 +1,7 @@
+【1】在执行make命令时指定要用的makefile文件
+make -f rules.txt
+make --file=rules.txt
+
+【2】makefile的主要内容：构建的目标文件，依赖哪些源文件，当哪些文件有变动时，如何重新构建它
+
+【3】
