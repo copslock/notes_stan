@@ -1,0 +1,21 @@
+【1】在新的Ubuntu14和ARMcompiler6.0里每次编译Android源码都会提醒，api已过时需要重新编译，提示给让你使用"make update-api"命令去更新current.txt文件，在执行该命令成功编译后，在frameworks/base/api/目录下将current.txt替换为当前代码库的current文件，以后再次更新代码后，就不会再提示让你执行make update-api去重新编译了。
+
+单个文件在git的更新，不要使用git pull。
+git fetch
+git checkout origin/master -- path/to/file
+先更新本地库，在指定的remote分支上选择你需要的目录中的单个文件
+
+【2】编译MPSS的问题
+ln -s 6.4.01 6.4.08
+sudo apt-get install libxml-parser-perl  //缺少perl的解析库文件，安装即可
+
+
+【3】Sub-process /usr/bin/dpkg returned an error code (1) 问题解决办法
+cd /var/lib/dpkg
+sudo mv info info.bak #即备份一个info
+sudo mkdir info #新建一个新的info目录
+
+sudo apt-get --reinstall install 软件包名  //然后采用以下命令重装那些出错的软件包
+
+sudo -rf info  //最后用原来的info.bak 替换新的info
+sudo mv info.bak info
