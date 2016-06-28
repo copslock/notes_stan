@@ -19,3 +19,16 @@ sudo apt-get --reinstall install 软件包名  //然后采用以下命令重装�
 
 sudo -rf info  //最后用原来的info.bak 替换新的info
 sudo mv info.bak info
+
+【4】patch
+收到相应的.patch文件，切换到你需要操作的分支目录上，再一次git pull之后，执行打patch的命令：
+patch -p1 < xxx.patch
+p加数字表示从第几层子目录开始应用此补丁，然后手动commit提交即可
+
+取消patch：
+patch -RE -p0 < xxx.patch
+
+生成patch：
+diff -Naur path/to/A path/to/B > xxx.patch
+
+
