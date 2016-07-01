@@ -14,11 +14,5 @@ git remote show origin
 stale状态的分支即已经被删除的分支，可再用以下命令彻底删除掉所有的远端分支，git branch -a就看不到了
 git remote prune origin
 
-暂时：
-Dear supporter，
 
-PLZ check the attachments, from logs it seems that the IMS registered normally.
 
-I just set the value of  DscpValue&IMSParamSrc to 1&2, but i'm not sure if it's the key-reason for this issue, because there is a similar issue refer to CASE#02510809.
-
-BR.

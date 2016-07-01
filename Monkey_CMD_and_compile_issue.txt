@@ -31,4 +31,46 @@ patch -RE -p0 < xxx.patch
 生成patch：
 diff -Naur path/to/A path/to/B > xxx.patch
 
+【5】Monkey
+利用socket通讯的方式模拟用户的各类随机输入方式，测试设备是否会出现异常。monkey程序由Android系统自带，一般放在/sdk/sdk/tools/bin/monkey，一般通过adb命令执行monkey测试。
+
+adb shell monkey 
+	-p packge-name //用于指定某一些包/app，一般名字是“com.xxx.xxx”的形式，可以在/data/data目录下查看设备包含的所有包名称
+	-v -v -v //打印信息的详细程度，一共有3个等级，v越多越详细。
+	-s seed //monkey测试中产生事件的序列，相同seed值产生的事件的序列相同。
+adb shell monkey -v -v -s 500 > D:\target.txt
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

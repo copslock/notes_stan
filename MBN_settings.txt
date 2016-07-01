@@ -1,4 +1,5 @@
 【1】打开MBN的rmnet端口
 adb root
+adb shell setprop persist.radio.start_ota_daemon 0
 adb shell setprop sys.usb.config diag,serial_smd,rmnet_bam,adb
 adb shell setprop sys.usb.config diag,serial_smd,rmnet_qti_bam,adb
