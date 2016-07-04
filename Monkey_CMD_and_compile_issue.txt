@@ -40,6 +40,12 @@ adb shell monkey
 	-s seed //monkey测试中产生事件的序列，相同seed值产生的事件的序列相同。
 adb shell monkey -v -v -s 500 > D:\target.txt
 
+【6】CSG 封闭用户群组
+UE和CSG是1对多的关系，UE中会有一个CSG-list，包含对应所有的CSG-id，根据这些CSG-id，一个UE可以属于多个CSG，接收多个CSG下发的消息。
+
+【7】adb shell screenrecord /.../xxx.mp4
+利用adb命令直接录屏并存储视频文件
+
 
 
 

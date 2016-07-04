@@ -3,3 +3,29 @@ adb root
 adb shell setprop persist.radio.start_ota_daemon 0
 adb shell setprop sys.usb.config diag,serial_smd,rmnet_bam,adb
 adb shell setprop sys.usb.config diag,serial_smd,rmnet_qti_bam,adb
+
+【2】MBN Auto-select功能
+(前提是已经有一个SW-MBN被激活正在使用，因为默认MBN里没有设置auto-select的选项设置)
+手机插入sim卡后，根据所在地的运营商提供的网络环境选择手机里中的某一个MBN激活并应用。
+除去HW和SW的两个default_MBN以外，同一时间只能再激活应用一个SW_MBN。
+
+关联NV-71546，value值即所有可用功能对应值之和。
+7 0x80 Disable MCFG Refresh without reset feature
+6 0x40 Disable MCFG SSR for MBN activation (For MDM LE only)
+5 0x20 Enable MCFG Refresh MBN update only feature (APPS centric with MBN for testing)
+4 0x10 Reserved
+3 0x08 Reserved
+2 0x04 Enable MCFG Auto-Selection based on IMSI/MCC-MNC
+1 0x02 Enable MCFG MBN Switching for Flex Mapping (Bit 0 or 2 has to be enabled as well)
+0 0x01 Enable MCFG Auto-Selection based on ICCID
+在8939项目中该值设置为0x03，在8976项目中该值设定为0x07，分别可以根据sim卡的ICCID或者IMSI/MCC-MNC来进行MBN的自动选择。
+前者的原理是MCFG通过检测SIM卡根据卡中ICCID的Issuer Identification Number(IIN)字段来匹配/激活对应的MBN文件。
+后者则是直接插卡后网络端发送给UE的IMSI/MCC-MNC信息来判断选择合适的MBN文件。
+
+最好是在default的MBN中直接加NV-71546的设置，这样可以避免出现该NV丢失的情况，否则就最好加一个宏(hard-code)，当出现该NV丢失时，这个宏就会作为auto-select的定义。
+modify: /modem_proc/mcfg/mcfg_sel/src/mcfg_uim.c
+- #define MCFG_UIM_AUTOSELECT_DEFAULT (0)
++ #define MCFG_UIM_AUTOSELECT_DEFAULT (3)
+
+在adb中启用，让OTA更新MBN这个feature在上层被使能
+adb shell setprop persist.radio.sw_mbn_update 1

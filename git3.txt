@@ -1,18 +1,32 @@
 【1】查看、删除远程分支或tag
 git branch -a
-git push origin --delete <branchName>
-git push origin --delete tag <tagname>
+git push --delete origin <branchName>
+git push --delete tag <tagname>
 
 推送一个空的分支或tag到远端相当于删除操作
 git push origin :<branchName>
 git tag -d <tagname>
 git push origin :refs/tags/<tagname>
 
-【2】远程分支删除以后，本地git pull或fetch都不会删除本地的对应分支，并且也看出哪些远程分支被删除掉了
+【2】远程分支删除以后，本地pull或fetch都不会删除本地的对应分支，并且也看出哪些远程分支被删除掉了，但是由于本地还有track信息所以在branch中还可以被看到。
 查看远程分支与本地分支的跟踪情况
 git remote show origin
 stale状态的分支即已经被删除的分支，可再用以下命令彻底删除掉所有的远端分支，再用git branch -a就看不到了这些远程分支了
 git remote prune origin
 
+在fetch之后删除没有远程分支对应的本地分支
+git fetch -p
 
+【3】重命名远程分支=删除远程分支+本地分支重命名再次推送
+git branch -av //显示所有的分支及其的最后一次修改信息
+git push --delete origin branch-name
+git branch -m old-name new-name //重命名本地分支
+git push origin new-name
 
+另外在github中，用推送的方法不能删除远端当前HEAD指向的分支，除非你在github设置中将默认分支改为其他分支，否则该默认分支不可被删除。
+
+【4】TAG(用的较少，一般都是直接pull把整个工作环境拉下来，不用考虑这些)
+把本地tag推送到远程
+git push --tags
+获取远程tag
+git fetch origin tag <tagname>
