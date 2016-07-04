@@ -11,7 +11,7 @@ git push origin :refs/tags/<tagname>
 【2】远程分支删除以后，本地git pull或fetch都不会删除本地的对应分支，并且也看出哪些远程分支被删除掉了
 查看远程分支与本地分支的跟踪情况
 git remote show origin
-stale状态的分支即已经被删除的分支，可再用以下命令彻底删除掉所有的远端分支，git branch -a就看不到了
+stale状态的分支即已经被删除的分支，可再用以下命令彻底删除掉所有的远端分支，再用git branch -a就看不到了这些远程分支了
 git remote prune origin
 
 
