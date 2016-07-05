@@ -1,4 +1,83 @@
 ==Preparetion==
 在无线数据传输中，引起数据吞吐量差异的原因有很多，例如最明显的就是手机的RF各项参数未校准，当然还有很大一部分问题就需要分析所在地的网络环境，根据能够测量的各项网络状态参数，判断问题根源是否出在网络端，最后当然还有手机自身的原因。
 
-在分析这些网络反馈的测量数据时，我们可以用到qxdm，wireshark这些工具，在qxdm中可以通过抓取的log观察到物理层的数据速率以及BLER情况。(误块率，不同BER误码率，误块率检测对象是已经校验过的语音块数据，而BER检测只是单纯的数据流)
+在分析这些网络反馈的测量数据时，我们可以用到qxdm，wireshark这些工具，在qxdm中可以通过抓取的log观察到物理层的数据速率以及BLER情况。(误块率，不同BER误码率，误块率检测对象是已经经过交织、速率匹配、信源解码、CRC等一系列过程后的语音块数据，而BER检测只是单纯的数据流，在用途上，BER是用来衡量接收机特性的指标，而BLER是用来衡量系统性能测试的，也就是说并不是说只有载频故障才会导致BER差，BER高的原因有很多，例如载波硬件故障或内部设备的非线性元件引起的噪音干扰或者外部的同/邻频干扰，也不能排除射频部分器件的非线性引起的噪声或者干扰可能)
+
+如下是qxdm中常用来检测物理层速率的两个view窗口
+LTE ML1 DL Throughput and BLER
+LTE ML1 UL Throughput and BLER
+
+利用wireshark工具可以在log中看到TCP/IP层的速率以及数据包的发送接收情况
+
+DU meter工具可以监测PC端口的速率
+
+==排查步骤==
+1.根据已知的目标速率值，在相同网络环境下，找一个对比机一起进行测试
+2.利用wireshark工具查看应用层数据(TCP/IP/HTTP)速率符合标准，是否有TCP包丢失或者数据包重传的现象
+3.如果应用层有较多丢包，则检查data-services层的丢包情况，否则就继续检查底层(RLC/MAC/PHY)
+4.利用ping命令检查RTT时延
+5.使用iperf工具对低层进行UDP测试确定底层带宽是否足够
+
+Details:
+1.对比机的速率是否达到标准，不满足则检查网络和测试仪器是否正常。
+2.data-call类型是否是"USB-Tethering"？QMI/CM的速率是否达标？都满足则为AP端问题，只满足前者则是modem侧问题，都不满足结束分析过程。
+3.若为AP侧问题，通过设置CPU为performance模式、暂停thermal-engine、调整linux-TCP/IP参数判断问题原因是硬件散热/android-data/CPU运行主频问题。
+4.若为modem侧问题，通过qxdm检查上下行物理层速率，MAC-PDU(0xB064)的padding(若出现大量padding，检查FTP/UDP服务器，上行传输数据量是否与实际不符)，wireshark工具检查上下行的重传丢包情况。
+5.RF性能部分，RF参数的校准，modem RF性能的检查是否通过，若不通过则需要新的修改或patch。
+6.case分类：LTE物理层问题(RSRP/RSRQ/BLER/CQI)--LTE/AS; PDCP/RLC/MAC问题--LTE/Data-throughput; 其他的--LTE/Modem-data
+
+==Data services层分析==
+Wireshark工具分析部分：
+1.Log在wireshark上的速率不应该比DU meter低，否则请检查USB驱动/TCP设置或PC或者工具本身。
+2.在wireshark工具里打开PCAP的log，在"statistics--Summary/IO Graphs"中可以看到数据速率的快慢和波动情况。
+3.在IO graph里可以利用filter同时显示多各情况的对比曲线。
+4.TCP协议下的log里，每一次报文都有对应seq序列号和ACK信息，每一次具体下行TCP数据包都会有对应的ACK报文。
+	响应信息的ACK值应该和原信息的ACK值一致。
+	"TCP Previous segment lost"，出现包丢失情况，重发消息的seq值和原消息一样
+	最后ACK消息对应的ACK值 = 提示TCP包丢失的信息的seq值 + (提示TCP包丢失的信息的seq值 - 原消息/重发消息的seq值)
+5.DupACKs和快速重传，快速重传可以较快地恢复TCP流量，保持数据吞吐量在较高传输水平。
+	当发送端收到连续三个重复的ACK信息，立即重传该消息ACK对应的TCP报文，将ssthresh降为tx_win值的一半，之后再慢慢恢复到原值大小。
+	"TCP Dup ACK xxxx#1"
+	"TCP Dup ACK xxxx#2"
+	"TCP Dup ACK xxxx#3"
+6.通过"分析"中的"专家信息"快速寻找TCP的丢包/重传信息
+
+QXDM工具分析部分：
+1.Um-watermark流控分析主要可以参考缓存RLC和PS之间的数据包，Rm-watermark流控参考缓存PS和SIO/SMD之间的数据包，流程频繁启动出现可能会导致数据速率下降。
+2.在QXDM-log里根据关键词观察是否有流控频繁启动的现象，根据启动流控的mask值可以找到对应是哪一个模块启动的流控。
+	//在disable flow后PS将不能把数据送到Um-Watermark。
+	"disabling flow|enabling flow"
+	//检查是否出现Watermark消息已满的情况
+	"WM full,freeing packet"
+
+==LTE层分析==
+通过qxdm的ML层及BLER分析窗口，可以观察到详细的物理层数据速率变化情况。
+LTE ML1 DL Throughput and BLER
+LTE ML1 UL Throughput and BLER
+
+1.一般TCP/IP层丢包可能性比较大，MAC/RLC/PDCP层出问题概率较小
+2.在载波聚合的频带内，会有Pcell和Scell的测量数据。
+	pcell和scell都属于同一个eNodeB
+3.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
