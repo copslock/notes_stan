@@ -1,9 +1,8 @@
-
-VoLTE中加了一个IMS网络结构，通过P-CSCF和HSS将其和LTE的EPC网元相连，同理，也可以将wifi的网络部分接入IMS网元，wifi和IMS之间的网关接口分为ePDG（普通热点）和TWAG（信任热点）两种。
+VoLTE中加了一个IMS网络结构，通过P-CSCF和HSS将其和LTE的EPC网元相连，同理，也可以将wifi的网络部分接入IMS网元，wifi和IMS之间的网关接口可以分为两类，ePDG(增强型分组数据网关/普通热点)和TWAG(可信任无线接入热点网关)。
 
 VoIP不同于以上两种，这个是直接接入网络的语音数据传输，不会再经过LTE和IMS网络。
 
-前者更稳定语音质量更高，后者成本最低。
+前者更稳定语音质量更高，后者成本更低。
 
 ==针对Vowifi的MTP(Media Transfer Protocol)特性==
 【1】UE的配置
@@ -21,21 +20,21 @@ Vowifi涉及到P-CSCF；
 来自于RFC822的包含在NAI中的IKEv2-UE-ID是否需要包含MAC地址；
 
 【3】关键NV列表：
-70315		wifi功能的卸载配置						2 - 使能wifiIWLAN_S2b和本地中断
+70315		wifi功能的卸载配置()					Wlan offload config = 2 (使能wifi IWLAN_S2b和本地中断)
 67259		IMS-SMS配置								smsRATMaskString = 0x644E；RatMaskValue = 25678
 67264		IMS注册模块配置							regManagerPdpProfileName = <ims_apn>
 67332		IMS-media配置							Version – 3；audio_offload = 0 (MSM8974_MSM8994) / 3 (MSM8939)
 69744		IMS-SIP扩展配置							Version – 13
 69750		QP_IMS_配置								Version – 3；WFC_Status - 1/0(Enable/Disable)；Call_mode_preference – 0/1/2/3/4 (WFC_PREF_NONE/WFC_WIFI_PREFERRED/WFC_WIFI_ONLY/WIFI_CELLULAR_PREFERRED/WIFI_CELLULAR_ONLY)
 
-73545		wifi配置(用于紧急呼叫的)				cmph_wifi_config_s_type.is_wifi_only_mode_for_voice – 1；cmph_wifi_config_s_type.is_e911_over_wifi – 1；cmph_wifi_config_s_type.wifi_cs_scan_timer – 5
+73545		wifi配置(用于紧急呼叫的)(MMODE)			cmph_wifi_config_s_type.is_wifi_only_mode_for_voice – 1；cmph_wifi_config_s_type.is_e911_over_wifi – 1；cmph_wifi_config_s_type.wifi_cs_scan_timer – 5
 71527		IMS请求配置-存储请求信息的数据库		0 - version；272 - ims_rat_apn_info[0].iRAT；17 - ims_rat_apn_info[0].iAPNType_APNindex
 71781		IMS—QP_WIFI_config						rssi的门限设置
 
 ====================================================================================================
 ====================================================================================================
 ====================================================================================================
-ims在vowifi切换中的这两个参数：WLANRssiThresholdHigh/最大 和 WLANRssiThresholdLow/最低接入值。
+ims在vowifi切换中的这两个参数：WLANRssiThresholdHigh/最大 和 WLANRssiThresholdLow/最低 接入值。
 
 配置RSSI门限：
 和wifi相关的软硬件模块都支持802.11标准，wifi平台用了RSSI参数去作为某些关键事件的触发点。当它低于某一个门限时即无线信号很差时就会出现掉话之类的现象。不同于普通wifi连接的数据交互，vowifi对语音质量要求很高，信号的小幅度衰弱都可能造成糟糕的用户体验。
@@ -72,6 +71,71 @@ UE通过wifi和ePDG在IMS注册成功-->参考UE可以通过EPC接入IMS完成�
 【3】RSSI接入点
 调整衰减器使RSSI初始值为WLANRssiThresholdLow，建立Vowifi通话，每次增大RSSI值1dBm，直到MOS-score值不小于3.0时停止，记录此值为WLANRssiThresholdHigh。
 
+====================================================================================================
+====================================================================================================
+
+==WFC(wifi-call)的接入条件分析==
+WFC is on；iWLAN是当前的RAT；通话的优先级是选择的iWLAN；iWLAN信号很好且稳定；
+
+NV-69750里可以查看到WFC状态，以及WFC的通话偏好网络是wlan还是cellular等等，ims的submode可以选择由不同运行商对应的子模式，iWFCRoaming也可以选择性的enable。
+value	value						name					size	type
+4		4							Version					8		UINT8
+0		0							tip_tir_mode			8		UINT8
+2		2							ir_restricted_type		8		UINT8
+0		0							OMA_DM_Services_Mask	32		UINT32
+2		WFC_OFF						WFC_Status				8		Unsigned Enum
+3		WFC_CELLULAR_PREFERRED		Call Mode Preference	8		Unsigned Enum
+12		IMS_IR92_OPRT_RJIL_SUBMODE	ims_operation_submode	8		Unsigned Enum
+1		WFC_ROAMING_STATUS_ENABLE	iWFCRoaming				8		Unsigned Enum
+
+adb shell setprop persist.data.iwlan.enable true
+在我们自己手机上可能还需要用串号激活vowifi功能：
+vowifi-enable：*#869434#1#
+vowifi-disable：*#869434#0#
+
+iWLAN is the only valid RAT for IMS：
+NV 67259 SMSRatMastValue 64 Decimal
+NV 67259 SMSRatMastString 0x40 Hex
+
+
+
+==WFC注册IMS流程==
+vowifi的MO/MT的通话过程是和voLTE完全一致的，不同的只有接入网络的不同，前者是通过wifi，后者是整个LTE网络。
+关键log信息：
+
+Panda代码中关于各RAT的定义：
+/msm8976_panda01a_s00a_driver_only_1.1_r00228.1/LINUX/android/vendor/qcom/proprietary/qmi/services_ext/data_system_determination_v01.h
+typedef enum {
+  DSD_SYS_RAT_EX_ENUM_MIN_ENUM_VAL_V01 = -2147483647, /**< To force a 32 bit signed enum.  Do not change or use*/
+  DSD_SYS_RAT_EX_NULL_BEARER_V01 = 0x0, /**<  NULL bearer  */
+  DSD_SYS_RAT_EX_3GPP_WCDMA_V01 = 0x1, /**<  3GPP WCDMA     */
+  DSD_SYS_RAT_EX_3GPP_GERAN_V01 = 0x2, /**<  3GPP GERAN  */
+  DSD_SYS_RAT_EX_3GPP_LTE_V01 = 0x3, /**<  3GPP LTE  */
+  DSD_SYS_RAT_EX_3GPP_TDSCDMA_V01 = 0x4, /**<  3GPP TDSCDMA  */
+  DSD_SYS_RAT_EX_3GPP_WLAN_V01 = 0x5, /**<  3GPP WLAN  */
+  DSD_SYS_RAT_EX_3GPP_MAX_V01 = 0x64, /**<  3GPP maximum  */
+  DSD_SYS_RAT_EX_3GPP2_1X_V01 = 0x65, /**<  3GPP2 1X  */
+  DSD_SYS_RAT_EX_3GPP2_HRPD_V01 = 0x66, /**<  3GPP2 HRPD  */
+  DSD_SYS_RAT_EX_3GPP2_EHRPD_V01 = 0x67, /**<  3GPP2 EHRPD  */
+  DSD_SYS_RAT_EX_3GPP2_WLAN_V01 = 0x68, /**<  3GPP2 WLAN  */
+  DSD_SYS_RAT_EX_3GPP2_MAX_V01 = 0xC8, /**<  3GPP2 maximum  */
+  DSD_SYS_RAT_EX_WLAN_V01 = 0xC9, /**<  WLAN  */
+  DSD_SYS_RAT_EX_WLAN_MAX_V01 = 0x12C, /**<  WLAN maximum  */
+  DSD_SYS_RAT_EX_ENUM_MAX_ENUM_VAL_V01 = 2147483647 /**< To force a 32 bit signed enum.  Do not change or use*/
+}dsd_sys_rat_ex_enum_v01;
+
+“avail_sysp[?].rat_value = 5”
+当看到IMS-msg中RAT值为5的时候即当前RAT为WLAN的时候
+“PDPRATHandlerVoLTE.cpp 00734 CPDPRATHandlerVoLTE::StartWifiMeasurement HO Measurements started”
+RM(注册管理器)会触发wlan网络下的相关参数测量
+“CPDPRATHandlerVoLTE::HandleWifiMeasurement triggering PDP activate on IWLAN”
+进一步在wlan网络上触发PDP的数据连接激活，余下的部分就和volte中IMS注册一样了，由手机上的IMS-stack向网络端的IMS-server发起register信息。
+
+====================================================================================================
+====================================================================================================
+
+==WFC offload Via S2B/ePDG==
+S2B接口即指WLAN通过ePDG连接至EPC的接口。
 
 
 
@@ -89,10 +153,4 @@ UE通过wifi和ePDG在IMS注册成功-->参考UE可以通过EPC接入IMS完成�
 
 
 
-
-
-
-
-
-
-kernel + 自己清楚自卑但无法克服 + 自我封闭 + 伪装和修饰掩盖缺点 + 
+kernel + 自己清楚自卑但无法克服 + 自我封闭 + 伪装和修饰 + 掩盖缺点 + 
