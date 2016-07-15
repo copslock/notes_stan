@@ -30,3 +30,14 @@ git push origin new-name
 git push --tags
 获取远程tag
 git fetch origin tag <tagname>
+
+【5】commit注释
+通过git config命令配置commit_template
+git config --global commit.template template-file
+设置git commit时填写注释所用的编辑器
+git config --global core.editor vim
+代码提交命令
+git push origin HEAD:refs/for/branchname 
+
+
+

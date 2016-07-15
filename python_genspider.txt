@@ -1,0 +1,251 @@
+[1] 简单打开一个url
+import urllib2
+
+//case1
+response = urllib2.urlopen(url,data,timeout)
+
+//case2
+request = urllib2.Request(url-1)
+request = urllib2.Request(url-2)
+...
+response = urllib2.urlopen(request)
+
+print response.read()
+
+[2] 向url传送数据(登录名、密码),返回更多的用户数据
+传数据方式分为POST和GET
+
+//POST(不显示传输的参数值)
+import urllib
+import urllib2
+
+value = {"name":"xxx","pw":"xxx"}
+data = urllib.urlencode(value)
+url = xxx
+request = urllib2.Request(url,data)
+response = urllib2.urlopen(request)
+
+print response.read()
+
+//GET(以链接方式访问，链接包含所传所有参数)
+...
+data = urllib.urlencode(value)
+url = xxx
+geturl = url + "?" + data
+request = urllib2.Request(geturl)
+response = urllib2.urlopen(request)
+
+print response.read()
+
+[3] 设置Headers
+抓取网页的信息即抓取它的html代码，css、js等等代码，指定的图片、资源等等。
+所以这些Request信息都是可以拆分的，每一条信息应该都包含了Request headers，这里面的user-agent即是请求者的身份信息。
+
+根据你常用的浏览器访问该页面时中的任一信息的headers来填写，在构建Request参数时把它加进去，就像是告诉服务器，我正在使用某一个浏览器正常访问，而不是在做坏事。
+(chrome -- F12 -- network -- xxx)
+
+User-Agent: 有些服务器或Proxy会通过该值来判断是否是浏览器发出的请求
+Referer: 判断headers中的referer是不是它自己，防止盗链
+
+Content-Type: 在使用REST接口时，服务器会检查该值，用来确定HTTP Body中的内容该怎样解析
+application/xml：在XML RPC，如 RESTful/SOAP 调用时使用
+application/json：在JSON RPC 调用时使用
+application/x-www-form-urlencoded：浏览器提交 Web 表单时使用
+在使用服务器提供的RESTful或SOAP服务时，Content-Type设置错误会导致服务器拒绝服务
+
+//设置headers
+...
+url = xxx
+value = {"x":"xx","xxx":"xxxx"}
+data = urllib.urlencode(value)
+headers = {'User-Agent':'Chrome/51.0.2704.106','Referer':'url'}
+request = urllib2.Request(url,data,headers)
+response = urllib2.urlopen(request)
+
+print response.read()
+
+[4] Proxy设置
+urllib2会默认使用环境变量http_proxy来设置http的代理，某些网站会限制同一IP对于该网站的访问次数，而设置代理的目的即是在每次访问时使用不同的IP，以免被禁止访问。
+
+import urllib2
+enable_proxy = True
+proxy_handler = urllib2.ProxyHandler({'http':'url:8080'})
+null_proxy_handler = urllib2.ProxyHandler({})
+if enable_proxy:
+	opener = urllib2.build_opener(proxy_handler)
+else
+	opener = urllib2.build_opener(null_proxy_handler)
+urllib2.install_opener(opener)
+
+[5] Timeout设置
+在urlopen构建里写明超时的时间，避免网站反应过慢。
+在data没有传入的情况下，必须要指明形参，传入data情况下可直接写明设置值大小。
+
+//case1
+import urllib2
+response urllib2.urlopen('url',timeout=10)
+
+//case2
+import urllib2
+response urllib2.urlopen('url',data,10)
+
+[6] 在urllib2中使用HTTP的put和delete方法
+HTTP协议的六种请求方式：get,head,put,delete,post,options
+PUT方式会指定数据的存放位置，POST方式会由服务器自己决定。
+
+import urllib2
+request = urllib2.request(url,data=data)
+request.get_method = lambda: 'PUT' # or 'DELETE'
+response = urllib2.urlopen(request)
+
+[7] Debug-Log
+打开debug-log后可以将收发包的内容打印在屏幕上。
+
+import urllib2
+httpHandler = urllib2.HTTPHandler(debuglevel=1)
+httpsHandler = urllib2.HTTPHandler(debuglevel=1)
+opener = urllib2.build_opener(httpHandler,httpsHandler)
+urllib2.install_opener(opener)
+response = urllib2.urlopen('url')
+
+[8] 利用try-except来反馈URLerror情况
+import urllib2
+...
+request = urllib2.Request('url',data,20)
+try:
+	response = urllib2.urlopen(request)
+except urllib2.URLerror, e:
+	print e.reason
+
+[9] HTTPerror的code属性值
+HTTPError是URLError的子类，所以在条件判断是一般写在前面。
+HTTP实例产生后会有一个code属性，即服务器发送的错误代码。
+
+//case1
+...
+try:
+	rsp = urllib2.urlopen(req)
+except urllib2.HTTPError, e:
+	print e.code
+except urllib2.URLError, e:
+	print e.reason
+else:
+	print 'OK'
+
+//case2
+...
+try:
+	rsp = urlopen(req)
+except urllib2.URLError, e:
+	if hasattr(e,'code')
+		print e.code
+	if hasattr(e,'reason')
+		print e.reason
+else:
+	print 'OK'
+
+[10] 保存cookie记录
+cookielib模块(CookieJar)可以为我们提供可存储的cookie对象，配合urllib2即可方位internet资源，模拟登陆过程。
+
+import urllib2
+import cookielib
+cookie = cookielib.CookieJar() //声明一个cookiejar对象实例
+handler = urllib2.HTTPCookieProcessor(cookie) //构建cookie的处理器handler
+opener = urllib2.build_opener(handler) //构建opener
+rsp = opener.open('url')
+for item in cookie:
+	print 'name=' +item.name
+	print 'value=' +item.value
+
+[11] 派生类FilCookieJar/MozillaCookieJar/...
+让cookie数据可以被存放在文件中
+
+import cookielib
+import urllib2
+filename = 'cookie.txt' //该文件应该位于同级目录下
+cookie = cookielib.MozillaCookieJar()
+...
+cookie.save(ignore_discard=True, ignore_expires=True) //cookie被丢弃任然保存，已存在即覆盖写入。
+
+[12] 从文件中读取cookie
+import urllib2
+import cookielib
+cookie = cookielib.MozillaCookieJar()
+cookie.load('cookie.txt', ignore_discard=True, ignore_expires=True) //向cookie这个实例中传入参数
+opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie))
+rsp = urllib2.opener('url') //这里也可以多构建一个Request请求
+print rsp.read()
+
+===test===
+//python模拟登录过程，获取cookie。
+
+import urllib
+import urllib2
+import cookielib
+
+name = input('plz input your login name')
+pw = input('plz input your account password')
+data = urllib.urlencode(['Login-name':'"name"','Password':'"pw"'])
+url1 = 'xxx'
+cookie_file = 'cookie.txt'
+cookie = cookielib.MozillaCookieJar(cookie_file)
+opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cookie))
+rsp = opener.open('url1',data)
+cookie.save(xxx,xxx)
+url2 = 'xxx'
+rsp = opener.open('url2') //第一个网站正常登录获取cookie数据保存，第二个网站用其cookie数据查询相关内容
+print rsp.read()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

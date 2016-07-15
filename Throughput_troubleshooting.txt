@@ -1,4 +1,6 @@
 ==Preparetion==
+Reliance-M项目上理想的下行数据吞吐量应该是在95Mbps。
+
 在无线数据传输中，引起数据吞吐量差异的原因有很多，例如最明显的就是手机的RF各项参数未校准，当然还有很大一部分问题就需要分析所在地的网络环境，根据能够测量的各项网络状态参数，判断问题根源是否出在网络端，最后当然还有手机自身的原因。
 
 在分析这些网络反馈的测量数据时，我们可以用到qxdm，wireshark这些工具，在qxdm中可以通过抓取的log观察到物理层的数据速率以及BLER情况。(误块率，不同BER误码率，误块率检测对象是已经经过交织、速率匹配、信源解码、CRC等一系列过程后的语音块数据，而BER检测只是单纯的数据流，在用途上，BER是用来衡量接收机特性的指标，而BLER是用来衡量系统性能测试的，也就是说并不是说只有载频故障才会导致BER差，BER高的原因有很多，例如载波硬件故障或内部设备的非线性元件引起的噪音干扰或者外部的同/邻频干扰，也不能排除射频部分器件的非线性引起的噪声或者干扰可能)
@@ -58,7 +60,95 @@ LTE ML1 UL Throughput and BLER
 1.一般TCP/IP层丢包可能性比较大，MAC/RLC/PDCP层出问题概率较小
 2.在载波聚合的频带内，会有Pcell和Scell的测量数据。
 	pcell和scell都属于同一个eNodeB
-3.
+3.0xB16C LTE DCI information report
+包含一些DCI的记录信息，编码调制方式(QPSK)，不同的调制方式对应着不同的CQI等级，不同的编码速率和频谱利用率。
+4.0xB172 LTE PDSCH stat indication | 0x1B173 LTE uplink PKT build indication
+物理下行共享信道的状态信息指示 | 上行链路数据包构建指示
+
+测量SINR->内部算法映射SINR到CQI->内部算法映射CQI到TBS->TBS映射到MCS->根据业务量确定PRB数
+在LTE中，CQI是4bit，取值范围0-15(0保留，1-6是QPSK，7-9是16QAM，10-15是64QAM)。
+(1)下行MCS：0-9  QPSK   10-16  16QAM   17-28 64QAM   29—31保留
+       TBS：0-9         9-15           15-26
+(2)上行MCS：0-10 QPSK   11-20  16QAM   21-28 64QAM   29—31保留
+       TBS：0-10        10-19          19-26
+TBS=transport block subpacket
+
+5.LTE LL1 PUCCH CSF 上行物理控制信道 | LTE LL1 PUSCH CSF 上行物理共享信道
+
+6.0xB063/0xB064 LTE MAC UL/DL transport block 上下行传输块
+
+7.0xB0B3/0xB0A3 PDCP层上下行加密数据PDU
+
+==实际情况==
+在RFSW的代码中，如果擅自修改射频模块时序的对应代码(提前了打开天线发射/接收通路的时间)，可能会引起速率下降。
+原则上来说设备的时序不需要调整，如果需要客制化也尽量将改动控制在2个单位内，而且每次修改后必须做回归测试验证速率没有严重影响。
+
+notch-filter：消除特定频率的干扰，使手机的灵敏度提高，但不恰当的值会抑制下行信号，而使下行速率降低。必要的时候可以移除这些NV再测试下行速率大小。
+ RFNV_LTE_C0_SPURS_TABLE_I
+ RFNV_LTE_C1_SPURS_TABLE_I
+ RFNV_LTE_C2_SPURS_TABLE_I
+ RFNV_LTE_C3_SPURS_TABLE_I
+ RFNV_WCDMA_C0_SPURS_TABLE_I
+ RFNV_WCDMA_C1_SPURS_TABLE_I
+ RFNV_TDSCDMA_C0_SPURS_TABLE_I
+ RFNV_TDSCDMA_C1_SPURS_TABLE_I
+
+==Log capture==
+PC侧的Pcap-log是通过wireshark监测对应的接口获取的。
+Android上的Pcap-log直接通过在adb上运行tcpdump即可抓取rmnet/wlan设备的log：adb shell tcpdump -i any -s 0 -w /data/tcpdump.pcap
+Qxdm的log可以通过工具转换为Pcap-log
+
+DPL-log
+利用qxdm工具抓取Log--Common--Data services--Data protocol logging
+
+Ping命令快速检测链路是否正常，看到环回时延RTT。
+ping URL -t ...
+
+UDP及iperf测试
+UDP即用户数据包协议，无对端应答的ACK机制，可以指定任意带宽发送数据流，没有其他多余的流程机制。常用与iperf工具灌包测试验证物理信道带宽是否足够，
+iperf工具的使用可参考-->80-N2363-1
+根据测试是前向链路或者是后端链路，client和server分别在不同的终端上。
+iperf -s -u -i 1 (server端，udp协议，信息打印间隙1s)
+iperf -c ip-addr -u -b 3M -t 30 --i 1 (client端，ip地址，udp协议，带宽3M，测试时间30s，信息打印间隙1s)
+(安装直接下载iperf工具，运行即可，Android环境的话直接将其push到/etc目录下即可，不过我看现在iperf官网上基本都有对应Android的app，直接用app应该还更方便一点，但是都必须要在google play里才能安装有点麻烦)
+
+CPU默认运行在on-demand模式，CPU会动态调整频率。
+在进行数据测试时可以将CPU调整为Performance模式，把温控等进程关掉，不过这仅在测试中使用。
+adb root
+stop mpdecision/thermal-engine //停止这两个进程
+
+echo 1 > /sys/devices/system/cpu/cpu*/online  //设置相应cpu核心为online模式，通常手机运行时不会所有核都处于online状态
+echo "performance" > /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor  //设置相应cpu核心为performance模式，设置以后可以在对应的节点查看是否设置成功
+
+cat /sys/class/thermal/thermal_zone*/temp  //获取CPU温度
+
+cat /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq  //获取CPU频率
+
+adb-log中cpu关键词：CPU - Setting CPU[0] to 384000(CPU频率在384MHz，过低); Sensor:tsens_tz_sensor3:61000mC(sensor3的温度在61摄氏度，过高);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

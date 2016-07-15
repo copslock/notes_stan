@@ -1,0 +1,50 @@
+UIM类log的分析关键词：
+===SPN===
+对应sim卡的运营商相关信息
+SPN Service Provider Network 服务供应商网络
+SPN Subsctiber Premises Network 用户驻地网
+
+===uim===
+Multimode Generic SIM Driver Interface(MMGSDI)
+Generic SIM Application Toolkit(GSTK)
+
+===注册信息===
+==reg==
+卡的注册信息相关
+
+===使所有窗口同步/接近于一个item===
+sync to item
+sync near item
+
+===DS: SUB===
+数据连接中各个sim卡的信息
+一般sub0指卡1，依次类推sub1，sub2指卡2和卡3
+
+===slot/ril[x]/card/sub/uim/gsdi===
+slot1，slot2，slot3对应三张卡的卡槽
+ril[0],ril[1],ril[3]
+gsdi: generic sim driver interface
+
+===IMS message===
+0x156E
+包含有IMS的注册流程的关键信令
+
+===QMI link Tx/Rx PDU===
+0x138F...
+在log里qmi的相关信息，可以看到诸如链路连接变化的信息等等
+
+===sim卡的无线功率===
+qcril_qmi_nas_log_radio_power_process_state
+可以查看对应卡槽是否有sim卡，当前所处的功率状态(LPM/ONLINE/OFFLINE)
+
+===LTE NAS ESM OTA msg===
+0xB0E2 默认EPS承载的激活/ESM信息请求
+0xB0E3 ESM信息响应/PDN连接请求/默认EPS承载激活确认
+
+
+
+
+
+
+
+

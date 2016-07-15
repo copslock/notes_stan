@@ -1,4 +1,10 @@
-【1】在新的Ubuntu14和ARMcompiler6.0里每次编译Android源码都会提醒，api已过时需要重新编译，提示给让你使用"make update-api"命令去更新current.txt文件，在执行该命令成功编译后，在frameworks/base/api/目录下将current.txt替换为当前代码库的current文件，以后再次更新代码后，就不会再提示让你执行make update-api去重新编译了？
+【1】在每次编译前先使用make update-api去更新，再进行make编译
+
+hexagon-clang: error: unable to excute command: no such file or directory
+hexagon-clang: error: hexagon-as conmmand failed due to signal(use -v to see invocation)
+QuIC LLVM hexagon clang version 6.4()
+hexagon-clang: note: diagnostic msg: PLEASE submit a bug report to http://llvm.org/bugs/ and include the crash backtrace, preprocessed source and associated run script.
+
 
 单个文件在git的更新，不要使用git pull。
 git fetch
@@ -46,7 +52,20 @@ UE和CSG是1对多的关系，UE中会有一个CSG-list，包含对应所有的C
 【7】adb shell screenrecord /.../xxx.mp4
 利用adb命令直接录屏并存储视频文件
 
-
+【8】在debug中常用查看状态或者信息的命令
+adb shell xxx
+----------
+buddyinfo
+dumpstate 
+dumpsys
+getprop
+pmlist //所有package名
+meminfo
+ps //当前运行的所有进程
+sched_debug
+serviceslist //所有可用的服务列表
+top
+interrupts
 
 
 
