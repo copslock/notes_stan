@@ -67,4 +67,54 @@ ssh-keygen -t rsa -C "youremail@example.com"		//获取ssh的密钥,添加id_rsa.
 [7]自己原虚拟机的一些脚本文件,记录文件的copy.
 b2g项目,msm-8916(mobee)项目代码的clone需要完成,modem代码的编译也需要实施一次.
 
-[8]在ubuntu上建立opengrok源码浏览索引,操作如下:
+[8]在ubuntu上建立opengrok源码浏览索引
+
+[9]环境变量总结：
+116 #change by myown
+117 alias type='type -a'
+118 alias cp='cp -i'
+119 alias mv='mv -i'
+120 
+121 #SDK
+122 PATH=$PATH:"/home/eminem/software/sdk/platform-tools/"
+123 PATH=$PATH:"/home/eminem/software/sdk/tools/"
+124 
+125 #HEXAGON PATH
+126 export HEXAGON_ROOT="/home/eminem/Qualcomm/HEXAGON_Tools"
+127 export ARMTOOLS=RVCT221
+128 export HEXAGON_RTOS_RELEASE=6.4.04
+129 
+130 #repo
+131 PATH=$PATH:"/home/eminem/software/repo/"
+132 
+133 #ARM compiler 6
+134 PATH=$PATH:"/home/eminem/software/ARMCompiler6.01/bin/"
+
+13 /dev/sdb1       /home/eminem/software   ext4    defaults        0       1
+14 /dev/sdb2       /home/eminem/project    ext4    defaults        0       1
+15 /dev/sdc1       /tmp            ext4    defaults        0       1
+
+  1 #Acer 0502 ASUS 0b05 Dell 413c Foxconn 0489 Fujitsu 04c5 Fujitsu Toshiba 04c5
+  2 #Garmin-Asus 091e Google 18d1 Haier 201E Hisense 109b HTC 0bb4 Huawei 12d1
+  3 #Intel 8087 K-Touch 24e3 KT Tech 2116 Kyocera 0482 Lenovo 17ef LG 1004 
+  4 #Motorola 22b8 MTK 0e8d NEC 0409 Nook 2080 Nvidia 0955 OTGV 2257 Pantech 10a9
+  5 #Pegatron 1d4d Philips 0471 PMC-Sierra 04da Qualcomm 05c6 SK Telesys 1f53
+  6 #Samsung 04e8 Sharp 04dd Sony 054c Sony Ericsson 0fce Sony Mobile Communications 0fce
+  7 #Teleepoch 2340 Toshiba 0930 ZTE 19d2
+  8 
+  9 SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", MODE="0666", GROUP="plugdev"
+ 10 SUBSYSTEM=="usb", ATTR{idVendor}=="0bb4", MODE="0666", GROUP="plugdev"
+ 11 SUBSYSTEM=="usb", ATTR{idVendor}=="2a47", MODE="0666", GROUP="plugdev"
+ 12 SUBSYSTEM=="usb", ATTR{idVendor}=="05c6", MODE="0666", GROUP="plugdev"
+ 13 SUBSYSTEM=="usb", ATTR{idVendor}=="901b", MODE="0666", GROUP="plugdev"
+ 
+ 
+ 1 set backspace=indent,eol,start
+  2 set nu
+  3 syntax on
+  4 set hlsearch
+  5 set ruler "右下角的状态变化
+  6 set showmode "左下角的模式变化
+
+
+

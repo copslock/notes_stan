@@ -29,3 +29,63 @@ modify: /modem_proc/mcfg/mcfg_sel/src/mcfg_uim.c
 
 在adb中启用，让OTA更新MBN这个feature在上层被使能
 adb shell setprop persist.radio.sw_mbn_update 1
+
+
+【3】samba服务器设置
+cd /var/lib/dpkg/
+sudo mv info/ info.bak/
+sudo mkdir info/
+sudo apt-get install smbclient
+ samba-common
+ smbclient
+ samba-common-bin
+ samba
+sudo rm -rf info/
+sudo mkdir info
+...
+
+新建共享文件夹，chmod改权限
+
+sudo apt-get update
+sudo vim /etc/samba/smb.conf
+
+# Cap the size of the individual log files (in KiB).
+	max log size = 1000
++	security = user
+ 
++[own share]
++	comment = my own share
++	path = /home/eminem/share
++	browseable = yes
++	writable = yes
+
+sudo useradd smbuser
+sudo smbpasswd -a smbuser -->设置密码
+sudo service smbd restart
+ifconfig --> 在windows端输入linux虚拟机的ip地址即可访问共享文件夹的内容
+
+【4】利用xml source生成MBN
+利用带宏的excel表生成MBN，之前张锐已经有wiki介绍过，所以这里我再补充一下另外一种生成MBN的方法，无论是自己验证或者是后续的代码调整实际上都是通过读取相应的xml表来读取设置的EFS/NV，而excel表生成MBN的方法中，生成的命令其实就是执行modem_proc/build/build_mcfgs.exe这个可执行文件，在linux环境下，我们可以使用这个可执行文件，加上一些适当的参数，就能到达在excel中生成的相同效果。
+
+build_mcfgs.exe --build_id=<BUILD ID> --configs=<PLATFORM>:<CONFIG_NAME> [--force-regenerate] [--force-rebuild] [--source-dir=<CARRIER_DIR_PATH]
+以上这个命令就是一些常用的参数后缀
+1.build-id可以参考excel表里summary那一栏image的属性值
+2.configs中platform填写mcfg_sw或mcfg_hw；config_name填写对应运行商的名字
+3.--force-regenerate --force-rebuild 强制重新生成对应的xml source和MBN文件
+4.要生成MBN的源文件目录
+
+范例：build_mcfgs.exe --build_id=Generic --configs=mcfg_sw:CMCC --force-regenerate --force-rebuild --source-dir=generic/China/CMCC
+
+
+
+
+
+
+
+
+
+
+
+
+
+

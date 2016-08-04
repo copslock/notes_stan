@@ -1,3 +1,5 @@
+adb logcat -b main -b radio -b system -v threadtime > adblog.txt
+
 adb/android debug bridge 调试工具
 fastboot 和手机端的bootloader通信,烧录工具
 

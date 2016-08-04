@@ -1,0 +1,10 @@
+==SIP(seession initiation protocol)知识点概念介绍==
+UAC流程(client端)
+1.建立/初始化"INVITE"信令
+一个有效的SIP-Request必须由一个UAC发起组成，它的最小组合是以下几个头文件标志域：To, From, CSeq, Call-ID, Max-Forwards, Via
+
+request-URI: 一般这个值设置在To的后面，在第一次发出REGISTER请求时会被给出
+To: carol <sip:carol@xxxx.com>
+
+
+

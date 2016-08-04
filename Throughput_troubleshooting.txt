@@ -126,12 +126,27 @@ cat /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_cur_freq  //获取CPU频率
 
 adb-log中cpu关键词：CPU - Setting CPU[0] to 384000(CPU频率在384MHz，过低); Sensor:tsens_tz_sensor3:61000mC(sensor3的温度在61摄氏度，过高);
 
+top -d 1 -n 5  //检查CPU的利用率大小
+mpstat 2 30    //每隔2s打印一次CPU利用率
 
+===SBL===
+不同于LK，SBL中会禁用掉所有的debug信息打印，为的是在商用的客户端中终端性能的最优，同理在测试理想数据速率时，也需要使用SBL作为bootimg。
 
+如何使编译出的bootimg是SBL对应的呢？
 
+方法一：
+Modify：device/qcom/msmXXX/AndroidBoard.mk
+//将"_defconfig"改为"perf_defconfig"
+KERNEL_DEFCONFIG:= msm8916-perf_defconfig (MSM8939/MSM8916 32-bit)
+make KERNEL_DEFCONFIG=msm-perf_defconfig (MSM8939/MSM8916 64-bit)
 
+方法二：
+在编译时，把参数"kernel_defconfig=msmXXXX-perf_defconfig"作为编译参数
+make KERNEL_DEFCONFIG=msm8916-perf_defconfig (MSM8939/8916 32-bit)
+make KERNEL_DEFCONFIG=msm-perf_defconfig (MSM8939/MSM8916 64-bit)
 
-
+烧录方法：
+在bootloader中，利用"cd path to secondary-boot directory"进入到SBL的烧写路径，然后利用fastboot烧写即可"fastboot flash boot boot.img"
 
 
 

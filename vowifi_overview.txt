@@ -125,7 +125,7 @@ typedef enum {
 }dsd_sys_rat_ex_enum_v01;
 
 “avail_sysp[?].rat_value = 5”
-当看到IMS-msg中RAT值为5的时候即当前RAT为WLAN的时候
+当看到IMS-msg中RAT值为5的时候，即表示当前RAT为WLAN
 “PDPRATHandlerVoLTE.cpp 00734 CPDPRATHandlerVoLTE::StartWifiMeasurement HO Measurements started”
 RM(注册管理器)会触发wlan网络下的相关参数测量
 “CPDPRATHandlerVoLTE::HandleWifiMeasurement triggering PDP activate on IWLAN”
@@ -135,21 +135,69 @@ RM(注册管理器)会触发wlan网络下的相关参数测量
 ====================================================================================================
 
 ==WFC offload Via S2B/ePDG==
-S2B接口即指WLAN通过ePDG连接至EPC的接口。
+S2B接口即指WLAN接入网部分通过ePDG连接至EPC的接口。
+
+wifi-call的配置中主要包括以下的几个部分：对应NV-items，Android的特有属性值，PDN数据库的属性值，wifi连接的参数
+
+===NV settings===
+70315 - 2 - IWLAN_s2b_support
+69679 - 0x01 - 没设置的情况默认是enable APN switching feature
+
+===Android属性值===
+persist.data.iwlan.config - TRUE
+persist.data.iwlan.rekey - 2^32-1
+
+===EFS配置===
+[1]PDN数据库配置
+通过一个efs text文件来进行PDN-DB的配置，在能够接入MAPCON的情况下，使其能够正常连接到WLAN和WWAN上。
+
+PDN-DB文件可以包括为多个APN做不同的参数设定，每一类别需要包含以下的属性值信息：
+范例如下：
+	/data/pdn_policy_db.txt
+//Mandatory token
+PDN_APN_string:internet/NULL/apn-name*;
+Supported_RAT_Priority_List:WWAN,IWLAN,WLAN_LB;
+//Optional token
+Default:TRUE/FALSE; (指示是否是特有APN,默认优先使用的APN)
+Override_Type:NONE/API/OPTION; (选择不同APN时的IWLAN_s2b和WWAN_LTE/eHRPD之间转换的一些设置)
+
+[2]IWLAN s2b的EFS文件配置
+vowifi对应的s2b接口需要的配置，IPSec IKEv2连接参数，当此文件存在时，会从中选择相应的配置参数，
+
+//范例(只有epdg_fqdn这个参数是必须有的)
+	/data/iwlan_s2b_config.txt
+epdg_fqdn:wireless.epdg.com;
+ke_payload_enabled:FALSE;
+
+//以下是对应reliance的iwlan_s2b_config设置属性值
+epdg_fqdn:vowifi.jio.com; 
+static_fqdn_enabled:FALSE; 
+ke_payload_enabled:FALSE; 
+pcscfv4_attr_type_val:16384; 
+ikev2_sa_rekey_timer_soft_sec:86400; 
+ikev2_sa_rekey_timer_hard_sec:86500; 
+esp_rekey_timer_soft_sec:86400; 
+esp_rekey_timer_hard_sec:86500; 
+natt_keep_alive_timer_sec:20; 
+epdg_fqdn_impi_based:TRUE; 
+ikev2_self_id_type:ID_RFC822_ADDR_MAC_IMPI_BASED; 
+#esp_auth_algo_list:1,2; 
+#configured_ike_port:4500; 
+	
+详细的表格参考文件"80-NP263-1"中的Table 2-3
+	
+===KAMGR===
+keep alive manager file
+当指示通过PDN从LTE向IWLAN切换时，该文件用于维持LTE连接，以免造成长时间掉网
+
+	/data/ds_eps_kamgr_pdn.txt
+profile_id:NA; (Mandatory)(取值可从0到2^16-1)
+timer_val:500:500:10000:2; (每次时间间隔从500ms向10000ms以每次500ms的增量递增，重试次数2次)
 
 
 
 
-
-
-
-
-
-
-
-
-
-
+	
 
 
 

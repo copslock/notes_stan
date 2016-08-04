@@ -1,0 +1,1 @@
+CNE又被叫做connected-engine，是位于AP处理器中QMI和WLAN接入网之间的连接接口，

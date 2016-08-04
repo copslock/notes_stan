@@ -1,0 +1,57 @@
+【1】CA
+CA: 载波聚合可分为3种情况，带内相邻聚合，带内不相邻聚合，带间聚合。
+
+TS-36.101 Table 5.5-1 LTE网络下的频带设置
+
+载波聚合将零散的频带结合在一起，加大了带宽当然就增加了数据传输速率和稳定性。
+
+CA的EFS设置:
+EFS: ca_disable = 1
+path：/nv/item_files/modem/lte/common/
+
+MSM8676上支持CA的功能
+
+【2】FGI: Feature Group Indicator(共32 bit)
+信令中经常出现在RRC空口信息中 --> UL_DCCH/UECapabilityInformation
+主要是指示以下这些feature是否被使能 --> short-DRX(bit 4), long-DRX(bit 5), intra-freq SON/ANR(bit 17)
+
+关联的EFS设置:
+EFS：fgi
+path：/nv/item_files/modem/lte/rrc/cap/
+
+【3】CDRX：CONNECTED DRX
+RRC连接状态下的不连续传输/接收，目的是为了去节省电量。
+
+一般在FGI中或"rrcConnectionReconfiguration"信令中有指示信息
+
+【4】carrier_policy.xml
+关于运营商的logic设置文件
+Path：EFS/policyman
+modem_proc\mmcp\policyman\configurations\Carrier
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

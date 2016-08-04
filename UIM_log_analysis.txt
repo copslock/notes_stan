@@ -41,6 +41,10 @@ qcril_qmi_nas_log_radio_power_process_state
 0xB0E2 默认EPS承载的激活/ESM信息请求
 0xB0E3 ESM信息响应/PDN连接请求/默认EPS承载激活确认
 
+--------------------------------
+--------------------------------
+
+==GSTK==
 
 
 
