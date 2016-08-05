@@ -21,8 +21,10 @@ adb shell setprop sys.usb.config diag,serial_smd,rmnet_qti_bam,adb
 在8939项目中该值设置为0x03，在8976项目中该值设定为0x07，分别可以根据sim卡的ICCID或者IMSI/MCC-MNC来进行MBN的自动选择。
 前者的原理是MCFG通过检测SIM卡根据卡中ICCID的Issuer Identification Number(IIN)字段来匹配/激活对应的MBN文件。
 后者则是直接插卡后网络端发送给UE的IMSI/MCC-MNC信息来判断选择合适的MBN文件。
+(ICCID: Integrate circuit card identity)
 
-最好是在default的MBN中直接加NV-71546的设置，这样可以避免出现该NV丢失的情况，否则就最好加一个宏(hard-code)，当出现该NV丢失时，这个宏就会作为auto-select的定义。
+
+最好是在default的MBN中直接加NV-71546的设置，这样可以避免出现该NV丢失的情况，否则就最好加一个宏(hardcode)，当出现该NV丢失时，这个宏就会作为auto-select的定义。
 modify: /modem_proc/mcfg/mcfg_sel/src/mcfg_uim.c
 - #define MCFG_UIM_AUTOSELECT_DEFAULT (0)
 + #define MCFG_UIM_AUTOSELECT_DEFAULT (3)
@@ -74,7 +76,13 @@ build_mcfgs.exe --build_id=<BUILD ID> --configs=<PLATFORM>:<CONFIG_NAME> [--forc
 3.--force-regenerate --force-rebuild 强制重新生成对应的xml source和MBN文件
 4.要生成MBN的源文件目录
 
-范例：build_mcfgs.exe --build_id=Generic --configs=mcfg_sw:CMCC --force-regenerate --force-rebuild --source-dir=generic/China/CMCC
+范例：build_mcfgs.exe --build_id=Generic --configs=mcfg_sw:CMCC --force-regenerate --force-rebuild --source-dir=generic\China\CMCC
+
+
+
+
+
+
 
 
 

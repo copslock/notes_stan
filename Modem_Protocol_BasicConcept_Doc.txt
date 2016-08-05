@@ -29,6 +29,39 @@ RRC连接状态下的不连续传输/接收，目的是为了去节省电量。
 Path：EFS/policyman
 modem_proc\mmcp\policyman\configurations\Carrier
 
+MBN auto-select:
+NV-71546
+
+【5】ZUC(UE安全性保护算法使能状态EEA0-7,EIA0-3)
+EFS:
+/nv/item_files/modem/nas/lte_nas_ue_sec_capability
+这类信息常在attach request信令中携带出现
+
+【6】SMS over LTE
+可以通过IMS也可以通过SGs去2/3G网络中发送短信。
+NV 66472 (/nv/item_files/modem/mmode/sms_domain_pref)
+SMS over IMS: set NV 66472 to 1
+(SYS_SMS_DOMAIN_PREF_PS_SMS_PREF)
+SMS over SGs: set NV 66472 to 0
+(SYS_SMS_DOMAIN_PREF_PS_SMS_NOT_ALLOWED)
+当NV-66472=1，但是IMS注册失败，短信服务依然可以在2/3G网络中正常运行。
+
+【7】多APN设置
+EFS
+/nv/item_files/data/3gpp/ds_3gpp_multi_pdn_same_apn
+ 
+FEATURE_DISABLE_MULTI_PDN
+这个宏不定义的情况，即认为所有的apn都可用，若定义此宏，则只能使用一个APN。
+
+【8】PLMN搜网
+Recommend rat_search_order
+CMCC:
+ rat_acq_order { LTE，TDSCDMA，GSM}
+ NV65602 (/nv/item_files/modem/nas/ehplmn): EHPLMN 460-00,460-02,460-07,460-08
+ NV70189 (/nv/item_files/modem/nas/tdscdma_op_plmn_list): OPLMN 460-00,460-02,460-07,460-08。
+CU:
+ rat_acq_order { LTE，WCDMA，GSM}
+
 
 
 

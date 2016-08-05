@@ -291,7 +291,7 @@ UE1被寻呼,接收到"invite"消息,UE1在UI中看到有新的呼叫的提示,U
 前提: UE1和2处于hold,UE1和3处于conversation
 [1]上层UI/UE1发起电话会议的请求,将UE1和3之间的状态置为"Hold".
 [2]UE1通过发送"invite"到"conference-URI"(需要参加会议的所有UE的对应的一个标识?)来创建一个会议.
-[3]UE1发送"REFER"到conference-server,由其将invite消息发给每一个被指定的UE.
+[3]UE1发送"REFER(携带了UE2的URI)"到conference-server,由其将invite消息发给被指定的UE(UE2).
 [4]对应UE(例如这里是UE2)接收到"invite"消息,UE1接收到各种"notify"消息.
 [5]UE1接收到notify后结束和UE2的呼叫,UE2接受和conference-server的呼叫建立.
 [6]以此过程一个一个去添加要加入会议的UE到conference-server中去.
