@@ -62,8 +62,29 @@ CMCC:
 CU:
  rat_acq_order { LTE，WCDMA，GSM}
 
+【9】data service
+EFS:
+/pdp_profiles/profile* (最多16个这种profile文件，当AP端配置APN后，APN信息会被写入这些文件，多用于GSM/WCDMA网络的配置)
+/data/ds_dsd_attach_profile.txt (具体文件格式略，多用于LTE apn配置)
 
+NV-73529 用于解决APN不匹配造成的不能正常上网问题
 
+【10】IPA
+IP Accelerator (IPA) – IPA 是一个硬件加速器，用来对IP报文进行硬件加速，以达到更高的吞吐率，它可以用来节约APPS的CPU资源。
+IPA主要有以下功能:
+1. 过滤功能，IPA可以基于配置的规则将IP报文过滤给对应的节点(end point)
+2. 网络地址转换功能 IPA可以实现硬件进行源地址与目的地址的网络地址转换
+3. 路由功能 IPA可以根据NAT转换结果来决定IP报文的路由方向，可以发给modem本身或者发给其他节点(WIFI芯片)
+4. 聚合/解聚合 IPA支持对IP报文的聚合/解聚合
+5. LTE解密功能
+6. IPA 从MDM9X25开始引入
+
+关闭IPA硬件加速功能:
+adb shell
+cd etc/init.d
+mv start_ipacm_le start_ipacm_le_bk
+reboot
+ps -ef (确认无法看到IPACM deamon)
 
 
 

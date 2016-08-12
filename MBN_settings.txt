@@ -71,26 +71,36 @@ ifconfig --> 在windows端输入linux虚拟机的ip地址即可访问共享文件夹的内容
 
 build_mcfgs.exe --build_id=<BUILD ID> --configs=<PLATFORM>:<CONFIG_NAME> [--force-regenerate] [--force-rebuild] [--source-dir=<CARRIER_DIR_PATH]
 以上这个命令就是一些常用的参数后缀
-1.build-id可以参考excel表里summary那一栏image的属性值
+1.build-id可以参考excel表里summary那一栏image的属性值，这一项在生成特有MBN时可以为空
 2.configs中platform填写mcfg_sw或mcfg_hw；config_name填写对应运行商的名字
 3.--force-regenerate --force-rebuild 强制重新生成对应的xml source和MBN文件
-4.要生成MBN的源文件目录
+4.source-dir即要生成MBN的文件对应excel表的目录地址
 
 范例：build_mcfgs.exe --build_id=Generic --configs=mcfg_sw:CMCC --force-regenerate --force-rebuild --source-dir=generic\China\CMCC
 
+build_mcfgs.exe --build_id=FAAAANVZ --build_ver=33625394 --configs=mcfg_sw:CU --xml --sw-product=CU --force-regenerate --force-rebuild
 
+build_mcfgs.exe --build_id=8976.gen.prod --build_ver=33625394 --configs=mcfg_sw:CU --xml --sw-product=CU --force-regenerate --force-rebuild
 
+AAAAANAZ
+EAADANAZ
+8976.gen.prod
 
+e.g:
+Windows:
+build_mcfgs.exe --build_id=8976.gen.prod --build_root=D:\msm8976 --build_ver=33625394 --configs=mcfg_sw:CU --xml --force-regenerate --force-rebuild --source-dir=generic\China\CU
 
+Linux:
+perl build_mcfgs.pl --build_id=8976.gen.prod --build_ver=33625394 --configs=mcfg_sw:CU --xml --force-regenerate --force-rebuild --source-dir=generic/China/CU
+perl ./build_mcfgs.pl --build_id=8976.gen.prod --xml --force-regenerate --force-rebuild --source-dir=generic/China/CU
+perl ./build_mcfgs.pl --build_id=8976.gen.prod --build_ver=33625394 --configs=mcfg_sw:CU --xml --sw-product=CU
 
+functions well:
+perl ./build_mcfgs.pl --build_id=8976.gen.prod --build_ver=33625394 --xml --force-regenerate --force-rebuild --source-dir=generic/China/CU
+perl ./build_mcfgs.pl --build_id=FAAAANVZ --xml --force-regenerate --force-rebuild --source-dir=generic/China/CMCC
 
-
-
-
-
-
-
-
+mcfg version: 在xml表中修改都是自增1即可，0x0203202D
+直接修改xml表来修改并生成MBN，用PDC验证时会出现有时候active MBN时，重新恢复到了手机初始选择MBN的状态，修改验证MBN后，尝试了手机重启，MBN不会被重置，是有效的。
 
 
 

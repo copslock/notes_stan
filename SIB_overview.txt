@@ -3,8 +3,156 @@ UAC流程(client端)
 1.建立/初始化"INVITE"信令
 一个有效的SIP-Request必须由一个UAC发起组成，它的最小组合是以下几个头文件标志域：To, From, CSeq, Call-ID, Max-Forwards, Via
 
-request-URI: 一般这个值设置在To的后面，在第一次发出REGISTER请求时会被给出
+(RFC3261 8.1.1.1---8.1.1.10)
+request-URI: 一般这个值设置在To的后面，在第一次发出IMS的REGISTER请求时会被给出
+<sip:xxxx@xxx.com>
+
 To: carol <sip:carol@xxxx.com>
+
+From: "Bob" <sips:bob@biloxi.com> ;tag=a48s
+From: sip:+12125551212@phone2net.com;tag=887s
+From: Anonymous <sip:c8oqz84zk7z@privacy.org>;tag=hyh8
+(一般是sip发起者的地址,这个头域里必须包含tag和URI,display-name可以缺省,tag是由UAC选择决定的参数)
+
+Call-ID: f81d4fae-7dec-11d0-a765-00a0c91e6bf6@foo.bar.com
+单独一个UA在一次dialog中的请求响应信息的call-id必须一致，在发起某一项服务时UAC会指定一个call-id作为此次dialog的唯一标识，除非有特殊的需要可能会修改此id，重复发起的request不会再次分配新的call-id。
+
+CSeq: 4711 INVITE
+作为一种验证鉴权和命令执行排序的方法，包含一个序列号和一个操作命令，让客户机根据序列号优先执行CSeq提出的操作/命令？
+
+Max-Forwards: 70(默认初始值)
+一个整数作为限制request最大的路由hop次数，每进行一次hop操作，这个整数自减1，值为0时会返回错误代码"483(too many hops)"。
+
+Via: 
+当UAC发起一个request后，Via头域中必须包含协议名和协议版本(sip和2.0)，必须包含branch参数，这个参数用于认证用户和服务端之间创建的各request事项，对于"non-2xx"响应的"cancel"和"ack"消息不受此限制，cancel消息对应cancel-request的branch参数，ack for non-2xx消息的branch参数和对应invite消息的保持一致即可。
+branch-id总是以"z9hG4bk"作为开头部分，Via头域的其他部分参数(maddr，ttl，send-by)会在实际发起request时由传输层设定。
+Via: SIP/2.0/UDP pc33.atlanta.com;branch=z9hG4bKkjshdyff
+
+Contact:
+这个头域提供一个或多个sip URI，用于发起dialog的request请求中。
+Contact: "Mr. Watson" <sip:watson@worcester.bell-telephone.com>;q=0.7; expires=3600,
+         "Mr. Watson" <mailto:watson@bell-telephone.com> ;q=0.1
+      m: <sips:bob@192.0.2.4>;expires=60
+
+Supported and Require
+作为一个可选的扩展参数，定义根据协议规范，不同场景对应不同类型。
+Proxy-Require: foo
+Require: 100rel
+Supported: 100rel
+Unsupported: foo
+
+Additional Message Components
+额外信息，sip request可能会包含的MIME-encoded message-body。
+Content-Disposition: session
+Content-Type: application/sdp
+c: text/html; charset=ISO-8859-4
+
+=======================
+=======================
+==英文 缩写==
+请求评议 Request for Comments (RFC)
+国际互联网工程任务组(The Internet Engineering Task Force，简称IETF)
+互联网社会(Internet Society，简称ISOC)
+Uniform Resource Identifier (URI)
+User agent client(UAC)
+User agent server(UAS)
+
+==题外话：RFC文档的发展==
+RFC文档主要由IETF组织建立草案并不断完善后发布，最终由ISOC出资出版，能够在网络中看到的RFC文档，都是已经经过了”因特网草案发起-->建议标准-->草案标准-->因特网标准"这样的发展过程。
+已经正式发布的标准RFC文档，也分为多种类型：提议型(For Your Information, 提议和介绍性的文档，不是通用标准)；完全认可型(STD track, 已作为当前通用标准，不应该被修改的)；最佳实践类型(Best Current Practice, BCP track, 这种类型并不能看做是互联网的通用标准)；其他RFC类型(所有以99结尾的RFC都是对此前99个RFC的一个概括, 与Internet标准化过程(Internet Standards Process)有关的规范可以分为两类，即Technical Specification(TS),Applicability Statement(AS)，
+
+对于TS和AS的文档可以根据如下等级去判断：
+Require ment Level：Required(Req）; ·Recommended(Rec）; Elective(Elc）可选择的；Limited Use；Not Recommended。
+Maturity Level：
+Proposed Standard，基本成熟；
+Draft Standard，需要两个独立的，而且具有相互操作性的实例验证该协议的每一个方面，可以将其视为最终的标准草案；
+Internet Standard，最终的Internet标准，同时赋予一个STD编号
+除此之外的TS和AS分为以下几种"Maturity-Level"
+Experimental，一般是反映一些研究和开发的成果，只应将此看作是一般性的信息。
+Informational，反映与Internet标准有关的一般性信息。有些也是有关非Internet组织开发的一些协议，但必须得到协议开发者的许可。
+Historic，是一些被新的标准取代或者是已经过时废弃不用的标准。
+
+==摘要==
+RFC-3261这篇文档，主要面向于描述SIP协议相关内容，SIP协议中文译名可以理解为"事务初始化协议"，是关于一个事务/需求在被创建，修改，终止的规范过程，这个事务可以是网络电话，多媒体传输交互等等，参与到SIP协议的网络端会有对应服务器，它会负责用户在网络端的注册，用户地址路由，鉴权，各类通话需求建立等等，SIP协议的基础是众多传输层的协议，例如UDP，TCP/IP，RTP等等。
+
+在VoLTE的IMS网络结构中，SIP协议是至关重要的信令参考标准，这也是为什么我会专门学习这个文档的原因。
+
+==SIP协议的优势==
+作为应用层上的控制类协议，允许在各项事务之间的建立或移除，并且在SIP协议中，用户会被分配一个内部识别号，用于在该事务中的认证，而不是通过验证当前用户网络位置去判断是否属于同一个事务。
+
+SIP涵盖的五个方面：
+用户位置，当前用户是否可操作，用户允许使用的参数，事务建立，事务管理
+
+SIP并不是一个可以独立使用在一个通信系统的协议标准，它和其他的IETF协议互相关联去构建一个大的框架，常见的例如传输实时数据和提供QoS反馈需要RTP协议，控制流媒体传输需要RTSP协议，控制网关路由需要MEGACO(media gateway control protocol)协议，描述多媒体事务需要SDP(session description protocol)协议，SIP协议本身的基础操作和功能并不依赖于任何协议，但它需要其他协议互相协助去给客户提供完整的服务。
+
+SIP协议只提供服务的方法，本身并不决定服务事件类型和服务内容，例如SIP协议可能有一种向用户传输数据的标准方法，当需要传输事务描述数据时，会由SDP协议去调用这种方法完成数据传输，同样传输的数据可以是图片，视频等等，但他们都对应这一种SIP协议提供的传输标准方案，只是由其他不同的协议去调用执行，或许还会加上一些不同协议对应的封装方式，而SIP协议就可以看做是一个包含各种函数原型定义的库文件，等待着其他协议去调用或者主动调用其他协议为它服务。
+
+SIP协议提供一系列的安全性保护方案，包括denial-of-service prevention, authentication, integrity protection, encryption, privacy services.
+SIP协议支持IPv4、IPv6.
+
+==SIP协议 简单运作范例==
+[[File:STD_sip_session_establish.PNG]]
+Alice用自己的URI地址作为源，向bob的sip-URI发起事务建立申请，URI的写法类似于邮箱地址，前面是用户名字，@后面是对应服务器端域名，发送的request信息可能会经过加密后传至服务器，网关，经过路由到达目标用户端，SIP事务建立中的请求/响应的消息传递方式类似于HTTP协议，并且每一个请求或响应都包含着某一种目的性的方法。
+
+INVITE sip:bob@biloxi.com SIP/2.0
+Via: SIP/2.0/UDP pc33.atlanta.com;branch=z9hG4bK776asdhds
+Max-Forwards: 70
+To: Bob <sip:bob@biloxi.com>
+From: Alice <sip:alice@atlanta.com>;tag=1928301774
+Call-ID: a84b4c76e66710@pc33.atlanta.com
+CSeq: 314159 INVITE
+Contact: <sip:alice@pc33.atlanta.com>
+Content-Type: application/sdp
+Content-Length: 142
+
+pc33.atlanta.com：消息发起者Alice客户端对应的网关/代理端口，在invite消息送至对方服务器网关/代理端口后，发起者可以从自己的网关/代理端口获得返回的响应信息"100 Trying"，branch作为这些流程里的鉴权认证参数，在From头域的tag参数是一个随机数，同样是作为鉴权之用。
+在SIP协议中，关于事务的媒体数据，编码，速率的内容都不是由SIP协议描述的，他们会被编码为SDP协议可以识别传输的格式(SDP协议依托在SIP协议之上)，Alice和其SIP服务端之间需要一些预配置让其能够互相识别，例如通过DHCP协议(依托于UDP协议)给用户分配ip地址等等，SIP的服务端也分为多种类型，例如我们在[[VoLTE_IMS_basic_concept_and_callflow]]这个wiki里讲过的IMS的P-CSCF和I-CSCF网元，就可以对应这里地址为pc33.atlanta.com这个代理接口服务器端，可以在上图看到的是，在invite消息被路由至目标用户的过程中，每经过一个中间端口或服务端，都会有对应的响应消息反馈，这些反馈的消息都包含着和invite相同的call-id，branch，tag，to，from头域等等信息，Via头域会随着消息传递不断增多，各个服务端口会加上自己的Via头域，目标用户联通之后会沿着消息路由的方向，向着发起者发送"180 Ringing"，在被叫用户接起电话后，"200 OK"消息反馈，发起端反馈"ACK"。
+
+SIP/2.0 200 OK
+Via: SIP/2.0/UDP server10.biloxi.com;branch=z9hG4bKnashds8;received=192.0.2.3
+Via: SIP/2.0/UDP bigbox3.site3.atlanta.com;branch=z9hG4bK77ef4c2312983.1;received=192.0.2.2
+Via: SIP/2.0/UDP pc33.atlanta.com;branch=z9hG4bK776asdhds ;received=192.0.2.1
+To: Bob <sip:bob@biloxi.com>;tag=a6c85cf
+From: Alice <sip:alice@atlanta.com>;tag=1928301774
+Call-ID: a84b4c76e66710@pc33.atlanta.com
+CSeq: 314159 INVITE
+Contact: <sip:bob@192.0.2.4>
+Content-Type: application/sdp
+Content-Length: 131
+
+这种"invite-->200ok-->ack"消息反馈方式，很类似于握手协议。在ACK消息接收之后，则是终端之间的数据交互，这种实时数据传输使用的是RTP/RTSP协议，如果在通话中，有一方发起因为事务修改而发起"re-invite"请求，这时同样也会有"re-invite-->200ok-->ack"的信令交互，如果对方不接受这种事务修改，则会从网络端口返回"488(not-acceptable-here)"，同时发起方有ack消息作为回应，这种事务修改的失败并不会导致当前通话失败，依旧会保持之前的设定继续通话流程，直到一方挂断，发起"cancel"或"BYE"消息结束通话，"BYE"消息对应只有200 OK响应，没有ACK(ACK响应只出现在invite发起的关联信令中)。
+
+IMS中通过SIP协议注册的通常流程可以参考此wiki中的IMS注册流程章节 --> [[VoLTE_IMS_basic_concept_and_callflow]]
+
+==SIP协议 结构==
+在整个IMS信令面里，SIP协议只处于某一些层面中，依托于IP，TCP，UDP这些协议之上。这就意味着这些SIP的协议规范只会在这些层面中定义并实行。
+
+SIP底层：编码和语法，编码方式为"Backus-Naur Form grammar (BNF)"
+传输层：定义用户和网络端的请求/响应信息的接发方式
+Transaction layer：传输处理层，负责处理应用层重发请求，请求响应消息的匹配，应用层超时处理，在transaction层之上的被称为transaction user(TU)，每一个SIP实体(除去stateless的代理)都是一个TU
+
+SIP elements(SIP协议中关联的"网元")：UAC，UAS，stateless proxy，stateful proxy，registrars(通过一个cores去区别它们)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

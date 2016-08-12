@@ -1,0 +1,26 @@
+adb
+adb logcat -b main -b radio -b system -v threadtime > adblog.txt
+
+qxdm
+利用mask文件抓取
+
+catchlog
+
+
+monkeylog
+adb shell monkey -p package-name -v -v -s 500 > D:\target.txt
+
+ramdump log
+前提：需要能够解析ramdump，不管是user版本还是usrdebug版本，需要开启此宏CONFIG_DEBUG_INFO=y
+SD/T卡中根目录下放rdcookie.txt空文件
+使用QPST抓DUMP --> echo c > /proc/sysrq-trigger
+使用QPST抓开机DUMP
+
+tcpdump log
+命令或者wireshark抓取 --> pcap
+tcpdump -i any -w xxx.cap
+
+管道命令...
+
+各类在上层的log，需激活对应的文件才能打开log开关(例如CNE-log需要push对应的库文件打开对应log开关)
+
