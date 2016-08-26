@@ -122,21 +122,24 @@ Content-Length: 131
 
 这种"invite-->200ok-->ack"消息反馈方式，很类似于握手协议。在ACK消息接收之后，则是终端之间的数据交互，这种实时数据传输使用的是RTP/RTSP协议，如果在通话中，有一方发起因为事务修改而发起"re-invite"请求，这时同样也会有"re-invite-->200ok-->ack"的信令交互，如果对方不接受这种事务修改，则会从网络端口返回"488(not-acceptable-here)"，同时发起方有ack消息作为回应，这种事务修改的失败并不会导致当前通话失败，依旧会保持之前的设定继续通话流程，直到一方挂断，发起"cancel"或"BYE"消息结束通话，"BYE"消息对应只有200 OK响应，没有ACK(ACK响应只出现在invite发起的关联信令中)。
 
-IMS中通过SIP协议注册的通常流程可以参考此wiki中的IMS注册流程章节 --> [[VoLTE_IMS_basic_concept_and_callflow]]
+IMS通过SIP协议注册的一般流程可以参考此wiki的部分内容 --> [[VoLTE_IMS_basic_concept_and_callflow]]
 
 ==SIP协议 结构==
 在整个IMS信令面里，SIP协议只处于某一些层面中，依托于IP，TCP，UDP这些协议之上。这就意味着这些SIP的协议规范只会在这些层面中定义并实行。
 
 SIP底层：编码和语法，编码方式为"Backus-Naur Form grammar (BNF)"
 传输层：定义用户和网络端的请求/响应信息的接发方式
-Transaction layer：传输处理层，负责处理应用层重发请求，请求响应消息的匹配，应用层超时处理，在transaction层之上的被称为transaction user(TU)，每一个SIP实体(除去stateless的代理)都是一个TU
+Transaction layer：传输处理层，负责处理应用层重发请求，请求响应消息的匹配，应用层超时处理，在transaction层之上的被称为transaction user(TU)，每一个SIP实体(除去stateless的代理)都是一个TU，TU包括了UAC，UAS，proxy的core信息(core即此element的处理函数集合)。
 
-SIP elements(SIP协议中关联的"网元")：UAC，UAS，stateless proxy，stateful proxy，registrars(通过一个cores去区别它们)
+SIP elements(SIP协议中关联的"网元")：UAC，UAS，stateless proxy，stateful proxy，registrars。(通过一个cores去区别它们)
 
+==定义==
+各种在sip协议中出现的关键词解释 --> RFC-3261 Page-20
 
+一个逻辑实体 = UA = UAC + UAS = proxy + redirect server
 
-
-
+==SIP 消息类型==
+SIP的所有类型的消息都是使用的UTF-8的编码方式，它可以是请求或是响应信息，每一条SIP的消息都包含着start-line，一个或多个头域信息，一个可选的message-body。
 
 
 

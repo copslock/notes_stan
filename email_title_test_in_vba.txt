@@ -1,0 +1,49 @@
+Private Sub Application_ItemSend(ByVal Item As Object, Cancel As Boolean)
+  
+    Dim lngres As Long
+  
+    '检查邮件是否添加附件
+  
+    If InStr(1, Item.Body, "附件") <> 0 Then
+  
+    If Item.Attachments.Count = 0 Then
+  
+    Application.Explorers(1).Activate
+  
+    lngres = MsgBox("邮件内容中包含附件，但是没有发现附件！" & Chr(10) & "仍然发送？", vbYesNo + vbDefaultButton2 + vbQuestion, "提示")
+  
+    If lngres = vbNo Then
+  
+    Cancel = True
+  
+    Item.Display
+  
+    Exit Sub
+  
+    End If
+  
+    End If
+  
+    End If
+  
+    '检查是否写主题
+  
+    If Item.Subject = "" Then
+  
+    Application.Explorers(1).Activate
+  
+    lngres = MsgBox("邮件还没有写主题呢！" & Chr(10) & "仍然发送？", vbYesNo + vbDefaultButton2 + vbQuestion, "提示")
+    
+    If lngres = vbNo Then
+  
+    Cancel = True
+  
+    Item.Display
+  
+    Exit Sub
+  
+    End If
+  
+    End If
+  
+End Sub

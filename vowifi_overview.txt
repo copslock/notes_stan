@@ -146,6 +146,7 @@ wifi-call的配置中主要包括以下的几个部分：对应NV-items，Androi
 ===Android属性值===
 persist.data.iwlan.config - TRUE
 persist.data.iwlan.rekey - 2^32-1
+persist.data.iwlan.enable - TRUE
 
 ===EFS配置===
 [1]PDN数据库配置
@@ -194,11 +195,3 @@ keep alive manager file
 profile_id:NA; (Mandatory)(取值可从0到2^16-1)
 timer_val:500:500:10000:2; (每次时间间隔从500ms向10000ms以每次500ms的增量递增，重试次数2次)
 
-
-
-
-	
-
-
-
-kernel + 自己清楚自卑但无法克服 + 自我封闭 + 伪装和修饰 + 掩盖缺点 + 

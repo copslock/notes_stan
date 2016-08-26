@@ -12,6 +12,12 @@ adb devices
 adb pull remote local
 adb push local remote
 
+adb push SystemUI.apk system/priv-app/SystemUI
+adb kill-server
+adb start-server
+adb shell
+md5sum system/priv-app/SystemUI/SystemUI.apk  //检测该APK的MD5值
+
 fastboot [<option>] <command>
 fastboot flash <partition>分区 [filename] 对某一个分区进行刷机 然后在把指定的file写入这个分区
 fastboot reboot

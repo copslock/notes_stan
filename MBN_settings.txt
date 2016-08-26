@@ -96,7 +96,7 @@ perl ./build_mcfgs.pl --build_id=8976.gen.prod --xml --force-regenerate --force-
 perl ./build_mcfgs.pl --build_id=8976.gen.prod --build_ver=33625394 --configs=mcfg_sw:CU --xml --sw-product=CU
 
 functions well:
-perl ./build_mcfgs.pl --build_id=8976.gen.prod --build_ver=33625394 --xml --force-regenerate --force-rebuild --source-dir=generic/China/CU
+perl ./build_mcfgs.pl --build_id=8976.gen.prod [--build_ver=33625394] --xml --force-regenerate --force-rebuild --source-dir=generic/China/CU
 perl ./build_mcfgs.pl --build_id=FAAAANVZ --xml --force-regenerate --force-rebuild --source-dir=generic/China/CMCC
 
 mcfg version: 在xml表中修改都是自增1即可，0x0203202D

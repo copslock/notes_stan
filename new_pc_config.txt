@@ -29,7 +29,7 @@ Adobe
 2.SGLTE:Simultaneous GSM and LTE,即是支持GSM语音和LTE数据业务同步的一种技术，及单卡双模，相当于将俩个手机（一个支持LTE，一个支持GSM or TDSDMA)采用特殊的技术（例如CSFB）用一张SIM卡能同时进行CS,PS工作的LTE过渡方案。
 3.VoLTE:Voice Over LTE. 其原理是基于IP多媒体子系统（IMS）网络，配合GSMA在PRD IR.92中制定的在LTE控制和媒体层面的语音服务标准，使用语音以数据流形式在LTE网络中传输，所以无需调用传统电路交换网络，旧网络将无需保留。
 
-qcom协议侧的代码多是不开放或者开放不完全的，所以其实学不到什么很系统的代码知识，了解一下高通代码的架构，利用3gpp的协议规范结合实际问题去分析解决问题，具体的代码细节问题大多还是要问到qcom那边的技术人员，c和cpp文件的patch改动还能参考下，.o类的文件修改用反编译命令objdump还能应付下，lib类库文件就完全没办法了= =
+qcom协议侧的代码多是不开放或者开放不完全的，所以其实学不到什么很系统的代码知识，了解一下高通代码的架构，利用3gpp的协议规范结合实际问题去分析解决问题，具体的代码细节问题大多还是要问到qcom那边，c和cpp文件的patch改动还能参考下，.o类的文件修改用反编译命令objdump还能应付下，lib类库文件就完全没办法了= =
 
 
 #ATTENTION: How the string of projectid processed to satisfy the proprietary code building

@@ -1,0 +1,150 @@
+98 AB WT
+
+===英文缩写===
+DPL(data protection layer)数据保护层
+RTP(real-time transport protocol)实时传输协议 -- RFC 3550 & RFC 3551
+RTCP(real-time transport control protocol)实时传输控制协议
+RTSP
+RTVP
+DDS(Designated Data Subscription)默认移动数据卡
+SDP(session description protocol)事务描述协议
+UDP(user datagram protocol)用户数据报协议
+
+===video telephony的信令面和media面===
+信令由默认承载去负责(non-GBR, QCI=5)
+话音和视频数据由专用承载负责(GBR, QCI=1/2)
+--> 有些承载设置取决于运营商，有些运营商可能不会为视频数据去指配一个单独的专用承载。
+
+协议栈概况，和IMS的基本一致
+Signaling plane 	Media plane
+SIP 				Vocoder/video frames
+SIGCOMP (optional) 	RTP
+TCP/UDP 			UDP
+IP 					IP
+Air interface 		ROHC
+N/A					Air interface
+
+信令的传输主要是UE和P-CSCF之间的交互，SIP协议中关联IMS注册和VT-MO/MT的流程，视频和语音数据都是依赖于RTP协议，通过LTE无线接入网和互联网进行交互。
+
+整个VT-call的交互分为用户面和控制面：
+控制面主要是控制信息由上层App，经过安卓框架的telephony，ril到modem侧的QMI，CM，IMS，最终经过P-CSCF到达网络端的信令流向；
+用户面则分为语音和视频两个数据流，一个是mic/speaker经过modem侧的功放，IMS，DSS到达PGW网关，另一个是上层UI经过APSS的VT-lib，IMS，camera服务进程，最后也通过modem侧的DSS到达PGW网关的数据交互。
+
+===VT call flow===
+1.LTE网络接入，进行合适的域/小区选择。
+2.IMS PDN发起连接，SIP的信号质量监测流程开始，SIP信令通过默认承载进行交互。
+3.IMS的注册。
+4.依赖于SIP协议的IMS事务建立过程发起。
+5.(可选)语音和视频数据流的专用承载建立。
+6.VT-call的实际通话过程。
+7.IMS事务终止，专用承载被释放，IMS反注册(最后这个De-registration过程是否存在有待验证)。
+
+===VT-call中的升降级===
+在IMS事务完全建立以后，可以由UE或者网络端发出session-modify的请求，可以由普通的VoLTE通话升级为VT通话，也可以从VT降级为普通的IMS/VoLTE通话，主要的区别即是有无视频数据流对应的专用承载的建立，当然也就可以通过增加或删除视频的专用承载来对通话类型进行升/降级。
+
+===IMS注册流程===
+基本和VoLTE的IMS的注册部分一致，这里在提一次，权当复习。
+1.上层控制CM向IMS发出服务系统变化的event提示。
+2.IMS自身的Audio/video FT add (Feature tag add)。
+3.IMS网络的数据连接建立，数据服务的接入网指示。
+4.Register & 401 Unauthorized
+5.ISIM的用户信息鉴权。
+6.Register with answer & 200 OK
+7.提示上层IMS服务当前已可用。
+8.(可选)subscribe & notify
+
+IP多媒体服务身份模块，即ISIM(IMS-SIM)，是一个位于通用集成电路卡(UICC)上的应用，这是一个物理上安全的设备，它可以从UE中插入和取出，在UICC中可以用一个或多个应用。ISIM本身存储了IMS专用的用户数据，主要有IMS运营商所提供。存储的数据可以分为六组：安全密钥，公共用户身份，接入准则参考，私有用户身份，归属网络域名和管理数据。 
+
+===VT MO Call===
+和VoLTE的MO流程基本一致，唯一增加的部分是在“180 Ringing”(携带着视频流的描述)后会通过P-CSCF去触发视频数据流的专用承载建立。
+
+0.UE驻留在LTE，并已经通过PGW和IMS建立连接。
+1.VT的相关上层应用向modem侧发送SIP/invite请求。
+2.(只有当为RRC-idle状态时进行)RRC connection setup/RACH
+3.UE发向IMS-server的SIP/invite
+4.100/Trying，180/Ringing
+	m=audio 50010 RTP/AVP 102 100
+	m=video 50012 RTP/AVP 113
+	(关键字：m=audio，m=video)
+5.语音和视频专用承载建立。
+6.PRACK(专用承载建立成功，向被叫终端发出Ringtone)，200/OK(PRACK)
+7.200/OK(invite)(被叫端接收通话请求)，ACK(request)
+...
+
+===VT-call中的各种实际场景===
+[1]Call party is voice-only capable；
+MT-side choose voice-only；
+因为当前只支持传输纯语音通话或被叫端选择voice-only模式，MT会向MO终端发送“UPDATE”信息(video-port会被置为0)，因此在200/OK(PRACK)信令之后P-CSCF会发起视频数据流专用承载的释放操作。
+
+1-6.和之前的过程一样
+7.Update，200/OK(update)
+	m=video 0
+8.200/OK(invite)(被叫端接收通话请求)，ACK(request)
+...
+
+[2]Call party Allow vt-call as one-way video；
+在100和180的响应信令中包含了当前vt-call是否是单向发送/接受视频数据的。
+(one-way video和普通video的专用承载有区别吗？)
+
+[3]Call party not answer or reject call;
+通话终止，发送486(busy here)的错误代码。
+
+===VT MT Call===
+0.UE驻留在LTE，并已经通过PGW和IMS建立连接。
+1.SIP/invite被路由至PGW。
+2.Paging
+3.(只有当为RRC-idle状态时进行)RRC connection setup/RACH
+4.SIP/invite，100/Trying，180/Ringing or 183/progress
+5.PRACK，200/OK(PRACK)
+6.根据“183 progress”信令中的SDP描述建立对应的专用承载。
+7.200/OK(invite)(被叫端接收通话请求)，ACK(request)
+...
+
+===VT中通话类型的升/降级===
+[1]VoLTE --> VT
+1.发送re-invite(包含SDP协议的完整事务描述，比invite多出来的即是要修改的部分)
+	P41
+2.100/Trying，200/OK(invite/SDP answer)
+	(SDP answer包含当前设备/应用能支持的编码语音/视频流的数量，如果SDP asnwer里是m=video 0则表示当前不支持VT-call，会继续保持之前的VoLTE通话)
+3.200/OK触发P-CSCF控制video的专用承载建立
+4.ACK
+
+[2]VT --> VoLTE
+1.re-invite(SDP协议的完整事务描述，video port=0/m=video 0)
+	P45
+2.100/Trying，200/OK(invite/SDP answer)
+3.视频数据流的专用承载被释放
+4.ACK
+
+===session release===
+1.主/被叫结束通话流程
+2.SIP/BYE
+3.200/OK
+4.专用承载的释放，信道资源的释放
+
+===VT的一些adb/UI设置===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+像你这种人，晚年一定会很凄惨。
+
+

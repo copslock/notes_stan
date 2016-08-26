@@ -1,6 +1,14 @@
 adb
 adb logcat -b main -b radio -b system -v threadtime > adblog.txt
 
+adb shell setprop log.tag.TelecomFramework DEBUG
+adb shell setprop log.tag.Telephony DEBUG
+adb shell setprop log.tag.Telecom DEBUG
+adb shell setprop log.tag.InCall DEBUG
+adb shell stop 
+adb shell start
+adb logcat -v threadtime -b all >1.log
+
 qxdm
 利用mask文件抓取
 

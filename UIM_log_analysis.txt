@@ -7,6 +7,7 @@ SPN Subsctiber Premises Network 用户驻地网
 ===uim===
 Multimode Generic SIM Driver Interface(MMGSDI)
 Generic SIM Application Toolkit(GSTK)
+Designated Data Subscription(DDS)
 
 ===注册信息===
 ==reg==
