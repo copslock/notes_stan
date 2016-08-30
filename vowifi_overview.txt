@@ -6,7 +6,7 @@ VoIP不同于以上两种，这个是直接接入网络的语音数据传输，�
 
 ==针对Vowifi的MTP(Media Transfer Protocol)特性==
 【1】UE的配置
-需要改动的地方：NV，FS，Android系统参数，APN
+需要改动的地方：NV，EFS，Android系统参数，APN
 
 【2】checklist
 每一个PDN的APN；

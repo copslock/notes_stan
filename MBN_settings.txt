@@ -102,6 +102,9 @@ perl ./build_mcfgs.pl --build_id=FAAAANVZ --xml --force-regenerate --force-rebui
 mcfg version: 在xml表中修改都是自增1即可，0x0203202D
 直接修改xml表来修改并生成MBN，用PDC验证时会出现有时候active MBN时，重新恢复到了手机初始选择MBN的状态，修改验证MBN后，尝试了手机重启，MBN不会被重置，是有效的。
 
+对应excel表中的mcfg版本修改：都是末位自增1
+
+===MCFG框架===
 
 
 
