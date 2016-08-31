@@ -1,10 +1,26 @@
+===MBN的加载和激活===
+我们前面提到过，因为mbn_ota的存在，default的MBN和mbn_ota.txt文件中包含的MBN都会被自动加载，当我们需要加载新的MBN验证问题或者是去掉某一些MBN时就可以借用PDC工具，利用QPST里的PDC工具可以很直观方便的完成，这里只提一下如何打开相应的rmnet端口，让PDC工具能够检测到手机的存在。
+
 【1】打开MBN的rmnet端口
 adb root
-adb shell setprop persist.radio.start_ota_daemon 0
-adb shell setprop sys.usb.config diag,serial_smd,rmnet_bam,adb
-adb shell setprop sys.usb.config diag,serial_smd,rmnet_qti_bam,adb
+adb shell setprop sys.usb.config diag,serial_smd,rmnet_bam,adb 		//8939
+adb shell setprop sys.usb.config diag,serial_smd,rmnet_qti_bam,adb 	//8976
 
-【2】MBN Auto-select功能
+===MBN Auto-select功能===
+当手机中同时存在多个MBN时，如何去选择合适的mbn激活就是很重要的一件事，高通同样提供了一个可供我们操作的NV-71546，来控制MBN的选择方式。
+
+基于IIN(ICCID)字段的自动选择：
+IIN字段一般是指ICCID的前6/7位数字，分别由国际编号，国家编码，运营商编码组成的6位或7位数，每一个MBN文件中也有对应的IIN字段，通过对比MBN和当前sim的ICCID中的IIN，如果相同即会把“IIN_flag”标志位置为1，即可判断出应该选择的MBN是哪一个，如果sim卡的IIN字段和MBN都不匹配则会去选择ROW对应的MBN(ROW的MBN里应该没有IIN字段的具体信息)，这个MBN包含了基础的3GPP的网络参数配置和参考IR92标准的IMS配置。
+
+带有Flex映射的自动选择：
+在前者基础上新加了一个功能，此功能仅限于DSDS模式的设备中，如果人为操作修改了某一个sim卡对应的网络模式，它会自动去切换激活适合的MBN。
+
+
+
+中国移动编码格式：89860 0MFSS YYGXX XXXXP
+中国联通编码格式：89860 1YYMH AAAXX XXXXP
+中国电信编码格式：89860 3MYYH HHXXX XXXXX
+
 (前提是已经有一个SW-MBN被激活正在使用，因为默认MBN里没有设置auto-select的选项设置)
 手机插入sim卡后，根据所在地的运营商提供的网络环境选择手机里中的某一个MBN激活并应用。
 除去HW和SW的两个default_MBN以外，同一时间只能再激活应用一个SW_MBN。
@@ -32,6 +48,7 @@ modify: /modem_proc/mcfg/mcfg_sel/src/mcfg_uim.c
 在adb中启用，让OTA更新MBN这个feature在上层被使能
 adb shell setprop persist.radio.sw_mbn_update 1
 
+Panda最新的代码中，已经没有用hardcode去写死这个auto-selection的宏，而是在默认的SW的mbn中添加了这个NV。
 
 【3】samba服务器设置
 cd /var/lib/dpkg/
@@ -67,7 +84,13 @@ sudo service smbd restart
 ifconfig --> 在windows端输入linux虚拟机的ip地址即可访问共享文件夹的内容
 
 【4】利用xml source生成MBN
+生成MBN的需求条件：perl，python，完整的MPSS镜像，hexagon工具，mircosoft-excel
+
+
+
 利用带宏的excel表生成MBN，之前张锐已经有wiki介绍过，所以这里我再补充一下另外一种生成MBN的方法，无论是自己验证或者是后续的代码调整实际上都是通过读取相应的xml表来读取设置的EFS/NV，而excel表生成MBN的方法中，生成的命令其实就是执行modem_proc/build/build_mcfgs.exe这个可执行文件，在linux环境下，我们可以使用这个可执行文件，加上一些适当的参数，就能到达在excel中生成的相同效果。
+
+添加/删除NV/EFS的方法在xml表中非常简单，参考已有的格式修改即可，类似于html标签格式。
 
 build_mcfgs.exe --build_id=<BUILD ID> --configs=<PLATFORM>:<CONFIG_NAME> [--force-regenerate] [--force-rebuild] [--source-dir=<CARRIER_DIR_PATH]
 以上这个命令就是一些常用的参数后缀
@@ -81,10 +104,6 @@ build_mcfgs.exe --build_id=<BUILD ID> --configs=<PLATFORM>:<CONFIG_NAME> [--forc
 build_mcfgs.exe --build_id=FAAAANVZ --build_ver=33625394 --configs=mcfg_sw:CU --xml --sw-product=CU --force-regenerate --force-rebuild
 
 build_mcfgs.exe --build_id=8976.gen.prod --build_ver=33625394 --configs=mcfg_sw:CU --xml --sw-product=CU --force-regenerate --force-rebuild
-
-AAAAANAZ
-EAADANAZ
-8976.gen.prod
 
 e.g:
 Windows:
@@ -101,12 +120,101 @@ perl ./build_mcfgs.pl --build_id=FAAAANVZ --xml --force-regenerate --force-rebui
 
 mcfg version: 在xml表中修改都是自增1即可，0x0203202D
 直接修改xml表来修改并生成MBN，用PDC验证时会出现有时候active MBN时，重新恢复到了手机初始选择MBN的状态，修改验证MBN后，尝试了手机重启，MBN不会被重置，是有效的。
-
 对应excel表中的mcfg版本修改：都是末位自增1
 
+对于mcfg_version的修改方法，高通官方的修改会去改动最后1位数字，每次将其自增1；对于ODM的自主修改操作，建议是修改第4位的数字，操作同样是自增1。
+
+对比两种生成mbn的方式，显然直接使用excel表生成xml和mbn会更加直观和便捷，同时对于mbn的版本管理上来说，每一个excel表中都记录了mbn文件详细的修改记录，所以也推荐大家使用excel表生成的方法，只是在某些特定时候，比如电脑挂掉了之后:)，还是直接改xml表生成更直接一点。
+
 ===MCFG框架===
+MCFG这个框架主要是为了用单一的镜像文件去对应替代手机设备中众多的软硬件配置信息，而它的实现结果就是MBN文件。
+MBN包含了一系列重要的NV/EFS和策略管理的参数，合适的配置能让手机去满足不同的网络需要，特殊配置的MBN同样可以用在实验室测试和验证性测试中。
+
+MBN可以对应配置各种不同网络制式的情况，在手机插入sim卡接入到不同的网络时，会自动去选择对应的MBN文件。
+
+MBN，即modem binary，通俗翻译即modem侧相关的二进制配置信息，作为一个配置文件，MBN中包含了手机一部分重要的NV/EFS信息，通过这样一个文件，除去一些共通的配置信息，将不同运营商的配置信息分别开来，每一个运营商都对应着一系列MBN文件，只把设备所需运营商对应的商用MBN文件一同编译进最终的NON-HLOS.bin镜像中，在手机开机后，由一个MBN的auto-select功能去根据当前所在网络选择适合的MBN激活，加载这些NV/EFS信息。
+这样根据客户需求/运营商将MBN区分成单个文件，便于开发者们根据问题去查找和修改某一些关键的配置信息。
+
+MCFG(modem configuration)，modem侧配置文件组成的一个框架，以各类MBN文件为主，而整个MBN文件的类型可以如下区分，第一种分类可以分为default和specific两大类，default类别的是一些手机通用的配置，specific类是根据运营商或客户需求的独有配置文件；另一种分类方法，可以将它们分为HW和SW两大类，HW主要是包含RFC，UIM的一些硬件相关配置，SW类别的则是和运营商关联较大的网络相关配置。
+
+整个MCFG的框架包括了如下的内容：
+MBN的加载和激活；
+MBN鉴权；
+根据MBN类型分别处理；
+通过QPST工具手动选择MBN或根据ICCID自动选择MBN方案；
+生成MBN；
+
+在开机后，MCFG框架会在modem侧新起一个task，所有modem的task都会放在当HW/SW的MBN加载完后再进行。
+
+在安全性方面，这些组合起来的配置信息会在每次刷写进入EFS之前先经过鉴权，这个signed的过程也被称为Code Signing Management System (CSMS)，基本上大多数重要的镜像文件都需要经过这一步骤。
+私有秘钥在编译成镜像时加密，公用秘钥在镜像刷写时鉴权解密，在OTA过程中应该也有类似的过程。
+还有一些高通可以提供的安全机制，类似生成一些特殊的用户鉴权参数，不过都需要一定的费用才可以使能这些功能。
+关于安全性方面的验证可以参考如下两个文档：
+Presentation: Secured MSM Code Signing Service (80-V9807-1)
+Presentation: Code Signing Management System Overview (80-V3999-1)
+
+===MBN OTA from device===
+commit: e7029f7a420fe12183d3a8d1b73619beae6b2284
+
+设置一个adb属性值：persist.radio.start_ota_daemon --> 1(enable),0(disable)
+对应的文件：/msm8976_panda01a_s00a_driver_only_1.1_r00228.1_RJIL_t0621/common/build/mbn_ota.txt
+手机重启后会将该文件中列出的mbn文件加载到手机中去。
+如下是当前panda手机自动加载的mbn：
+(MBN所在手机子目录中没有用路径的全名的原因是FAT16类型的文件限制，字符数不能超过8个，因此commercial简化为了commerci)
+	mcfg_sw/generic/apac/reliance/commerci/mcfg_sw.mbn
+	mcfg_sw/generic/common/row/gen_3gpp/mcfg_sw.mbn
+	mcfg_sw/generic/china/cmcc/commerci/volte_op/mcfg_sw.mbn
+	
+	mcfg_sw/generic/china/cu/commerci/openmkt/mcfg_sw.mbn
+	
+8939-M所在的位置如下(8939-L无此文件)：
+	/msm8939-la-2-1-5_amss_qrd_no-l1-src_mmm_sxxa_2150203_32_0805/modem_proc/
+	/msm8939-la-2-1-5_amss_qrd_no-l1-src_mmm_sxxa_2150203_32_0805/LINUX/android/device/qcom/mirage01a_msm8916_64/
+	/msm8939-la-2-1-5_amss_qrd_no-l1-src_mmm_sxxa_2150203_32_0805/LINUX/android/device/qcom/mobee01a_msm8916_64/
+	/msm8939-la-2-1-5_amss_qrd_no-l1-src_mmm_sxxa_2150203_32_0805/LINUX/android/device/qcom/mobeeplus_msm8916_64/
+所含内容如下：	
+	mcfg_sw/generic/apac/reliance/commerci/mcfg_sw.mbn
+	mcfg_sw/generic/common/row/gen_3gpp/mcfg_sw.mbn
+	mcfg_sw/generic/china/cmcc/csfb/dsds/volte_co/mcfg_sw.mbn
+	mcfg_sw/generic/china/cu/csfb/dsds/commerci/mcfg_sw.mbn
+
+8976中对于这一文件的一些操作：
+/msm8976_panda01a_s00a_driver_only_1.1_r00228.1_RJIL_t0621/LINUX/android/device/qcom/common/rootdir/etc/init.qcom.sh
+	cp /firmware/image/modem_pr/mbn_ota.txt /data/misc/radio/modem_config
+	chown radio.radio /data/misc/radio/modem_config/mbn_ota.txt
+	echo 1 > /data/misc/radio/copy_complete
+在手机上将mbn_ota这个文件copy过去，copy_complete置为1表示所有需要copy的文件已完毕。
+
+/msm8976_panda01a_s00a_driver_only_1.1_r00228.1_RJIL_t0621/LINUX/android/vendor/qcom/proprietary/qcril/qcril_qmi/qcril_mbn_ota_file_list.c
+为mbn_ota读取mbn文件这个行为提供一个接口，判断是否是mbn文件，获取所需mbn文件的列表等等。
+
+/msm8976_panda01a_s00a_driver_only_1.1_r00228.1_RJIL_t0621/contents_8976_64.xml
+这个是8976平台在生成最终的modem镜像文件NON-HLOS.bin时所需xml表，主要是列出了版本号，各编译模块的详细信息，所需的build-tools列表，workflow相关。
+	<step filter="non_hlos" type="exec">
+		<params>python @tool_name -n @destn -f @src_file -d image/modem_pr</params>
+		<tool_name>fatadd.py</tool_name>
+		<destn>./bin/$[flavor:.]/NON-HLOS.bin</destn>
+		<src_files>./mbn_ota.txt</src_files>
+	</step>
+	
+/msm8976_panda01a_s00a_driver_only_1.1_r00228.1_RJIL_t0621/common/build/build.py
+	# Add mbn_ota.txt
+    modem_ota_file = os.path.join(os.path.dirname(__file__), 'mbn_ota.txt')
+	modem_ota_dir ='image/modem_pr'
+	if os.path.exists(modem_ota_file):
+		ret_code_fatadd_tool = lg.log_exec(['python',fatadd_tool,'-n',fat_file_dest,'-f' + modem_ota_file,'-d'+ modem_ota_dir],verbose=0)
+		if ret_code_fatadd_tool != 0:
+			err_msg = 'update_common_info.py:' + 'python'+' '+fatadd_tool+' '+'-n'+' '+fat_file_dest+' '+'-f' + modem_ota_file,'-d'+ modem_ota_dir + ':Failed'
+			lg.log(err_msg)
+            raise Exception(err_msg)
+	
+在老的8939的平台上，MBN不会自动刷新，必须要重启手机/重启modem才能让新的MBN激活；新的8976平台上，会自动刷新激活新的MBN不需要重启modem/重启手机。
 
 
 
+	
 
+===题外话===
+之前在excel表上不能使用对应的宏去生成xml源码和MBN文件，后面重装系统后出现了只能生成xml而不能生成MBN的现象，原因是必须要在磁盘根目录下新建一个modem_proc文件夹才能成功运行，应该是运行脚本里把这个执行路径给写死了。
 
+参考文档：80-N5576-96_MODEM SOFTWARE CONFIGURATION OVERVIEW.pdf

@@ -1,5 +1,5 @@
 ICCID：Integrate circuit card identity 集成电路卡识别码（固化在手机SIM卡中）
-ICCID为IC卡的唯一识别号码，共有20位数字组成，其编码格式为：XXXXXX 0MFSS YYGXX XXXXX。分别介绍如下： 前六位运营商代码：中国移动的为：898600；中国联通的为：898601。
+ICCID为IC卡的唯一识别号码，共有20位数字组成，其编码格式为：XXXXXX 0MFSS YYGXX XXXXX。分别介绍如下： 第五、六位即运营商代码：中国移动的为：898600；中国联通的为：898601。
 
 供应商
 
