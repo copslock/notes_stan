@@ -1,0 +1,292 @@
+1.TD-SCDMA/TDD-LTE网络，利用频谱仪的gate模式测试Tx slot
+	特殊的插口，callbox frame trigger触发；
+	gate模式的参数设定(gate source, gate delay, gate length)；
+	Set Gate On at sweep tap.
+ 	Sweep time: 5 second
+ 	Set the freq range you tested, like 1805~1850MHz.
+ 	RBW: 100KHz
+ 	VBW:300KHz
+ 	Average: 10
+ 	AVG/VBW type: Pwr(RMS)
+ 	Detector mode should set to RMS.
+
+2.NV_LTE_TX_MULTILIN_V3_DATA --> 参考NV
+NV_LTE_TX_STATIC_DATA采用full bias的vcc和正确的icq，不同PA state下的vcc和icq保存在这个NV中
+测试前做ULCA下的APT char，确保NV_LTE_TX_STATIC_DATA正确。
+
+3.复习一下电感电容电阻的组合搭配
+电感，一般特性即通直流阻交流，不存在电能的消耗，只是电磁场能之间的互相转化，常用于滤波、振荡、延迟、陷波，与电阻器或电容器能组成高通或低通滤波器、移相电路及谐振电路等。
+
+电容，一般特性位断直流通交流，在电路板中通常用于稳定供电电压，在电路中用来作滤波电路：去耦、滤波、傍路，在前后级之间用来作耦合元件，与电感组成LC谐振回路，与电阻组成RC移相电路、延时电路，在单相交流电动机中用来移相，以产生旋转磁场。
+
+
+4.关于电信网络整合B5的通告。
+
+CSFB ?= SGLTE
+SRLTE LTE和GSM时分复用一套发信设备。
+SVLTE 手机中有两套发信设备，相当于是两个RF终端。
+
+=========
+=========
+RF SW
+
+自己对RF这一方面的知识知之甚少，之前学的模电数电也快要全部还给老师了，正好借助高通文档引出的一些平台性问题，补充一下自己的一些知识盲点，顺带复习一下大学课程:)
+
+==一些基础的概念补充==
+RTR(radio transfer/receiver)：射频收发器
+WTR(wafer Transfer)：高通芯片中基带射频的IC模块名字
+LUT：系数查找表
+ICQ(index channel quality)：信道质量指示，PA静态工作电流
+MIPI：移动行业处理器接口，具有更低功耗、更高数据传输率和更小的PCB占位空间，目的是把手机内部的接口如摄像头、显示屏接口、射频/基带接口等标准化，从而减少手机设计的复杂程度和增加设计灵活性，MIPI总的设计也可以分为多个小组，定义了一系列的手机内部接口标准，比如摄像头接口CSI、显示接口DSI、射频接口DigRF、麦克风/喇叭接口SLIMbus等。
+RGI(RF gain index)：一组对应“APT特征参数”的指示值
+APT(Average Power Tracking)：MIPI中的新技术，支持PA静态电流及其对应PA-bias电压的调整，优化PA效率，此即APT技术。
+XTT(XML Tunneling Technology)：高通校准文件格式
+LNA(Low Noise Amplifier)：低噪声放大器，它决定手机接收器的整体性能，一般说来，噪声指数是LNA最重要的一个参数，通常LNA噪声指数的性能太差时，会影响到接收器侦测微弱信号的能力，影响手机收信。
+FSG(Factory EFS image)：工厂版本的EFS镜像文件
+
+==平台型问题总结==
+以下的高通文档的平台性问题，基本只是问题和解决办法的陈述。
+高通RF技术文档 --> 高通RF技术期刊2016-08-30
+
+1.LTE FDD Band Intra-band Calibration Failure
+只针对8996平台上的LTE带内CA的校准错误
+
+RFC(无线射频模块)驱动里一个GRFC信号同时被配置在了发射和接收的信号里，对于FDD频段，把重复的GRFC信号从频段的Tx中删除，这个GRFC信号只需要在Rx中配置即可。
+
+2.Inter-band SCC First Channel Calibration Failure
+只针对MSM8996平台上，B41+B39的带内CA，B39 SCC的第一个信道校准数据错误，原因是MIPI PAMiD相关模块问题，这里同时用到了B41 Tx/RX, B39 Rx，解决办法是在B41(PA OFF)里面进行B39/B41的Rx ON的ASM设置，问题解决。
+
+3.PA_LUT_MAPPING configuration in RFC
+适用：所有平台
+在发射设备里需要配置PA_LUT_MAPPING相关信息，在不同版本代码里这个值会有一定变化。
+PA_LUT_MAPPING：这个值的含义是当PA处于不同的增益模式时，WTR里对应使用的LUT表。这个值在FTM(工程模式)或者信令都有效。
+在WTR2965中有两张LUT表(LP_LUT，HP_LUT)，对于一个给定的RGI，调用HP_LUT(对应PA-state 1-3)比调用LP_LUT(对应PA-state 0)的WTR输出功率大3dBm左右。
+PA-state是一个PA的状态参数，分别对应不同的PA增益状态，我们可以根据需求的输出功率大小去调整对应的LUT表，从而去调整PA-state，控制PA的增益大小。
+
+WTR2965_L(H)P_LUT_TYPE设置代码示例：
+
+910{
+911      RFDEVICE_TRANSCEIVER,
+912      WTR2965, /* NAME */
+913      1,   /* DEVICE_MODULE_TYPE_INSTANCE */
+914      0,   /* PHY_PATH_NUM */
+915      {
+916        0 /* Warning: Not specified */,   /* INTF_REV */
+917        (int)WTR2965_LTEFDD_TX_BAND4_THMLB4,   /* PORT */
+918        ( RFDEVICE_PA_LUT_MAPPING_VALID | WTR2965_LP_LUT_TYPE << RFDEVICE_PA_STATE_0_BSHFT | WTR2965_HP_LUT_TYPE << RFDEVICE_PA_STATE_1_BSHFT | WTR2965_HP_LUT_TYPE << RFDEVICE_PA_STATE_2_BSHFT | WTR2965_HP_LUT_TYPE << RFDEVICE_PA_STATE_3_BSHFT  ),   /* RF_ASIC_BAND_AGC_LUT_MAPPING */
+919        FALSE,   /* TXAGC_LUT */
+920        WTR2965_FBRX_LOW_ATTN_MODE,   /* FBRX_ATTN_STATE */
+921        0,  /* Array Filler */
+922      },
+923    },
+
+4.RFC中允许的GRFC最大数量为16
+适用：所有平台
+RFC中因为大量的GRFC配置信息存在，所以需要对应大量的GPIO控制开关，为了简化这些控制信息，利用RFC_MAX_NUM_OF_GRFC对sig_cfg可配置最大数量做出了限制。当数量超过这一限制，手机就会crash，解决办法是需要我们及时去除sig_cfg中当前不需要的信号配置。
+
+P33 -- not figure out
+
+5.WCDMA ILPC Spec Relaxation in 3GPP 34.121-1 version 12.4.0
+大概意思就是从3GPP规范的文档TS34.121(version 12.4.0)可知，ILPC的测量标准会变得比以前更宽松一点。
+？最小输出功率到用户设备所支持的最大输出功率的内环功率控制范围内允许出现例外情况(假设在实际功率测量过程中没有出现测量误差)。
+定义用户设备功率等级规范的范围内,对于每个方向,允许出现最多两次例外情况。
+详细参考规范文档 --> TS34.121
+
+6.LTE ULCA MPR AMPR NV settings
+适用平台：MSM8996/MSM8998
+针对不同的RB(resource block)协议为上行聚合制定了“上行功率回退”这个功能，所有的MPR(Maximum power reduction)/AMPR回退都是根据规范定义的最大值，我们可以修改对应的NV来修改回退的多少，以此来满足客户需求。
+
+data type 229, 用于MPR, 相应的data type被称为RFNV_DATA_TYPE_LTE_CA_MPR
+{
+nv_container_index = 0;
+active_cluster_mask = 1连续/2不连续;
+hw_class_mask = 4(class C);
+mpr_ca_table[0]{}
+mpr_ca_table[1]{}
+...
+}
+
+data type 159, 用于AMPR，相应的data type被称为RFNV_DATA_TYPE_LTE_CA_NS_AMPR
+优先在NV中寻找对应的配置，没有则需要在代码中单独配置回退值。
+对于AMPR，3GPP定义了不同ULCA组合下需要使用的CA_NS_xx，每一个CA_NS_xx都会有单独的功率回退值设定。
+{
+nv_container_idx; //0 or 1
+ca_ns_value; //后接需要使用的CA_NS_xx表对应的值，示例：CA_NS_01 --> 1
+ampr_ca_ns_table[0]{}
+ampr_ca_ns_table[1]{}
+ampr_ca_ns_table[2]
+	{
+	...
+	Agg_Modulation_type_mask = xxxx //调制编码方式，0x1 -> BPSK；0x2 -> QPSK；0x4 -> 16QAM；0x8 -> 64QAM；All bits set -> match all；
+	Agg_bw_mask = xxxx //CA的组合类型，0x1 ->25RB_100RB；0x2 -> 50RB_100RB；0x4 ->75RB_75RB；0x8 -> 75RB_100RB；0x10 -> 100RB_100RB；All bits set -> match all；
+	...
+	CA_NS_AMPR_dB10;	
+	...
+	}
+...
+}
+
+带内CA的MPR配置可以分为连续和不连续资源分配两种情况，前者主要依赖于调制方式和载波聚合的传输带宽大小/资源块大小，后者有一个单独的计算公式：MPR=CEIL{min(M'a,M'im5),0.5}
+P38-39
+
+7.Worse ACLR due to PA bias value change
+适用：所有平台
+由于PA偏置电压值改变近期的ACLR指标变差，PA-off的操作可能引起非期望的PA-bias值被写入寄存器。
+解决办法：保证PA驱动代码和校准文件中的PA-bias值保持一致，否则在信令过程中，PA-bias的值会在校准值和代码中的值之间发生跳变。
+
+
+8.检查rx0和rx1两路接收信号的精确性和平衡性
+对应文档 --> "80-P1098-1 Precertification_Overview"
+
+主要涉及实际的校准方法，利用功分器和QDART工具进行平衡性测试，最后会生成相应的测试报告，我们后续参考都是参照这些测试报告文件。
+
+*主副天线的增益差不超过10dB
+
+
+
+==MSM8976平台的RF校准==
+鉴于上述问题中提到了很多平台的校准问题和CA的问题，因此专门学习了以下PANDA当前8976平台的校准基础知识。
+
+PANDA的射频模块和8952,8956一致，包含WTR2965和WTR2955两个射频模块。
+关键的设置文件都在这个目录下：/msm8976_panda01a_s00a_driver_only_1.1_r00228.1_RJIL_t0621/modem_proc/rfc_tabasco/rf_card/
+
+===为什么需要校准===
+对于手机设备来说，板子和天线的差异性是绝对存在的，为了在具有差异性设备上满足相同的射频性能，需要对每一个手机进行校准，另一方面校准会修改一些参数，比如针对于APT效率优化和延长使用时长方面等等。
+
+所以其实你导入一个手机的QCN到其他手机，理论上是可以工作的，不过某些指标可能会不准确从而导致手机信号差等等问题。由于高通给的方案客户可定制化较高，校准内容也很多，特别是后续的XPT，CHAR要做多，校准也多了几个sweep点。
+
+===校准会做什么===
+射频校准最终是为了更好的通信质量，校准的目的也就为了补偿路径差损。因此对于一个射频系统，发射TX，接收Rx，收发器本身DC、RSB，基带温度，晶振，回环电路(Hdet)等因素都会照成影响，所以校准就是针对板子的差异性对这些参数进行调整。
+
+高通平台中，在前期需要制作APT特征表，根据PA的输出功率范围，列出ICQ(PA静态工作电流)和PA-bias(PA偏置电压)的关系表，这个表由RGI参数控制，这个RGI值可以叫做“APT特征参数”，之后工厂会在每个PCB板上根据APT特征表计算出对应的APT特征参数值，然后使用这个APT参数进行功率扫描获得最佳的“功率-偏置电压-静态电流”的对应表，最终这些参数都会放在xml表中，QSRP工具加载XTT文件会导入这个xml文件进行校准。
+
+===TX校准===
+TX即是手机发射功率的一些参数的调校，在RF引入了MIPI接口后，随之出现了PA-state的概念，上面已经提到了在PA能够提供的发射功率范围内，去对应PA增益和PA的状态，对于我们当前的WTR2965，WTR2955来说，PA-state就2种状态，4个等级，PA的增益等级/状态都是由我们之前提到的NV选择的LUT表来决定。
+
+===高通RF校准算法===
+V1-V2算法时代，校准参数在xtt文件直接修改即可。
+从ESCV3算法开始，sweep(扫描)的概念被引入，高通提出ESC(enhance sweep calibration)极大缩短了校准时间，于此同时APT技术也开始使用。
+现阶段的ESCV4的算法，开始支持XPT、Fbrx/Rx rsb、CA等新的校准内容，而且将所有校准参数移到了xml表中，xtt文件只作为一个操作对象。
+当前PANDA平台是V4的算法，MSM8952+WTR2955的配置需要V4的xtt/NV参数设置，同时V4的校准支持APT扫描和APT+DPD扫描方式，我们可以修改V4参数文件去定制支持一些三方的PA器件，比如将其改为仅支持APT模式的校准方式。
+关于扫描的相关参数可以类似这种文件中找到：/modem_proc/rftarget_tabasco/msm8952/xtt/etc/RFCalInput/WTR2955_V2_CHILE_CA_ESC_Params.xml
+
+xml源文件中最关键的三个文件：
+WTR2955_V2_CHILE_CA_ESC_Char.xml
+WTR2955_V2_CHILE_CA_ESC_Params.xml
+WTR2955_V2_CHILE_CA_GSM_Char.xml
+
+===RF calibration Test Tree===
+/modem_proc/rftarget_tabasco/msm8952/qcn/wtr2965_v2_panda01a_s00a_ca/etc/MSM8952_WTR2965_V2_PANDA01A_S00A_CA_MASTERFILE.xml
+以上路径文件是NV配置的主文件，包含了一系列频带的相关参数设置文件和一些关键NV项。
+
+/modem_proc/rfnv/api/rfnv_items.h
+以上这个文件包含了所有RF相关NV-items的id。
+
+一些重要校准配置信息的路径：
+Calibration and characterization tree (xtt校准文件列表)		\modem_proc\rftarget_tabasco\msm8952\xtt\etc
+Bias file (xtt对应的xml源输入文件)							\modem_proc\rftarget_tabasco\msm8952\xtt\etc\RFCalInput
+Static Qualcomm Combined NVs(QCN) (集成在QCN中的NV项)		\modem_proc\rftarget_tabasco\msm8952\qcn
+Reference QCN (QCN中对应每个频带的NV项列表文件)				\modem_proc\rftarget_tabasco\msm8952\qcn\<RF card>\etc
+DLL (针对QDART工具RF校准相关的动态库)						\modem_proc\rffactory\qdart\QDART_SubSysRFCal.exe
+NvDefinition (cellular RF相关的NV定义)						\modem_proc\rfnv\etc
+
+以下是MPSS TA 1.0基线的相关Feature集成的变化流程图
+[[File:RF_calibration_feature_timeline.PNG]]
+
+===LTE的Pre-Cert verify===
+在做完手机校准后，需要去验证GSM，WCDMA，LTE相关的RF参数，以LTE的Pre-cert_verify为例，主要会去验证TDD/FDD两种制式的相关频带参数，LTE中现在还加入了诸如DLCA/ULCA的各类参数等等，Pre-cert使用的验证文件可以再QSRP工具安装路径里找到，XTT文件中的参数我们都可以自主的进行修改。
+
+如下图是对应CMCC网络下验证文件会去检查的项，在最后生成的测试报告中会告知验证结果是否通过，还会列出例如PA/LNA状态变化，发射接收功率变化等等详细信息。(I'or对应的是RSSI的值)
+C:\Program Files (x86)\Qualcomm\QDART\XTT\SubSysMultiMode\PreCertification\Precert-Screening_CMCC.xtt
+[[File:LTE_pre-cert_verify.PNG]]
+
+对应频带中修改channel_loop的loop_setup参数，可以对应修改(添加/删除，激活/注销)对应的待测上行信道列表。
+[[File:test_channel_modify.PNG]]
+
+添加/删除新的频带。
+[[File:B40_settings.PNG]]
+
+综合多个XTT文件生成一个新的XTT验证文件，去掉一些冗余项，就可以得到一个具有多种接入技术的XTT验证文件。
+
+=====================================
+=====================================
+=====================================
+
+==CA 配置==
+代码中的CA配置
+
+在选好rf card之后，我们只需要配置一下NV就可以实现ca了，例如我们需要band3和band40的CA。
+
+<NvItem id="25210" name="RFNV_LTE_B3_CA_BC_CONFIG_I" mapping="direct" encoding="dec">549755813888</NvItem>
+<NvItem id="25247" name="RFNV_LTE_B40_CA_BC_CONFIG_I" mapping="direct" encoding="dec">0</NvItem>
+如果这样配置，表示band3是主，而band40是从。
+
+<NvItem id="25210" name="RFNV_LTE_B3_CA_BC_CONFIG_I" mapping="direct" encoding="dec">0</NvItem>
+<NvItem id="25247" name="RFNV_LTE_B40_CA_BC_CONFIG_I" mapping="direct" encoding="dec">4</NvItem>
+这样代表band40是主，而band3是从。
+
+==EFS FSG==
+EFS是一个存储Modem配置数据的文件系统，但是MPSS并不能将这些数据直接操作Flash，因此需要借助AP端的存储服务区操作Flash生成EFS的镜像文件，即FSG。
+FSG包含了一个原生的工厂版本的EFS镜像，有相应的签名信息并且被打包为tar_zip文件，所有EFS的源数据都会在手机启动后从这里被加载。
+
+FS1，FS2，交替进行覆盖的分区。
+FSC：cookie分区，决定FS1，FS2哪一个应该被打包进FSG。
+
+===启动后的EFS初始化流程===
+1.先检查FS1，FS2分区是否有最新的有效的EFS镜像，如果有则使用最新的镜像文件。
+2.检查FSG分区的压缩包解压后是否有有效的镜像。(一般FSG分区是写保护的，可以让用户退回工厂的版本)
+3.检查普通EFS镜像分区是否有EFS镜像。
+4.如果当前FS1，FS2，FSG分区的EFS镜像都不可用或者缺失，EFS在RAM上自主去创建一个新的文件系统，将此RAM分区的配置信息传送给FS1分区。
+
+===FSG分区===
+The primary function of the FSG partition is to store a pristine factory version of the EFS image for the life of the device.
+
+EFS2_DIAG_MAKE_GOLDEN_COPY，EFS模块的此命令可以备份当前FS1或FS2分区到FSG分区。
+
+===解压FSG打包文件===
+高通提供的perl脚本efsreadimage.pl用于解压FSG压缩包文件。
+<MODEM_BUILD>\modem_proc\core\storage\tools
+
+以下是关于使能这个解压feature的宏定义。
+<MODEM_BUILD>/modem_proc/build/ms/<build-id>.h
+#define FEATURE_EFS_ENABLE_FACTORY_IMAGE_SECURITY_HOLE
+
+解压命令参考：
+perl efsreadimage.pl -z //for .zip file
+-p //source path
+-t //.tar file
+-o //output path
+-h //help
+
+==签名工具==
+<meta_build>common/sectools/sectools/features/isc/secimage.py
+<meta_build>common/sectools/sectools.py
+
+为fs_image.tar.gz文件加上mbn头文件输出在C:/tmp目录下，输出文件 --> fs_image.tar.gz.mbn
+python sectools.py mbngen -i fs_image.tar.gz -t efs_tar_40 -o C:/tmp –g
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

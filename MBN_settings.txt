@@ -13,8 +13,23 @@ adb shell setprop sys.usb.config diag,serial_smd,rmnet_qti_bam,adb 	//8976
 IIN字段一般是指ICCID的前6/7位数字，分别由国际编号，国家编码，运营商编码组成的6位或7位数，每一个MBN文件中也有对应的IIN字段，通过对比MBN和当前sim的ICCID中的IIN，如果相同即会把“IIN_flag”标志位置为1，即可判断出应该选择的MBN是哪一个，如果sim卡的IIN字段和MBN都不匹配则会去选择ROW对应的MBN(ROW的MBN里应该没有IIN字段的具体信息)，这个MBN包含了基础的3GPP的网络参数配置和参考IR92标准的IMS配置。
 
 带有Flex映射的自动选择：
-在前者基础上新加了一个功能，此功能仅限于DSDS模式的设备中，如果人为操作修改了某一个sim卡对应的网络模式，它会自动去切换激活适合的MBN。
+在前者基础上新加了一个功能，此功能仅限于DSDS模式的设备中，如果人为操作修改了某一个sim卡对应的网络模式，它会自动去切换激活适合的MBN。例如将两张sim卡的网络模式互换，则之前对应两张sim卡的MBN也会进行互换激活。
+NV-70266 device-mode
 
+基于IMSI/MCC,MNC的自动选择：
+通过对比MBN和SIM卡IMSI中的MCC/MNC字段来选择合适的MBN，这一个的选择优先级高于基于IIN字段的自动选择方式。
+
+完全由APSS控制的自动选择：
+NV-71546的值设置为 0x20 ；
+adb shell setprop persist.radio.sw_mbn_update 1 ；
+开机时，qcril选择IIN字段相匹配的MBN，若没有则选择ROW的MBN，利用QMI PDC接口，加载激活合适的MBN；
+
+7+5的设备上不需要支持flex映射功能，当手机同时支持多种运营商的多种网络模式时，flex映射带来的MBN切换可能会导致MBN文件对应上错误的SIM卡。
+7+5或7+1模式对应的配置文件可以在此类目录中找到X:\modem_mbn_files\8976\mcfg\mcfg_gen\generic\common\MSM8952，而这些配置是通过默认的HW_MBN加载进手机的。
+之前enable 7+5 mode是参考7+5默认的文件配置直接设置到默认的HW_MBN里，避免重复加载多余的MBN。
+
+MCFG refresh：
+即可以不重启modem/重启手机刷新各NV/EFS的状态值。
 
 
 中国移动编码格式：89860 0MFSS YYGXX XXXXP
@@ -34,6 +49,7 @@ IIN字段一般是指ICCID的前6/7位数字，分别由国际编号，国家编码，运营商编码组成的6位
 2 0x04 Enable MCFG Auto-Selection based on IMSI/MCC-MNC
 1 0x02 Enable MCFG MBN Switching for Flex Mapping (Bit 0 or 2 has to be enabled as well)
 0 0x01 Enable MCFG Auto-Selection based on ICCID
+
 在8939项目中该值设置为0x03，在8976项目中该值设定为0x07，分别可以根据sim卡的ICCID或者IMSI/MCC-MNC来进行MBN的自动选择。
 前者的原理是MCFG通过检测SIM卡根据卡中ICCID的Issuer Identification Number(IIN)字段来匹配/激活对应的MBN文件。
 后者则是直接插卡后网络端发送给UE的IMSI/MCC-MNC信息来判断选择合适的MBN文件。
@@ -83,10 +99,8 @@ sudo smbpasswd -a smbuser -->设置密码
 sudo service smbd restart
 ifconfig --> 在windows端输入linux虚拟机的ip地址即可访问共享文件夹的内容
 
-【4】利用xml source生成MBN
-生成MBN的需求条件：perl，python，完整的MPSS镜像，hexagon工具，mircosoft-excel
-
-
+===利用xml source生成MBN===
+生成MBN的需求条件：perl，python，完整的MPSS镜像，hexagon工具，mircosoft-excel；基本上满足MPSS镜像编译条件的环境，如果是linux下直接使用xml表生成则不需要去操作修改excel表的相关内容。
 
 利用带宏的excel表生成MBN，之前张锐已经有wiki介绍过，所以这里我再补充一下另外一种生成MBN的方法，无论是自己验证或者是后续的代码调整实际上都是通过读取相应的xml表来读取设置的EFS/NV，而excel表生成MBN的方法中，生成的命令其实就是执行modem_proc/build/build_mcfgs.exe这个可执行文件，在linux环境下，我们可以使用这个可执行文件，加上一些适当的参数，就能到达在excel中生成的相同效果。
 
@@ -135,7 +149,7 @@ MBN可以对应配置各种不同网络制式的情况，在手机插入sim卡接入到不同的网络时，会自动
 MBN，即modem binary，通俗翻译即modem侧相关的二进制配置信息，作为一个配置文件，MBN中包含了手机一部分重要的NV/EFS信息，通过这样一个文件，除去一些共通的配置信息，将不同运营商的配置信息分别开来，每一个运营商都对应着一系列MBN文件，只把设备所需运营商对应的商用MBN文件一同编译进最终的NON-HLOS.bin镜像中，在手机开机后，由一个MBN的auto-select功能去根据当前所在网络选择适合的MBN激活，加载这些NV/EFS信息。
 这样根据客户需求/运营商将MBN区分成单个文件，便于开发者们根据问题去查找和修改某一些关键的配置信息。
 
-MCFG(modem configuration)，modem侧配置文件组成的一个框架，以各类MBN文件为主，而整个MBN文件的类型可以如下区分，第一种分类可以分为default和specific两大类，default类别的是一些手机通用的配置，specific类是根据运营商或客户需求的独有配置文件；另一种分类方法，可以将它们分为HW和SW两大类，HW主要是包含RFC，UIM的一些硬件相关配置，SW类别的则是和运营商关联较大的网络相关配置。
+MCFG(modem configuration)，modem侧配置文件组成的一个框架，以各类MBN文件为主，而整个MBN文件的类型可以如下区分，第一种分类可以分为default和specific两大类，default类别的是一些手机通用的配置，specific类是根据运营商或客户需求的独有配置文件；另一种分类方法，可以将它们分为HW和SW两大类，HW主要是包含RFC，UIM的一些硬件相关配置，HW_mbn常见的会去设置手机是否支持单双卡，设备是android还是WP类别，手机网络模式是7+1还是7+5；SW类别的则是和运营商关联较大的网络相关配置。
 
 整个MCFG的框架包括了如下的内容：
 MBN的加载和激活；
@@ -176,6 +190,7 @@ commit: e7029f7a420fe12183d3a8d1b73619beae6b2284
 	mcfg_sw/generic/apac/reliance/commerci/mcfg_sw.mbn
 	mcfg_sw/generic/common/row/gen_3gpp/mcfg_sw.mbn
 	mcfg_sw/generic/china/cmcc/csfb/dsds/volte_co/mcfg_sw.mbn
+	
 	mcfg_sw/generic/china/cu/csfb/dsds/commerci/mcfg_sw.mbn
 
 8976中对于这一文件的一些操作：
@@ -210,9 +225,17 @@ commit: e7029f7a420fe12183d3a8d1b73619beae6b2284
 	
 在老的8939的平台上，MBN不会自动刷新，必须要重启手机/重启modem才能让新的MBN激活；新的8976平台上，会自动刷新激活新的MBN不需要重启modem/重启手机。
 
+/msm8976_panda01a_s00a_driver_only_1.1_r00228.1_RJIL_t0621/LINUX/android/vendor/qcom/proprietary/qcril/qcril_qmi/qcril_qmi_mbn_ota_daemon.c
 
+===MBN-OTA相关的安卓属性值===
+persist.radio.ver_info
+persist.radio.start_ota_daemon
+persist.sys.ssr.restart_level
+persist.radio.sw_mbn_loaded [modem]
+persist.radio.hw_mbn_loaded
+persist.radio.sw_mbn_update
+persist.radio.hw_mbn_update
 
-	
 
 ===题外话===
 之前在excel表上不能使用对应的宏去生成xml源码和MBN文件，后面重装系统后出现了只能生成xml而不能生成MBN的现象，原因是必须要在磁盘根目录下新建一个modem_proc文件夹才能成功运行，应该是运行脚本里把这个执行路径给写死了。

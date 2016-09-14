@@ -4,6 +4,13 @@ UIM类log的分析关键词：
 SPN Service Provider Network 服务供应商网络
 SPN Subsctiber Premises Network 用户驻地网
 
+===ims注册信息和RAT改变的信息===
+qcril_qmi_imsa_get_ims_registration_info: ims_registered: 1
+qcril_qmi_imsa_is_ims_registered_for_voip_vt_service: IMS registered valid 1, Status 0
+
+Adding RAT mode =
+gsm_only
+
 ===uim===
 Multimode Generic SIM Driver Interface(MMGSDI)
 Generic SIM Application Toolkit(GSTK)
@@ -42,11 +49,14 @@ qcril_qmi_nas_log_radio_power_process_state
 0xB0E2 默认EPS承载的激活/ESM信息请求
 0xB0E3 ESM信息响应/PDN连接请求/默认EPS承载激活确认
 
+===获取CK&IK相关log信息===
+MASK的配置 --> [0x1098] UIM Application Protocol Data Unit & Data Services
+关键字 “qpAMSS_GetAuthResponse”
+
 --------------------------------
 --------------------------------
 
 ==GSTK==
-
 
 
 

@@ -1,4 +1,12 @@
 ICCID：Integrate circuit card identity 集成电路卡识别码（固化在手机SIM卡中）
+
+另外提一个IMEI的概念，输入串号"*#06#"可查看。
+IMEI由15位数字组成，每位数字仅使用0~9的数字，其组成为：
+1、前6位数（TAC，Type Approval Code）是“型号核准号码”，一般代表机型。
+2、接着的2位数（FAC，Final Assembly Code）是“最后装配号”，一般代表产地。
+3、之后的6位数（SNR，Serial Number，出厂序号）是“串号”，一般代表生产顺序号。
+4、最后1位数（SP）通常是“0”，为检验码，备用。
+
 ICCID为IC卡的唯一识别号码，共有20位数字组成，其编码格式为：XXXXXX 0MFSS YYGXX XXXXX。分别介绍如下： 第五、六位即运营商代码：中国移动的为：898600；中国联通的为：898601。
 
 供应商

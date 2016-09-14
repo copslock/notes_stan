@@ -1,0 +1,50 @@
+关于电话本里的emergency-list设置问题，根据pbm_hardcode_ecc_config这个值去做选择：
+1.可以通过NV控制使能单独对应的文件，此类文件中一般配置了需要使用的emergency-numbers；
+2.直接通过hardcode进行修改，但是需要把一系列的NV控制的文件都删除掉或不使能。
+在根据uim_present这个参入参数去选择有无sim的情况。
+
+
+关注以下这4个NV：(reliance网络都未配置，CMCC网络都有配置，每个NV都有对应设置文件)
+67221 --> global ecc number
+69736 --> pbm_hardcode_ecc_config
+69737 --> pbm_hardcode_ecc_list
+73755 --> per sub ecc list
+
+因为reliance网络没有配置以上NV，在没有要求的前提下，只关注hardcode配置和qcril.db中的配置内容。
+
+另外和一个db相关的Android属性设置：persist.radio.custom_ecc --> qcril.db
+cp /system/vendor/qcril.db /data/misc/radio/qcril.db
+关于qcril.db这个数据库文件，设置了包括各类MBN文件对应的各运营商的IIN字段和MCC-MNC列表，各运营商网络的的紧急号码列表。
+中国(460,461) 加拿大(302) 美国(310) 印度(405,406) 缅甸(414) 
+452	VN	越南	Vietnam
+456	KH	柬埔寨	Cambodia
+457	LA	老挝
+502	MY	马来西亚	Malaysia
+510	ID	印度尼西亚	Indonesia
+515	PH	菲律宾	Philippines
+520	TH	泰国	Thailand
+730	CL	智利	Chile
+
+具体紧急号码的列表如下：
+中国
+460	110
+460	112
+460	119
+460	120
+460	122
+460	999
+
+印度
+404	100
+404	101
+404	102
+404	108
+404	112
+--------
+405	100
+405	101
+405	102
+405	108
+405	112
+
+PBM部分的代码结构和逻辑，需要再仔细看一次。

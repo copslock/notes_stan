@@ -23,14 +23,19 @@ Vowifi涉及到P-CSCF；
 70315		wifi功能的卸载配置()					Wlan offload config = 2 (使能wifi IWLAN_S2b和本地中断)
 67259		IMS-SMS配置								smsRATMaskString = 0x644E；RatMaskValue = 25678
 67264		IMS注册模块配置							regManagerPdpProfileName = <ims_apn>
-67332		IMS-media配置							Version – 3；audio_offload = 0 (MSM8974_MSM8994) / 3 (MSM8939)
-69744		IMS-SIP扩展配置							Version – 13
-69750		QP_IMS_配置								Version – 3；WFC_Status - 1/0(Enable/Disable)；Call_mode_preference – 0/1/2/3/4 (WFC_PREF_NONE/WFC_WIFI_PREFERRED/WFC_WIFI_ONLY/WIFI_CELLULAR_PREFERRED/WIFI_CELLULAR_ONLY)
+67332		IMS media config										Version – 3；audio_offload = 0 (MSM8974_MSM8994) / 3 (MSM8939)
+69744		IMS-SIP扩展配置(IMS sip extended configuration)			Version – 13
+69750		QP_IMS_config(IMS extendable common config items)		Version – 3；WFC_Status - 1/0(Enable/Disable)；Call_mode_preference – 0/1/2/3/4 (WFC_PREF_NONE/WFC_WIFI_PREFERRED/WFC_WIFI_ONLY/WIFI_CELLULAR_PREFERRED/WIFI_CELLULAR_ONLY)
 
 73545		wifi配置(用于紧急呼叫的)(MMODE)			cmph_wifi_config_s_type.is_wifi_only_mode_for_voice – 1；cmph_wifi_config_s_type.is_e911_over_wifi – 1；cmph_wifi_config_s_type.wifi_cs_scan_timer – 5
 71527		IMS请求配置-存储请求信息的数据库		0 - version；272 - ims_rat_apn_info[0].iRAT；17 - ims_rat_apn_info[0].iAPNType_APNindex
-71781		IMS—QP_WIFI_config						rssi的门限设置
+71581		IMS—QP_WIFI_config						rssi的门限设置，当前panda手机中设置值都是0
 
+iVersion
+rssi_threshold_add
+rssi_threshold_drop
+rssi_avg_timer_on_attach
+rssi_avg_timer_on_camp
 ====================================================================================================
 ====================================================================================================
 ====================================================================================================
