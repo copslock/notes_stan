@@ -1,0 +1,91 @@
+/modem_proc/mcfg_fwk/mcfg_sel/inc/mcfg_uim.h
+	#define MCFG_UIM_AUTOSELECT_DEFAULT (7)
+
+/common/build/mbn_ota.txt
+	mcfg_sw/generic/apac/reliance/commerci/mcfg_sw.mbn
+	mcfg_sw/generic/common/row/gen_3gpp/mcfg_sw.mbn
+	mcfg_sw/generic/china/cmcc/commerci/volte_op/mcfg_sw.mbn
+ 
+/common/build/build.py
+	# Add mbn_ota.txt
+	modem_ota_file = os.path.join(os.path.dirname(__file__), 'mbn_ota.txt')
+	modem_ota_dir ='image/modem_pr'
+	if os.path.exists(modem_ota_file):
+		ret_code_fatadd_tool = lg.log_exec(['python',fatadd_tool,'-n',fat_file_dest,'-f' + modem_ota_file,'-d'+ modem_ota_dir],verbose=0)
+        if ret_code_fatadd_tool != 0:
+            err_msg = 'update_common_info.py:' + 'python'+' '+fatadd_tool+' '+'-n'+' '+fat_file_dest+' '+'-f' + modem_ota_file,'-d'+ modem_ota_dir + ':Failed'
+            lg.log(err_msg)
+            raise Exception(err_msg)
+               
+/contents_8976_64.xml
+    <step filter="non_hlos" type="exec">
+      <params>python @tool_name -n @destn -f @src_file -d image/modem_pr</params>
+      <tool_name>fatadd.py</tool_name>
+      <destn>./bin/$[flavor:.]/NON-HLOS.bin</destn>
+      <src_files>./mbn_ota.txt</src_files>
+    </step>
+
+/LINUX/android/device/qcom/common/rootdir/etc/init.qcom.sh
+	rm -rf /data/misc/radio/modem_config
+	mkdir /data/misc/radio/modem_config
+	chmod 770 /data/misc/radio/modem_config
+	cp -r /firmware/image/modem_pr/mcfg/configs/* /data/misc/radio/modem_config  //将当前modem镜像中的所有MBN文件拷贝到radio的目录中（使radio中的MBN与modem镜像中保持一致/最新，为后续MBN的OTA提供来源）
+	chown -hR radio.radio /data/misc/radio/modem_config
+	cp /firmware/image/modem_pr/mbn_ota.txt /data/misc/radio/modem_config  //该txt中给出了所有需要Load的MBN的路径
+	chown radio.radio /data/misc/radio/modem_config/mbn_ota.txt
+	echo 1 > /data/misc/radio/copy_complete
+	
+/LINUX/android/device/qcom/panda01a_msm8952_64/system.prop
+	#enable mbn sw ota
+	persist.radio.start_ota_daemon = 1
+
+/modem_proc/mcfg/mcfg_gen/generic/common/Default/mcfg_sw_gen_Default.xml
+	<NvEfsItemData mcfgAttributes="0x19" mcfgVariant="2" fullpathname="/nv/item_files/mcfg/mcfg_autoselect_by_uim">
+		<Member sizeOf="1" type="uint8">7 </Member>
+		<Member sizeOf="1" type="uint8">7 </Member>
+	</NvEfsItemData>
+还有一些mcfg_version的修改
+	
+===一些重要的功能函数===
+LINUX/android/vendor/qcom/proprietary/qcril/qcril_qmi/qcril_qmi_nas.c
+void qcril_qmi_nas_check_for_hardware_update(boolean is_on_request)
+{
+   ...
+    ret = qcril_mbn_hw_update_init(apss_subscriptions,
+                             modem_subscriptions,
+                             is_modem_state_valid,
+                             is_on_request);
+   ...
+}
+
+LINUX/android/vendor/qcom/proprietary/qcril/qcril_qmi/qcril_mbn_hw_update.c
+IxErrnoType qcril_mbn_hw_update_init(...)
+	...
+     qmi_ril_get_property_value_from_integer(QCRIL_MBN_HW_FEATURE_ENABLED,
+                                             &is_hw_enabled, 0);
+     qmi_ril_get_property_value_from_integer(QCRIL_MBN_SW_OTA_FOR_MODEM_CENTRIC,   //获取属性值
+                                             &is_sw_ota_enabled, 0);
+  
+    ...
+     else if (is_sw_ota_enabled)  //判断是否需要sw MBN update
+	 {
+         qcril_mbn_kick_ota_update_in_dedicated_thread();
+     }
+	 
+	 
+static IxErrnoType qcril_mbn_kick_ota_update_in_dedicated_thread(void)
+ {
+     ...
+     conf = pthread_create(&qmi_ril_mbn_ota_pid, &attr, qmi_ril_mbn_ota_thread_proc, NULL);  //create MBN OTA thread
+     qmi_ril_set_thread_name(qmi_ril_mbn_ota_pid, "MBN_OTA");
+     ...
+ }
+
+LINUX/android/vendor/qcom/proprietary/qcril/qcril_qmi/qcril_qmi_mbn_ota_daemon.c
+void* qmi_ril_mbn_ota_thread_proc(void* empty_param)
+{
+   get_modem_list()
+   qcril_get_mbn_file_list() //from mbn_ota.txt
+    ...
+}
+

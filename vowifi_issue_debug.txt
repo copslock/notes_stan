@@ -1,0 +1,16 @@
+vowifi issue debug
+
+1.call manager --> sys_mode=8 (wlan)
+
+2.QPE_PING_SUCCESS / QPE_PING_COMPLETE/PARTIAL_FAILURE --> ping失败可能会引起的网络问题，例如IMS的HO失败
+
+3.backofftimer --> vowifi注册失败或者IMS切换失败会启动的定时器，会导致10分钟内无法注册vowifi
+
+4.IMS切换log中的一些参数 --> PrefRAT=6(wlan),10(LTE); rat_value=5/c9(wlan),3(LTE)
+
+5.NV-69750: qp_ims_config --> WFC的参数和状态设置 WFC_status=0(not support),1(on),2(off); ims_operation_submode=12(RJIL),2(CMCC); call_mode_prefence=1(wlan),2(wlan_only),3(celluar),4(celluar_only)
+
+6.DNS query被ePDG服务端拒绝或者UE鉴权失败同样会引起HO失败，同时启动backofftimer -->
+
+6.git clone ssh://username@10.120.10.101:29418/msm8939-la-2-1 -b mirage01a_s25a_5_1_mp_2156_15
+repo init -u git://10.120.10.101/msm/platform/manifest.git --repo-url=git://10.120.10.101/msm/tools/repo.git -b ckt -m mirage01a_s25a_5_1_mp_2156_15_MSM8939.LA.2.1.xml

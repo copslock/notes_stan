@@ -1,0 +1,109 @@
+===Remove MBN-test apk===
+LINUX/android/vendor/qcom/proprietary/telephony-apps/ModemTestMode/src/com/qualcomm/qti/modemtestmode/DefaultReceiver.java
+串号定义及逻辑判断，注释掉串号，并让其输入其他串号后也不会安装此apk
+
+===去掉HW-MBN的自我检测逻辑===
+*
+
+===Remove MBN load from SD feature===
+http://10.120.10.101/source/xref/msm8976_panda01a_s00a_driver_only_1.1_r00250.1_RJIL_t0908/LINUX/android/vendor/qcom/proprietary/telephony-apps/ModemTestMode/res/values/strings.xml#83
+对应value值
+
+http://10.120.10.101/source/xref/msm8976_panda01a_s00a_driver_only_1.1_r00250.1_RJIL_t0908/LINUX/android/vendor/qcom/proprietary/telephony-apps/ModemTestMode/res/layout/mbn_file_load.xml#15
+mbn-load对应的layout
+
+http://10.120.10.101/source/xref/msm8976_panda01a_s00a_driver_only_1.1_r00250.1_RJIL_t0908/LINUX/android/vendor/qcom/proprietary/telephony-apps/ModemTestMode/Android.mk#8
+apk编译参数，模块名是ModemTestMode
+
+LINUX/android/vendor/qcom/proprietary/telephony-apps/ModemTestMode/src/com/qualcomm/qti/modemtestmode/MbnFileLoad.java
+判断选择SD卡加载MBN的逻辑
+
+
+===Others===
+LINUX/android/frameworks/base/core/java/android/os/storage/StorageVolume.java
+StorageVolume定义
+
+LINUX/android/frameworks/base/core/java/android/os/storage/IMountService.java
+LINUX/android/frameworks/base/services/core/java/com/android/server/MountService.java
+GetVolumeList定义/调用
+
+===问题原因?===
+M版本上加了一个加载HW MBN的feature，没有自定义HW-MBN的加载导致无法进行SW MBN的加载选择和激活APK的打开。
+
+8976:\\192.168.9.128\modem_proc\msm8976\modem_proc\mcfg\configs\mcfg_hw\generic\common\Default\Default
+8939:\\192.168.9.128\modem_proc\msm8939-la-2-1\modem_proc\mcfg\configs\mcfg_hw\generic\common\Default\Default
+
+/LINUX/android/device/qcom/common/rootdir/etc/init.qcom.sh
+
+//msm8939 M
+255 rm -rf /data/misc/radio/modem_config
+256 mkdir /data/misc/radio/modem_config
+257 chmod 770 /data/misc/radio/modem_config
+258 #cp -r /firmware/image/modem_pr/mbn_ota/* /data/misc/radio/modem_config
+259 cp -r /firmware/image/modem_pr/mcfg/configs/* /data/misc/radio/modem_config
+260 chown -hR radio.radio /data/misc/radio/modem_config
+261 #cp /firmware/image/modem_pr/mbn_ota.txt /data/misc/radio/modem_config
+262 cp /system/etc/mbn_ota/mbn_ota.txt /data/misc/radio/modem_config
+263 chown radio.radio /data/misc/radio/modem_config/mbn_ota.txt
+264 echo 1 > /data/misc/radio/copy_complete
+
+//msm8939 L
+255 rm -rf /data/misc/radio/modem_config
+256 mkdir /data/misc/radio/modem_config
+257 chmod 770 /data/misc/radio/modem_config
+258 #cp -r /firmware/image/modem_pr/mbn_ota/* /data/misc/radio/modem_config
+259 cp -r /system/etc/mbn_ota/* /data/misc/radio/modem_config
+260 chown -hR radio.radio /data/misc/radio/modem_config
+261 echo 1 > /data/misc/radio/copy_complete
+
+//msm8976 更换mbn_ota.txt存放目录，用于项目区分
+321 if [ -f /data/misc/radio/ver_info.txt ]; then
+322     prev_version_info=`cat /data/misc/radio/ver_info.txt`
+323 else
+324     prev_version_info=""
+325 fi
+326 
+327 cur_version_info=`cat /firmware/verinfo/ver_info.txt`
+328 #if [ ! -f /firmware/verinfo/ver_info.txt -o "$prev_version_info" != "$cur_version_info" ]; then
+329     rm -rf /data/misc/radio/modem_config
+330     mkdir /data/misc/radio/modem_config
+331     chmod 770 /data/misc/radio/modem_config
+332     cp -r /firmware/image/modem_pr/mcfg/configs/* /data/misc/radio/modem_config
+333     chown -hR radio.radio /data/misc/radio/modem_config
+334     cp /firmware/verinfo/ver_info.txt /data/misc/radio/ver_info.txt
+335     chown radio.radio /data/misc/radio/ver_info.txt
+336 #fi
+337 cp /firmware/image/modem_pr/mbn_ota.txt /data/misc/radio/modem_config
+338 chown radio.radio /data/misc/radio/modem_config/mbn_ota.txt
+339 echo 1 > /data/misc/radio/copy_complete
+
+
+public static final String HW_MBN_BASE_PATH =
+            "/firmware/image/modem_pr/mcfg/configs/mcfg_hw/generic/common";
+			
+===DEBUG===
+vendor/qcom/proprietary/telephony-apps/ModemTestMode/src/com/qualcomm/qti/modemtestmode/MbnFileLoad.java:224: 错误: 找不到符号
+        String locationHint = sp.getString(LOCATION_HINT, getString(R.string.phone_storage));
+                                                                            ^
+  符号:   变量 phone_storage
+  位置: 类 string
+vendor/qcom/proprietary/telephony-apps/ModemTestMode/src/com/qualcomm/qti/modemtestmode/MbnFileLoad.java:226: 错误: 找不到符号
+        mLocationHint = (TextView) findViewById(R.id.location_hint);
+                                                    ^
+  符号:   变量 location_hint
+  位置: 类 id
+vendor/qcom/proprietary/telephony-apps/ModemTestMode/src/com/qualcomm/qti/modemtestmode/MbnFileLoad.java:338: 错误: 找不到符号
+        menu.add(0, MENU_LOCATION, 0, R.string.location_configuration);
+                                              ^
+  符号:   变量 location_configuration
+  位置: 类 string
+vendor/qcom/proprietary/telephony-apps/ModemTestMode/src/com/qualcomm/qti/modemtestmode/MbnFileLoad.java:409: 错误: 找不到符号
+                            MbnFileLoad.this.getString(R.string.phone_storage));
+                                                               ^
+  符号:   变量 phone_storage
+  位置: 类 string
+vendor/qcom/proprietary/telephony-apps/ModemTestMode/src/com/qualcomm/qti/modemtestmode/MbnFileLoad.java:395: 错误: 找不到符号
+        builder.setTitle(R.string.location_configuration)
+                                 ^
+  符号:   变量 location_configuration
+  位置: 类 string

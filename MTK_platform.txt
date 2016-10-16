@@ -1,0 +1,6 @@
+[【1】MTK 平台版本信息
+/mcu/make/projects/your_project.mak
+e.g.	
+	BRANCH = LR11.W1603.MD.MP
+	BUILD = BUILD_NO
+	VERNO = MOLY.LR11.W1603.MD.MP.V35.4

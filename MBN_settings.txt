@@ -75,6 +75,7 @@ sudo apt-get install smbclient
  smbclient
  samba-common-bin
  samba
+ 
 sudo rm -rf info/
 sudo mkdir info
 ...
@@ -135,6 +136,9 @@ perl ./build_mcfgs.pl --build_id=FAAAANVZ --xml --force-regenerate --force-rebui
 mcfg version: 在xml表中修改都是自增1即可，0x0203202D
 直接修改xml表来修改并生成MBN，用PDC验证时会出现有时候active MBN时，重新恢复到了手机初始选择MBN的状态，修改验证MBN后，尝试了手机重启，MBN不会被重置，是有效的。
 对应excel表中的mcfg版本修改：都是末位自增1
+
+NV-4995 mcfg_version
+NV-71 banner
 
 对于mcfg_version的修改方法，高通官方的修改会去改动最后1位数字，每次将其自增1；对于ODM的自主修改操作，建议是修改第4位的数字，操作同样是自增1。
 
@@ -240,4 +244,37 @@ persist.radio.hw_mbn_update
 ===题外话===
 之前在excel表上不能使用对应的宏去生成xml源码和MBN文件，后面重装系统后出现了只能生成xml而不能生成MBN的现象，原因是必须要在磁盘根目录下新建一个modem_proc文件夹才能成功运行，应该是运行脚本里把这个执行路径给写死了。
 
+scons文件是一个Python写的自动化构建工具，类似于GUNmake这种自动编译配置文件。
+
 参考文档：80-N5576-96_MODEM SOFTWARE CONFIGURATION OVERVIEW.pdf
+
+===MBN load/active from UI application===
+1.load HW MBN: *#*#3266344#*#*
+2.load SW MBN: *#*#6266344#*#*
+3.active SW MBN: *#*#76266344#*#*
+optional --> deactive SW MBN: *#*#33266344#*#*
+
+===User-Agent===
+现在只有在L版本上需要手动修改，M版本上高通加入了动态获取3个属性值组合成UA的功能，之后已经不需要每次都手动修改UA值了。
+
+ro.fota.oem + ro.product.model + ro.build.software.version
+e.g. CKT8939_5.0 + LS-5015 + LYF_LS-5015_00_202_12
+
+===关于默认MBN的加载流程===
+/modem_proc/mcfg/mcfg_gen/build/mcfg_gen.scons
+以上这个文件中包含了如何将默认MBN编译进FSG镜像的流程。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

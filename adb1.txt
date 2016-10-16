@@ -1,5 +1,14 @@
 adb logcat -b main -b radio -b system -v threadtime > adblog.txt
 
+用android源码编译adb和fastboot
+	make USE_MINGW=y adb 
+	make USE_MINGW=y fastboot
+输出目录：/out/host/windows-x86/bin
+	adb.exe
+	fastboot.exe
+	AdbWinApi.dll
+	AdbWinUsbApi.dll
+
 adb/android debug bridge 调试工具
 fastboot 和手机端的bootloader通信,烧录工具
 

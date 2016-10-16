@@ -128,8 +128,55 @@ persist.radio.jbims
 persist.radio.VT_ENABLE
 persist.radio.VT_HYBIRD_ENABLE
 
-
-
+===VT中关键的NV/EFS设置===
+NV 71597 QIPCALL QOS Reservation Timer
+NV 73713 IMS handover config		//IMS切换的配置
+NV 67218 IMS ebavke		//IMS功能的激活
+NV 67264 IMS Registration Module Parameters		//IMS注册次数限制
+NV 67348 IMS QIPCall Config Items		//RTCP的使能，VT-call使能，video和audio的feature tag
+NV 70291 IMS VT 4G Media Capability
+NV 71527 IMS Reg Config Db		//ims APN的相关设置
+	iRAT：(272/512)
+	LTE/WCDMA/EDGE/GPRS – 23；
+	LTE only – 16；
+	WCDMA, W_HSPA, HSPA = 100；
+	
+	iAPNType：
+	IMS类型的APN - 17；
+	internet类型的APN - 34；
+	
+	iIMS service:
+	VoLTE/VT/SMS - 7；
+	SMS/Presence - 260；
+	
+	iAuth SecType：
+	Non-IPSec – 200
+	IPSec – 136
+	
+	iIP Type：
+	V6 perferred - 208；
+	IPv6 - 64；
+	IPv4 - 32；
+	
+	rat_apn_fb_info[0].iRAT APN Fallback：
+	LTE - 20092；
+	WCDMA = 12800；
+	eHRPD = 16896；
+	EDGE = 8704；
+	HSPA = 25088；
+	GPRS = 4608；
+	W_HSPA = 29184；
+	
+	iAllowedIMSSrvOnWLAN 2055
+	bAddAllFTs 0
+	iACSPriority 0
+	iISIMPriority 2
+	iNVPriority 3
+	iPCOPriority 1
+	
+	iIMSServiceStatus - 32775(All services supported by device Non RCS devise)
+	
+	
 
 
 

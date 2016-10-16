@@ -1,0 +1,97 @@
+===RJIL的相关feature===
+RJIL是一个只提供4G网络+IMS核心网的运营商，没有2/3G的网络因此不支持CSFB这种基于2/3网络回落的技术，因此对于Reliance机器的开发主要关注IMS，VoLTE，ViLTE，VoWIFI，eMBMS，RCS这些feature。
+
+通常来说高通方面会有专门的文档，为RJIL解释在当前chipset上能够支持的feature，这个标准文档会在开发过程中不断被完善修改。
+
+===ODM需要做的事===
+1.ODM需要从高通那里有关于IMS—PRO的AOST-License，关于eMBMS，google-play上RJIL的broadcast应用上自带了eMBMS相关的license，直接从google-play下载并集成即可。
+2.集成VoLTE和CS功能在一个dialer中。
+
+可选的feature
+1.trustzone
+2.secure boot
+3.Few Audio+, Voice+, Fluence™ HD, SD Digital Camera, and NSRM details
+4.SVI, STA, Assertive Display, Wi-Fi Display, Smart Camera Pack B (Ubifocus, ChromaFlash, Optimzoom, Object Cloning and Removal, Touch to track)
+
+===设备测试流程===
+器件选型，集成，Pre-cert(lab-test，sanity-test)，VIT-test，PQ validation，QA，field-test...
+
+P9-11
+
+===RJIL运营商特有的设置===
+关于IMS和eMBMS的相关feature需要ODM去确认MBN文件中对应的NV/EFS都有被正确设置。
+P12
+
+NOTE：RJIL UI 1.9 and V4.5 smartphone specification is current being evaluated for Android N based PLs.
+
+===RJIL客制化改动===
+1.添加一个特殊语言，例如gu_IN (zh_CN)
+LINUX/android/build/target/product/languages_full.mk
+LINUX/android/device/qcom/msm8916_64/msm8916_64.mk
+在PRODUCT_LOCALES中加入“gu_IN”
+
+LINUX/android/device/qcom/msm8916_64/msm8916_64.mk
+在PRODUCT_PACKAGE_OVERLAYS中加入“$(QCPATH)/qrdplus/globalization/multi-language/res-overlay”
+
+2.JIO网络的APN配置文件
+LINUX/android/vendor/qcom/proprietary/qrdplus/Extension/apps/etc/apns-conf.xml
+包含了世界上所有运营商支持APN配置信息，MCC-MNC号，端口，代理，是否支持ipv4v6等等信息。
+
+3.RJIL为IMS，SMS的各项NV配置
+P14
+
+4.RJIL APN及配置文件
+在IMS注册成功时，以下3个APN就已经存在了，一个是默认的jionet，UE首先需要通过这个default_APN建立PDN连接然后才能发起新的服务请求，第二个是用于IMS服务(QCI=5)的APN，SIP的协议消息都是通过这个APN，第三个是基于IMS的emergency-call的APN，如果网络端还不支持基于IMS的紧急通话，则会回落到2G进行紧急通话的建立。
+
+IMS APN
+AT$QCPDPIMSCFGE=2,1,0,0 (Set PCO for profile 2)
+Emergency APN
+AT$QCPDPIMSCFGE=3,1,0,0 (Set PCO for profile 3)
+
+ims APN --> profile2
+emergency APN --> profile3
+
+5.VOWIFI的配置文件
+\modem_proc\mcfg\mcfg_gen\scripts\data\efs_files\rel\iwlan_s2b_config.txt
+...
+epdg_plmn_list:<plmn>;
+...
+
+#PLMN 123456 --> MCC 123 MNC 456
+#PLMN 12345 --> MCC 123 MNC 045
+
+6.RJIL额外的一些feature使能
+LINUX/android/vendor/qcom/proprietary/qrdplus/Extension/config/default.prop
+adb shell setprop persist.data.iwlan.enable true	//enable vowifi
+adb setprop persist.radio.NO_STAPA 1	//enable VT
+
+LINUX/android/device/qcom/panda01a_msm8952_64/system.prop
+persist.radio.detect4gcard=true			//DSDS feature
+persist.radio.primarycard=true
+ro.telephony.default_network=9
+
+7.在IMS的消息中携带UA信息
+NV 69689
+
+===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

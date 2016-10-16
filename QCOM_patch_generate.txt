@@ -1,0 +1,6 @@
+两个qcom patch的commit id生成:
+xxxx format-patch commit1...commit2
+
+git show + commit-id 查看具体改动
+git show commit-id <希望查看的相关目录>
+

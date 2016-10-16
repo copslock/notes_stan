@@ -1,0 +1,209 @@
+需求：
+See doro SIM lock requirements attached. Please analyse and compare with MTK solution etc. Please note that preferred location for this code is in OTP. 
+Separate Jira issue created for PC tool also supporting SIM locking / unlocking.
+参考附件的需求文件和MTK解决方案；unlock code存储位置最好在OTP类型的存储设备中(一次可编程)；。。。
+
+详细需求：
+
+3.
+4.
+5.
+6.通过IMEI生成的
+
+1.It shall be possible to change between non SIM operator lock software versions and SIM operator lock software versions with backup and restore。
+2.所有手机都需要对应IMEI有一个unlock code，但是只有刷写了simlock软件版本的手机才有这个feature，刷写non-simlock软件后这个feature应该被disable。
+3.可以支持根据多个条件触发simlock，例如MCC/MNC，SIM GID1等等。
+4.对于同一IMEI的设备，unlock code唯一，不能被修改，最好将unlock code保存在OTP类型的存储中。
+5.手机不能通过刷机或备份(除非被刷到了non-simlock的软件版本)等方式被unlock。
+6-8.unlock code应该是一个8位随机数，不能出现在手机中可以被用户看到的地方。
+9.unlock code的计算和验证算法不能轻易被破解。
+10-11.(AP-side)一共10次解锁的机会(可能会根据运营商不同有变化)，每次解锁尝试失败后下一次尝试需要等待30秒，每一次递增30秒，递增到第五次之后延迟时间都固定为150s。
+12.(AP-side)每次输错code之后弹出“Wrong unlock code entered, phone blocked”而不是提示插入sim的界面。
+13.设备处于lock状态时，插入正确的运营商sim卡才能工作。
+14-15.一旦设备被解锁以后，只能通过工程模式菜单重新lock，“Reset all”选项不应该加锁已经被解锁的设备，“Reset all”不能重置unlock code的已尝试次数。
+16-17.[AP-side/工厂/PL/PM]根据IMEI对应unlock code(每个IMEI对应一个code...)需要整理出来发给doro特定的人员。
+
+
+锁卡对应的协议是： 3GPP TS 22.022
+[FAQ10433][SEC]修改SIM ME lock解锁码与IMEI号保持对应关系
+[FAQ02913][Common]如何获取IMEI号和MEID号
+[FAQ12171][SEC]锁网密码允许输入超过8个数字
+
+
+
+【1】确保make file中SML_SUPPORT = TRUE
+/mcu/make/projects/custom_config/CKT6750_65_N(LWCTG_MP3)_EXT.mak
+#1665
+
+/mcu/make/pcore/Option.mak
+/mcu/make/l1core/Option.mak
+
+【】
+对于Neptune MMI的工程，还需要确保MMI的feature CFG_MMI_PERSONALIZATION_SERVICES是(__ON__)或者(__AUTO__). 
+
+【2】如果要根据MCC/MNC锁定一些sim卡为合法卡，则其他卡默认为非法卡
+/mcu/pcore/custom/service/nvram/custom_nvram_sec.c
+#374 “NVRAM_EF_SML_DEFAULT”
+
+将对应的锁定的类型改为LOCK状态，最后一个参数“3”表示会去对比3组MCC/MNC数据，满足其中一组即满足lock条件，超过第3组之后的数据即使后面code设置了也不会去比对。
+- {SML_STATE_UNLOCK,SML_RETRY_COUNT_N_CAT,0,0},     /* Category N */ 
++ {SML_STATE_LOCK,SML_RETRY_COUNT_N_CAT,0,3},     /* Category N */
+
+具体会去比对的MCC/MNC列表如下(后续长度无限制)：
+/* Category N code */
+- {0xc1,0xc1,0xc1,
+- 0xFF,0xFF,0xFF,
+- 0xFF,0xFF,0xFF,
++ {0x46,0x00,0x0F,		// MCC-MNC:460-00,460-02,460-07,当只有5位时，最后一位默认为F
++  0x46,0x00,0x2F,
++  0x46,0x00,0x7F,
++  0x12,0x23,0x45,		// 当MCC/MNC为6为时，可能需要将宏“SML_MNC_LENGTH_NEST”改为0(默认为0)
+ 0xFF,0xFF,0xFF,
+ 0xFF,0xFF,0xFF,
+ 0xFF,0xFF,0xFF,
+ 0xFF,0xFF,0xFF,
+ 0xFF,0xFF,0xFF,
+ 0xFF,0xFF,0xFF,
+ 0xFF,0xFF,0xFF},
+
+/mcu/pcore/custom/modem/common/ps/custom_nvram_extra.h
+#227
+
+配置SML_MNC_LENGTH_NEST定义值为0，然后重新编译即可根据NVRAM_EF_SML_DEFAULT[]中配置的PLMN长度匹配。SML_MNC_LENGTH_NEST的默认值为1，就是根据SIM卡内EFad文件的第四byte来指明长度。(从sim中读到的EF_)
+1.当SML_MNC_LENGTH_NEST为0时，会依据NVRAM_EF_SML_LID的配置的MCCMNC的长度来比较。
+2.当SML_MNC_LENGTH_NEST为1时，会依据SIM卡中指定的MNC的长度来比较。
+
+【3】为NVRAM_EF_SML_LID加上用于多卡配置的多RECORD属性
+/mcu/pcore/service/nvram/src/nvram_factory_config.c
+#2584
+
+    {
+        NVRAM_EF_SML_LID,
+        NVRAM_EF_SML_TOTAL,
+        NVRAM_EF_SML_SIZE,
+        NVRAM_SECUPACK(&NVRAM_EF_SML_DEFAULT),
+    #ifdef __SMART_PHONE_MODEM__
+        NVRAM_CATEGORY_SECUPACK | NVRAM_CATEGORY_IMPORTANT_L4,
+    #elif defined(__CUSTOMER_TC01_DISK__) && !defined(WISDOM_MMI)
+        NVRAM_CATEGORY_SECUPACK,
+    #else
+        NVRAM_CATEGORY_SECUPACK | NVRAM_CATEGORY_IMPORTANT,
+    #endif
+-        NVRAM_ATTR_MSP | NVRAM_ATTR_CONFIDENTIAL,
++		 NVRAM_ATTR_MSP | NVRAM_ATTR_CONFIDENTIAL | NVRAM_ATTR_MULTI_DEFAULT,	
+        "MP33",
+        VER(NVRAM_EF_SML_LID)
+    },
+
+【4】多卡的配置，将NVRAM_EF_SML_DEFAULT改为多元的数组，NVRAM_EF_SML_DEFAULT[0]对应卡1，NVRAM_EF_SML_DEFAULT[1]对应卡2的配置。
+/mcu/pcore/custom/service/nvram/custom_nvram_sec.h
+#595
+- extern const nvram_sml_context_struct NVRAM_EF_SML_DEFAULT;
++ extern const nvram_sml_context_struct NVRAM_EF_SML_DEFAULT[2];	//从单卡变为双卡设置
+
+/mcu/pcore/custom/service/nvram/custom_nvram_sec.c
+#374 “NVRAM_EF_SML_DEFAULT”
+代码中添加一个“表格”，区分单双卡，各自MCC/MNC参数的设置还是和单卡一样。
+- const nvram_sml_context_struct NVRAM_EF_SML_DEFAULT={...};
++ const nvram_sml_context_struct NVRAM_EF_SML_DEFAULT[0]={...};
++ const nvram_sml_context_struct NVRAM_EF_SML_DEFAULT[1]={...};
+
+【5】验证锁卡配置是否配置成功
+1.在测试机上烧入配置锁卡信息的软件版本。
+2.插入非法卡，开机并抓取开机log-MTKLog。
+3.查看radio_log.boot或radio_log.x，搜索关键字“+CPIN”，如果看到下面的log，则说明锁卡配置生效。
+
+03-09 16:46:34.179 628 654 D AT : AT< +CPIN: PH-NET PIN
+03-09 16:46:34.179 628 654 D AT : RIL_CMD_READER_3:+CPIN: PH-NET PIN
+Notes：PH-NET只是锁网类型中的一种，还有可能是PH-NETSUB/PH-SP/PH-CORP/PH-FSIM.
+
+【6】锁卡数据存储设置
+根据是否有定义 __NVRAM_IMPORTANT_PARTITIONS__ 来区分，Modem Version在WR8之后的，默认都定义此宏。
+在早期没有支持此宏的版本，锁卡数据原始数据存放在Modem NVRAM, 备份数据存放在BIN Region. 当执行“恢复出厂设置”或“Firmware Upgrade”, 会将Modem NVRAM清除，使用BIN Region的备份数据恢复；如果 BIN Region 数据为空，则使用NVRAM_EF_SML_DEFAULT中配置的值生成。
+在定义此宏的版本，锁卡数据原始数据存放在protect_f分区，备份数据存放在protect_s分区。当执行“恢复出厂设置”或“Firmware Upgrade”, 不影响这两个分区，只有Total format download才会清除这两个分区的数据。 
+
+在没有Protect_s和Protect_f分区之前，SIM ME LOCK数据存在USER DATA分区内，详细路径为/data/nvram/md/NVRAM/IMPORTANT。
+当恢复出厂设置时，会将/data/nvram/md/下的文件全部清除，其后开机时会将NVRAM BIN Region中备份的数据recovery到/data/nvram/md/下。
+
+/mcu/make/projects/custom_config/CKT6750_65_N(LWCTG_MP3)_EXT.mak
+#3344
+# Request by Qinghua
+CUSTOM_OPTION += __NVRAM_IMPORTANT_PARTITIONS__
+
+【7】锁卡数据加密方式
+1.软件加密，默认打开，建议修改默认的key
+\mcu\custom\service\nvram\custom_nvram_sec.c   
+#317
+const kal_uint8 custom_secret_key[NVRAM_SECRET_KEY_SIZE] = {0x31, 0x32, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66};
+
+2.硬件加密，默认关闭，打开方式：
+设置NVRAM_BIND_TO_CHIP_CIPHER = ENABLE
+/mcu/make/projects/custom_config/CKT6750_65_N(LWCTG_MP3)_EXT.mak
++ CUSTOM_OPTION += NVRAM_BIND_TO_CHIP_CIPHER
+
+确认NVRAM_EF_SML_LID有加上NVRAM_ATTR_MSP属性
+/mcu/pcore/interface/service/nvram/nvram_defs.h
+#define NVRAM_ATTR_MSP	0x0020 /* Protected by MTK Secure Platform */
+
+在开硬件加密的情况下，锁卡数据与 chip id 关联，如果更换 chip,  需要全擦升级，否则不能使用。
+
+【8】解锁方式
+1.参考custom_secret_key值，匹配则解锁。
+2.客制化使unlock code和IMEI一一对应。
+
+解锁尝试次数设置：
+/* Maximum Retry Count*/
+- #define SML_MAX_RETRY_COUNT             5
+- #define SML_RETRY_TIMEOUT               3 /* in sec */
++ #define SML_MAX_RETRY_COUNT             10
++ #define SML_RETRY_TIMEOUT               30 /* in sec */
+#define SML_RETRY_COUNT_N_CAT           SML_MAX_RETRY_COUNT
+#define SML_RETRY_COUNT_NS_CAT          SML_MAX_RETRY_COUNT
+#define SML_RETRY_COUNT_SP_CAT          SML_MAX_RETRY_COUNT
+#define SML_RETRY_COUNT_C_CAT           SML_MAX_RETRY_COUNT
+#define SML_RETRY_COUNT_SIM_CAT         SML_MAX_RETRY_COUNT
+
+检查是否设置了SML_KEY_SET
+/mcu/pcore/interface/modem/general/ps_public_enum.h
+#2255
+
+【9】Network类lock类型对其他类型属于master-slave的关系，若要使能就改为“KAL_TRUE”
+其中master指的是Network-Category，如果通过了NP锁定，如果还有其他锁定，则不需要经过校验，直接通过，其他的category相对于NP来说是一种slaver的地位。
+/mcu/pcore/custom/modem/common/ps/custom_nvram_extra.h
+#215
+/* MASTER-SLAVE Behavior  */
+/* Customer defined field */
+#define SML_MASTER_KEY_ENABLE     KAL_FALSE
+
+【10】锁卡依赖实现
+第一类：SIM2 依赖 SIM1
+需求：当卡1插入合法卡的时候，卡2插任何卡都能使用；卡1插入非法卡或者未插卡时，卡2插入任何卡都不能使用。  
+实现：FAQ18222 [SIM_ME_LOCK]SIM2 依赖 SIM1 的锁卡关联
+ 
+第二类：SIM1 和 SIM2 相互影响
+需求：两个卡槽插入一张合法卡时，两张卡都能够正常使用。 
+实现：FAQ18235 [SIM_ME_LOCK] SIM1 和 SIM2 相互影响
+注意，两类修改的差异：锁卡配置和 custom_l4c_root_lock_verify() 中的修改都不相同。
+
+变种一：需要判断过期卡
+因为过期卡是不能注册上网络的，所以判断的方法就是看是否能注册上网络，就需要从 AP 端根据注册网络的结果做解锁处理。但是因为网络环境，有效卡也有可能无法注册上网络，在当次开机会被识别为过期卡。不过下一次开机如果能正常注册上网络，还是能识别出来是有效卡，这种case需要考虑清楚。
+具体实现请参考对应版本FAQ：
+FAQ13805 [SEC]过期卡锁卡需求-卡2依赖卡1(L版本)
+FAQ12122 [SEC]过期卡锁卡需求-卡2依赖卡1 (KK版本)
+FAQ13806 [SEC]过期卡锁卡需求-双卡相互依赖(L版本)
+FAQ12123 [SEC]过期卡锁卡需求-双卡相互依赖(KK版本)
+ 
+变种二：基于 SIM2 依赖 SIM1，但是当 SIM2 为合法卡时，不受 SIM1影响。
+下表格是需求的详细说明，其中红色文字是与 SIM2 依赖 SIM1 不同的一个点。
+修改基于 SIM2 依赖 SIM1 的方案基础上，再将 SIM2 配成 LOCK即可。 
+步骤1，给 SIM1 和 SIM2 都配置为 SML_STATUS_LOCK. 如果双卡需要锁的参数相同，在 NVRAM_EF_SML_DEFAULT 中配置一份即可。如果双卡需要锁的参数不同，需要将 NVRAM_EF_SML_DEFAULT 变为 NVRAM_EF_SML_DEFAULT[2],  然后配置独立的锁卡参数。配置步骤请参考：SIM-ME Lock Quick Start  的 “基本锁卡配置”和“多卡项目差异配置”。 
+步骤2，参考此 FAQ 修改 custom_l4c_root_lock_verify()：FAQ18222 [SIM_ME_LOCK]SIM2 依赖 SIM1 的锁卡关联。
+  
+变种三：各Category 独立锁卡
+背景：锁卡协议 3GPP TS 22.022定义了五类 category, 根据锁卡协议，如果配置多个 category, SIM 卡需要同时满足所有 LOCK 状态的category, 才算合法卡。
+需求：SIM 卡只要满足其中某一个category 就算合法卡。
+实现：请申请 patch MOLY00107552, add option: __CUSTOM_CAT_CHOICE__ .
+
+【others】
+Custom_nvram_extra.c 
+这里面有很多可用的重要的api

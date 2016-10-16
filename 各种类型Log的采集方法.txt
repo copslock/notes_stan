@@ -9,13 +9,25 @@ adb shell stop
 adb shell start
 adb logcat -v threadtime -b all >1.log
 
+adb录屏
+adb shell screenrecord /sdcard/XXX.mp4
+-time-limit N	//限制录制时间(秒数)
+--bit-rate 2000000	//视频码率调整为2M
+--size 848*480	//调整视频分辨率
+
 qxdm
 利用mask文件抓取
 
 catchlog
 
+kernel-log：
+adb shell cat /proc/kmsg > klog.txt
 
-monkeylog
+ANR和墓碑log：
+adb pull /data/anr
+adb pull /data/tombstones
+
+monkeylog:
 adb shell monkey -p package-name -v -v -s 500 > D:\target.txt
 
 ramdump log
@@ -24,11 +36,10 @@ SD/T卡中根目录下放rdcookie.txt空文件
 使用QPST抓DUMP --> echo c > /proc/sysrq-trigger
 使用QPST抓开机DUMP
 
-tcpdump log
+Tcpdump log:
 命令或者wireshark抓取 --> pcap
-tcpdump -i any -w xxx.cap
-
-管道命令...
+adb shell tcpdump -i wlan0 -w xxx.pcap
+adb shell tcpdump -i any -w xxx.cap
 
 各类在上层的log，需激活对应的文件才能打开log开关(例如CNE-log需要push对应的库文件打开对应log开关)
 
