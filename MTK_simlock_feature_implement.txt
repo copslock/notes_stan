@@ -4,12 +4,6 @@ Separate Jira issue created for PC tool also supporting SIM locking / unlocking.
 参考附件的需求文件和MTK解决方案；unlock code存储位置最好在OTP类型的存储设备中(一次可编程)；。。。
 
 详细需求：
-
-3.
-4.
-5.
-6.通过IMEI生成的
-
 1.It shall be possible to change between non SIM operator lock software versions and SIM operator lock software versions with backup and restore。
 2.所有手机都需要对应IMEI有一个unlock code，但是只有刷写了simlock软件版本的手机才有这个feature，刷写non-simlock软件后这个feature应该被disable。
 3.可以支持根据多个条件触发simlock，例如MCC/MNC，SIM GID1等等。
@@ -29,9 +23,13 @@ Separate Jira issue created for PC tool also supporting SIM locking / unlocking.
 [FAQ02913][Common]如何获取IMEI号和MEID号
 [FAQ12171][SEC]锁网密码允许输入超过8个数字
 
+【0】MTK modem编译
+cd mcu
+./m "CKT6750_65_N(LWCTG_MP3).mak" new
 
+perl ./device/mediatek/build/build/tools/modemRenameCopy.pl ~/software/MT6750_M_modem_Doro-baseline/mcu "CKT6750_65_N(LWCTG_MP3)"
 
-【1】确保make file中SML_SUPPORT = TRUE
+【1】确保make file中SML_SUPPORT = TRUE --> ok
 /mcu/make/projects/custom_config/CKT6750_65_N(LWCTG_MP3)_EXT.mak
 #1665
 
@@ -65,6 +63,10 @@ Separate Jira issue created for PC tool also supporting SIM locking / unlocking.
  0xFF,0xFF,0xFF,
  0xFF,0xFF,0xFF,
  0xFF,0xFF,0xFF},
+ 
+开启设定modem这边的unlock-code：
+- {SML_KEY_EMPTY,{0x21,0x43,0x65,0x87,0xFF,0xFF,0xFF,0xFF}}
++ {SML_KEY_SET,{0x21,0x43,0x65,0x87,0xFF,0xFF,0xFF,0xFF}}
 
 /mcu/pcore/custom/modem/common/ps/custom_nvram_extra.h
 #227
@@ -131,7 +133,7 @@ Notes：PH-NET只是锁网类型中的一种，还有可能是PH-NETSUB/PH-SP/PH
 CUSTOM_OPTION += __NVRAM_IMPORTANT_PARTITIONS__
 
 【7】锁卡数据加密方式
-1.软件加密，默认打开，建议修改默认的key
+1.软件加密，默认打开，建议修改默认的key(以下不是解锁密码)
 \mcu\custom\service\nvram\custom_nvram_sec.c   
 #317
 const kal_uint8 custom_secret_key[NVRAM_SECRET_KEY_SIZE] = {0x31, 0x32, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66};
@@ -149,8 +151,10 @@ const kal_uint8 custom_secret_key[NVRAM_SECRET_KEY_SIZE] = {0x31, 0x32, 0x61, 0x
 
 【8】解锁方式
 1.参考custom_secret_key值，匹配则解锁。
-2.客制化使unlock code和IMEI一一对应。
+2.客制化使unlock code和IMEI一一对应，只对比工厂的code，匹配则上层默认输入modem内部的code(默认是12abcdef)匹配解锁。
 
+/mcu/pcore/custom/service/nvram/custom_nvram_sec.h
+#324
 解锁尝试次数设置：
 /* Maximum Retry Count*/
 - #define SML_MAX_RETRY_COUNT             5
@@ -162,6 +166,10 @@ const kal_uint8 custom_secret_key[NVRAM_SECRET_KEY_SIZE] = {0x31, 0x32, 0x61, 0x
 #define SML_RETRY_COUNT_SP_CAT          SML_MAX_RETRY_COUNT
 #define SML_RETRY_COUNT_C_CAT           SML_MAX_RETRY_COUNT
 #define SML_RETRY_COUNT_SIM_CAT         SML_MAX_RETRY_COUNT
+
+/mcu/pcore/custom/modem/common/ps/custom_nvram_extra.c
+#8384
+添加sml_verify的每次失败后的延时
 
 检查是否设置了SML_KEY_SET
 /mcu/pcore/interface/modem/general/ps_public_enum.h
@@ -178,15 +186,15 @@ const kal_uint8 custom_secret_key[NVRAM_SECRET_KEY_SIZE] = {0x31, 0x32, 0x61, 0x
 【10】锁卡依赖实现
 第一类：SIM2 依赖 SIM1
 需求：当卡1插入合法卡的时候，卡2插任何卡都能使用；卡1插入非法卡或者未插卡时，卡2插入任何卡都不能使用。  
-实现：FAQ18222 [SIM_ME_LOCK]SIM2 依赖 SIM1 的锁卡关联
+FAQ18222 [SIM_ME_LOCK]SIM2依赖SIM1的锁卡关联
  
 第二类：SIM1 和 SIM2 相互影响
 需求：两个卡槽插入一张合法卡时，两张卡都能够正常使用。 
-实现：FAQ18235 [SIM_ME_LOCK] SIM1 和 SIM2 相互影响
-注意，两类修改的差异：锁卡配置和 custom_l4c_root_lock_verify() 中的修改都不相同。
+FAQ18235 [SIM_ME_LOCK] SIM1 和 SIM2 相互影响
+锁卡配置和上一类custom_l4c_root_lock_verify()中的修改都不相同。
 
 变种一：需要判断过期卡
-因为过期卡是不能注册上网络的，所以判断的方法就是看是否能注册上网络，就需要从 AP 端根据注册网络的结果做解锁处理。但是因为网络环境，有效卡也有可能无法注册上网络，在当次开机会被识别为过期卡。不过下一次开机如果能正常注册上网络，还是能识别出来是有效卡，这种case需要考虑清楚。
+因为过期卡是不能注册上网络的，所以判断的方法就是看是否能注册上网络，就需要从AP端根据注册网络的结果做解锁处理。但是因为网络环境，有效卡也有可能无法注册上网络，在当次开机会被识别为过期卡。不过下一次开机如果能正常注册上网络，还是能识别出来是有效卡，这种case需要考虑清楚。
 具体实现请参考对应版本FAQ：
 FAQ13805 [SEC]过期卡锁卡需求-卡2依赖卡1(L版本)
 FAQ12122 [SEC]过期卡锁卡需求-卡2依赖卡1 (KK版本)
@@ -194,16 +202,18 @@ FAQ13806 [SEC]过期卡锁卡需求-双卡相互依赖(L版本)
 FAQ12123 [SEC]过期卡锁卡需求-双卡相互依赖(KK版本)
  
 变种二：基于 SIM2 依赖 SIM1，但是当 SIM2 为合法卡时，不受 SIM1影响。
-下表格是需求的详细说明，其中红色文字是与 SIM2 依赖 SIM1 不同的一个点。
 修改基于 SIM2 依赖 SIM1 的方案基础上，再将 SIM2 配成 LOCK即可。 
-步骤1，给 SIM1 和 SIM2 都配置为 SML_STATUS_LOCK. 如果双卡需要锁的参数相同，在 NVRAM_EF_SML_DEFAULT 中配置一份即可。如果双卡需要锁的参数不同，需要将 NVRAM_EF_SML_DEFAULT 变为 NVRAM_EF_SML_DEFAULT[2],  然后配置独立的锁卡参数。配置步骤请参考：SIM-ME Lock Quick Start  的 “基本锁卡配置”和“多卡项目差异配置”。 
-步骤2，参考此 FAQ 修改 custom_l4c_root_lock_verify()：FAQ18222 [SIM_ME_LOCK]SIM2 依赖 SIM1 的锁卡关联。
+步骤1，给SIM1和SIM2都配置为SML_STATUS_LOCK. 如果双卡需要锁的参数相同，在NVRAM_EF_SML_DEFAULT中配置一份即可。如果双卡需要锁的参数不同，需要将NVRAM_EF_SML_DEFAULT 变为NVRAM_EF_SML_DEFAULT[2]，然后配置独立的锁卡参数。
+步骤2，参考此FAQ修改custom_l4c_root_lock_verify()。
+FAQ18222 [SIM_ME_LOCK]SIM2 依赖 SIM1 的锁卡关联。
   
-变种三：各Category 独立锁卡
-背景：锁卡协议 3GPP TS 22.022定义了五类 category, 根据锁卡协议，如果配置多个 category, SIM 卡需要同时满足所有 LOCK 状态的category, 才算合法卡。
-需求：SIM 卡只要满足其中某一个category 就算合法卡。
-实现：请申请 patch MOLY00107552, add option: __CUSTOM_CAT_CHOICE__ .
+变种三：各Category独立锁卡
+背景：锁卡协议 3GPP TS 22.022定义了五类category, 根据锁卡协议，如果配置多个category, SIM卡需要同时满足所有LOCK状态的category, 才算合法卡。
+需求：SIM卡只要满足其中某一个category就算合法卡。
+实现：请申请patch MOLY00107552, 添加option: __CUSTOM_CAT_CHOICE__
 
 【others】
+原始设计是不支持通过META TOOL修改锁卡数据。
+
 Custom_nvram_extra.c 
 这里面有很多可用的重要的api

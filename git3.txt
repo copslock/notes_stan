@@ -59,3 +59,7 @@ git clean -xfd
 git clean -nxfd
 git clean -nf
 git clean -nfd
+
+【8】没有change-id
+curl http://10.120.10.101:9999/tools/hooks/commit-msg > .git/hooks/commit-msg
+chmod +x .git/hooks/commit-msg
