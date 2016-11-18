@@ -1,7 +1,24 @@
-【1】在执行make命令时指定要用的makefile文件
+【1】在执行make命令时指定要用的makefile文件，否则就是使用当前目录下的Makefile
 make -f rules.txt
 make --file=rules.txt
 
 【2】makefile的主要内容：构建的目标文件，依赖哪些源文件，当哪些文件有变动时，如何重新构建它
 
-【3】
+【3】快速编译(在安卓根目录下)
+全部编译：
+source build/envsetup.sh
+lunch
+make update-api
+make -j8
+
+部分编译：
+make systemimage
+make bootimage
+make userdataimage-nodeps
+
+【4】部分编译，push对应的对象或库文件
+android根目录下./build/envsetup.sh
+切换到对应目录执行mma
+touch特定修改的文件
+再次执行mm
+将Install项push到手机里

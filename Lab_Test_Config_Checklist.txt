@@ -1,0 +1,6 @@
+==UE checklist==
+NV-1016		1	enable CB
+NV-1017 	2	忽视语言过滤，接收所有所有的CB
+NV-67305	1	enable PPAC
+NV-70361	2	enable LTE/WCDMA CSG
+NV-73529	1	enable APN dismatch

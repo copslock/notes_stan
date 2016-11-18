@@ -1,0 +1,108 @@
+主要是简单归纳一下820/820mini上simlock的实现，这一部分不包含OTP部分。
+
+【1】
+#ckt zhangrui 2014-02-18 for Doro sim lock.//begin
+CUSTOM_OPTION += __CKT_SML_LOCK_TYPE1__
+CUSTOM_OPTION += __MMI_SML_UNLOCK_AFTER_VERIFIED__
+CUSTOM_OPTION += __CKT_SML_WITH_SPECIAL_FLAG__
+#ckt zhangrui 2014-02-18 //end
+
+【2】几个关键宏
+#ifdef xxx			//只能预定义一个参数
+#if define (xxx)	//括号内可以进行布尔运算
+
+====================SIMLOCK===========================
+mcu/pcore/custom/modem/common/ps/custom_nvram_extra.c
+mcu/pcore/custom/modem/common/ps/custom_nvram_extra.h
+
+mcu/pcore/custom/modem/common/ps/customer_at_command.c --> ignore
+mcu/pcore/custom/service/nvram/custom_nvram_sec.c
+mcu/pcore/custom/service/nvram/custom_nvram_sec.h
+
+mcu/pcore/custom/simlock/...
+mcu/pcore/custom/simlock/...
+
+mcu/pcore/custom/service/nvram/nvram_data_items.c  --> ignore
+mcu/common/interface/service/nvram/nvram_data_items.h
+mcu/common/interface/service/nvram/nvram_editor_data_item.h
+
+mcu/make/project/<xxxxxx.mak>  --> OTP
+mcu/make/pcore/Option.mak
+mcu/make/pcore/module/driver/custom.mak
+
+mcu/pcore/service/nvram/src/nvram_factory_config.c	--> fix
+mcu/pcore/service/nvram/src/nvram_interface.c
+mcu/pcore/service/nvram/src/nvram_io.c
+
+mcu/pcore/service/dhl/database/msglog_db/custom_parse_db.c
+
+./build/CKT6750_65_N/LWCTG_MP3/bin/log/custom.log --> log
+
+====================Unlock code in OTP===================
+mcu/make/projects/CKT6750_65_N(LWCTG_MP3).mak --> vendor/mediatek/proprietary/modem/doro8042_ckt6738_65_n/modem_1_ulwctg_n.mak
+
+device/ckt/doro8050_ckt6750T_65_n/ProjectConfig.mk
+vendor/mediatek/proprietary/bootable/bootloader/preloader/custom/doro8050_ckt6750T_65_n/doro8050_ckt6750T_65_n.mk
+kernel-3.18/arch/arm64/configs/doro8050_ckt6750T_65_n_debug_defconfig
+kernel-3.18/arch/arm64/configs/doro8050_ckt6750T_65_n_defconfig
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+============================================================
+
+
+
+cp: 无法获取"./pcore/interface/middleware/meta/ft_msg_common.h" 的文件状态(stat): 没有那个文件或目录
+cp: 无法获取"./common/interface/modem/l1/fdd/internal/ul1_cnst.h" 的文件状态(stat): 没有那个文件或目录
+cp: 无法获取"./common/interface/modem/l1/fdd/internal/ul1_def.h" 的文件状态(stat): 没有那个文件或目录
+cp: 无法获取"./common/modem/interface/l1/gsm/mph_cnst.h" 的文件状态(stat): 没有那个文件或目录
+
+11/17/16 17:47:59.424 META_DLL[18912][24468]: SendPrimitive(): local_param[14]:
+	00000000: 01 00 0E 00 02 00 18 00 CD 03 01 00 01 00       ; ........?....   (META_utility.h:403)
+11/17/16 17:47:59.424 META_DLL[18912][24468]: SendPrimitive(): record_len(20), peer_msg[28]:
+	00000000: 14 00 01 00 00 00 00 00 31 32 33 00 00 00 00 00 ; ........123.....
+	00000010: FF FF FF FF FF FF FF FF FF FF FF FF             ;      (META_utility.h:411)
+11/17/16 17:47:59.424 META_DLL[18912][24468]: ERROR: CMetaAdaptation::SendMetaMessage: SendMetaMessage through non-existent handle. Communication is not started (META_Adaptation.cpp:741)
+11/17/16 17:47:59.424 META_DLL[18912][24468]: ERROR: <1> META_NVRAM_Write_r(token=2): SendPrimitive(local_size=14, peer_size=28) fail! (META_nvram.cpp:9642)
+
+
+现在能出一个加了otp版本的整包么
+我看后面unlock code应该需要加在otp里
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

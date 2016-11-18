@@ -1,10 +1,22 @@
-vowifi issue debug
+===vowifi issue debug===
+典型的问题：
+bug-16499
+bug-16651
 
-1.call manager --> sys_mode=8 (wlan)
+1.call manager --> sys_mode=8(wlan) 9(LTE) 10(GWL) 11(TDS) 3(GSM) 5(WCDMA) 2(CDMA) 4(HDR)
 
 2.QPE_PING_SUCCESS / QPE_PING_COMPLETE/PARTIAL_FAILURE --> ping失败可能会引起的网络问题，例如IMS的HO失败
 
 3.backofftimer --> vowifi注册失败或者IMS切换失败会启动的定时器，会导致10分钟内无法注册vowifi
+[0051/0001] | MSG | 06:38:52.870 | IMS/Medium | [qipcalliface_ho_mgr.c 5027] qipcalliface_is_pre_tunnel_establishment_quality_prerequisite_met:ping initiated state |
+[0051/0003] | MSG | 06:38:52.870 | IMS/Error | [qipcalliface_ho_mgr.c 4291] qipcalliface_is_quality_param_met_for_wwan_iwlan_handover: pre tunnel procedure not complete |
+[0051/0001] | MSG | 06:38:54.280 | IMS/Medium | [qipcalliface_ho_mgr.c 4901] start backoff |
+[0051/0001] | MSG | 06:38:54.281 | IMS/Medium | [qipcalliface_ho_mgr.c 3685] qipcalliface_set_wwan_iwlan_handover_measurement_params: backoff failure override |
+
+IMS/High 07:08:45.191 qipcalliface.c 06502 qipcalliface_get_pref_system backofftimer override 
+IMS/High 07:08:45.192 RegInfo.cpp 01750 IsIwlanBackoffTimerRunning 
+IMS/High 07:08:45.192 RegInfo.cpp 01758 IsIwlanBackoffTimerRunning - bRet = 1
+
 
 4.IMS切换log中的一些参数 --> PrefRAT=6(wlan),10(LTE); rat_value=5/c9(wlan),3(LTE)
 
@@ -12,5 +24,17 @@ vowifi issue debug
 
 6.DNS query被ePDG服务端拒绝或者UE鉴权失败同样会引起HO失败，同时启动backofftimer -->
 
-6.git clone ssh://username@10.120.10.101:29418/msm8939-la-2-1 -b mirage01a_s25a_5_1_mp_2156_15
-repo init -u git://10.120.10.101/msm/platform/manifest.git --repo-url=git://10.120.10.101/msm/tools/repo.git -b ckt -m mirage01a_s25a_5_1_mp_2156_15_MSM8939.LA.2.1.xml
+//Auth Failure reported 
+Security/Internet Protocol Security/High07:08:41.439 secips_ikeauth.c 03338 Received IKEAUTH first EAP msg 
+Security/Internet Protocol Security/Error07:08:41.439 secipspkt.c 08282 Received Error Notify (24) <= SECIPSPKTDEFS_IKEV2_NOTIFY_AUTHENTICATION_FAILED 
+Security/Internet Protocol Security/High07:08:41.439 secips.c 02789 ike_sa_handle -1022823504, ipsec_cb_ptr 0x0c308f3d0 ike_failure_cause value is set to 5 
+Security/Internet Protocol Security/Medium07:08:41.439 secips.c 02797 Exit: secips_cb_ptr_ike_failure_update 
+Data Services/Medium 07:08:41.439 ps_eap_server.c 00768 EAP server delete instance - invalid handle: -1 
+
+7.call_type
+modem_proc/mmcp/api/public/cm.h
+参考cm_call_type_e
+ --> CM_CALL_TYPE_VT=11
+ 
+ MSG   [00063/01] Android QCRIL/Medium                     12:16:03.662    qcril_qmi_ims_misc.c  01788  RIL[0][event] qcril_qmi_ims_map_ril_failcause_to_ims_failcause: RIL_LastCallFailCause 16 with extended error code 25 mapped to Ims__CallFailCause 16
+

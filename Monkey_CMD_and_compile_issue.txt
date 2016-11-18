@@ -77,8 +77,8 @@ mmm packages/apps/Email/
 对应的模块的名需要你在对应目录下Android.mk文件里查看LOCAL_PACKAGE_NAME这个属性的值
 加 -B 属性表示编译该模块下的所有文件，否则只会编译有更新的文件
 
- 
-
+【10】刷写整包(userdata分区除外)
+把对应刷机xml表中userdata和gpt_main0, gpt_backup0项去掉。
 
 
 

@@ -24,3 +24,28 @@ repo forall -p -c cmd  遍历所有仓库并打印每个仓库的分支情况,-p
 repo status [<project>...]	//这个命令的功能和git_status几乎一样,查看有哪些文件被修改,添加,删除.
 repo diff [<project>...]	//功能类似git diff.git diff 很灵活,后面可以参数.repo diff 后面没有参数,结果是所以不一样的地方都输出.
 repo stage -i [<project>...]//参数-i是必须的,是interactive的意思,类似git add、git revert、git status等功能. 
+
+【1】修改了.repo/manifest 文件
+问题：error: .repo/manifests/: contains uncommitted changes
+解决：
+cd .repo/manifest
+git stash
+git clean -f -d
+回到.repo/目录检查当前repo仓库用的manifest是否正常，不正常的话就用repo init重新修改一下吧
+确认后再执行repo sync
+
+【2】error: frameworks/av/: msm/platform/frameworks/av checkout f00ed6e7b6b55bf56a160e510ef8f3e20a8e1e30
+遇到repo同步代码出现的文件untrack或者未提交的问题，进入对应的目录，这里是frameworks/av/，然后不需要的文件直接git stash然后clean，或者git checkout -- . 取消所有改动。
+
+【3】repo upload遇到找不到对应branch，是因为之前没有执行repo start操作
+repo start mobeeplus01a-s11a_5_1_2156_15 msm_mobeeplus00b_msm8916_64
+
+
+
+
+
+
+
+
+
+
