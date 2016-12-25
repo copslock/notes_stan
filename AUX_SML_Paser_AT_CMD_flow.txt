@@ -1,0 +1,35 @@
+1.AUX_SML_Paser_AT_Command
+
+2.AUX_AT_GET_CMD \
+	对比result，对比cmdName==CKTSMLK，cmdtype==AUX_AT_TYPE_EXE，
+	
+3.AUX_AT_GET_Str_Field
+
+
+
+METAAPP_NVRAM_Read()
+METAAPP_NVRAM_Write()
+
+SN:
+2016/11/25 14:08:02	WriteBarcode() Start, SN: 12345678
+2016/11/25 14:08:02	ReadBarcode(), SN: 1234
+2016/11/25 14:08:02	WriteBarcode(), SN: 12345678
+2016/11/25 14:08:02	WriteBarcode() End, Result 0
+
+FT_UTILITY_COMMAND_REQ  --> check if function exist --> 
+FT_UTILITY_COMMAND_CNF
+
+
+unlock_code:
+2016/11/25 14:15:15	META_ConnectWithMultiModeTarget_r() ERROR Code: 0
+2016/11/25 14:15:15	META_ConnectWithMultiModeTarget_r() pass 
+2016/11/25 14:15:16	UNLockCode_Write() start 
+2016/11/25 14:15:16	METAAPP_NVRAM_Write() --  59
+
+
+
+
+
+
+
+

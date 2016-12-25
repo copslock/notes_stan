@@ -1,0 +1,19 @@
+==AMR NV setting==
+NV-1302: NV_GSM_AMR_CALL_CONFIG_I(NARROW AND WIDEBAND AMR) - 默认值1(enable)
+
+0 – AMR NB and WB vocoder support disable in GSM
+1 – AMR NB and WB vocoder support enable in GSM
+
+NV-6850: NV_UMTS_AMR_CODEC_PREFERENCE_CONFIG_I(NARROW AND WIDEBAND AMRconfiguration) - 默认值0x0F
+umts_amr_codec_preference_config
+AMR bitmask: X X X X A B C D (0 – Disable / 1 – Enable)
+X – Not active
+A – WCDMA AMR WB
+B – GSM HR AMR NB
+C – GSM AMR WB
+D – GSM FR AMR NB
+
+总的来说NV-1302优先级高于后者，如果disable此功能的话，直接将NV-1302置为0即可。
+
+==concept of AMR==
+作为通话中最重要的编码调制部分，AMR是一种自适应速率的调制方案，当手机和网络端都支持的时候，网络和手机可以根据现有手机状态和网络状态调整话音数据的编码方式和速率等等，以达到通话质量和通话延迟的平衡。

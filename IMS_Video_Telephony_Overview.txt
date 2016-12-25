@@ -1,5 +1,3 @@
-98 AB WT
-
 ===英文缩写===
 DPL(data protection layer)数据保护层
 RTP(real-time transport protocol)实时传输协议 -- RFC 3550 & RFC 3551

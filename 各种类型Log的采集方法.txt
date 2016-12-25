@@ -2,6 +2,7 @@ adb
 adb root
 adb wait-for-devices
 adb logcat -b main -b radio -b system -v threadtime > adblog.txt
+adb logcat -b all -v threadtime > adb_log.txt
 
 adb shell setprop log.tag.TelecomFramework DEBUG
 adb shell setprop log.tag.Telephony DEBUG

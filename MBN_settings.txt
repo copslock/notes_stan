@@ -100,6 +100,7 @@ sudo smbpasswd -a smbuser -->设置密码
 sudo service smbd restart
 ifconfig --> 在windows端输入linux虚拟机的ip地址即可访问共享文件夹的内容
 
+
 ===利用xml source生成MBN===
 生成MBN的需求条件：perl，python，完整的MPSS镜像，hexagon工具，mircosoft-excel；基本上满足MPSS镜像编译条件的环境，如果是linux下直接使用xml表生成则不需要去操作修改excel表的相关内容。
 
