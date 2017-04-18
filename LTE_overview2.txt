@@ -21,11 +21,24 @@ ML1:L1的信令处理后的输出??
 类型:MIB(最重要的传输参数),SIB1(其他所有SIB的调度信息和小区接入信息),SI承载的SIB2-SIB12
 终端在接收SIB1后,通过其中的"SchedulingInfoList"字段才能接收其他的SI消息...
 
-SIB9: 家庭nodeB名称信息
-SIB10-12: 地震和海啸预警消息提示
-SIB13: 请求获取跟一个或多个MBSFN区域相关的MBMS控制信息的信息
-SIB15-v1130：包含MBMS的服务区域识别码，当前或邻近区域的载频信息.
+SIB1：基础SI，携带其他SI的调度，包含频间重选的开关"intraFreqReselection"
+SIB2：接入信息
+SIB3：同频/异频/异系统重选通用参数"CellReselectionInfoCommon",异频/异系统重选通用信息"CellReselectionServingFreqinfo",同频小区重选的信息"IntraFreqCellReselectionInfo"
+SIB4：同频小区列表"IntraFreqNeighCellList",列表中各小区的重选信息"IntraFreqNeighCellInfo",不能用于同频小区重选的列表"IntraFreqBlackCellList"
+SIB5：异频小区列表"InterFreqNeighCellList",列表中各小区的重选信息"InterFreqCarrierFreqInfo",不能用于异频小区重选的列表"InterFreqBlackCellList"
+SIB6：UTRAN邻小区列表"CarrierFreqListUTRAN",列表中小区重选信息"carrierFreq(List)UTRA-TDD/FDD"
+SIB7：GERAN邻小区列表"CarrierFreqInfoListGERAN",列表中小区重选信息"carrierFreqInfoGERAN"
+SIB8：CDMA2000重选信息(详略)
+SIB9：Home-enodeB名称信息
+SIB10-12：地震和海啸预警消息提示(ETWS&CMAS)
+SIB13：请求获取跟一个或多个MBSFN区域相关的MBMS控制信息的信息
+*SIB14：EAB参数
+SIB15-v1130：包含MBMS的服务区域识别码SAI，当前或邻近区域的载频信息.
 SIB16：UTC协调后的系统通用时间，计数值是从1900年1月1日开始到现在时刻的10ms的次数，详细参见文档“80-NF987-1”
+*SIB17：traffic steering between E-UTRAN and WLAN
+*SIB18-19：EUTRA支持的sidelink资源配置信息
+*SIB20：携带SC-PTM传输MBMS的控制信息
+*SIB21：V2X-sidelink配置信息
 
 ==LTE关键流程==
 [1]开机SIM附着-->PLMN/ACT选择-->小区选择-->合适小区位置登记更新-->UE进入idle状态
