@@ -25,6 +25,11 @@ repo status [<project>...]	//这个命令的功能和git_status几乎一样,查�
 repo diff [<project>...]	//功能类似git diff.git diff 很灵活,后面可以参数.repo diff 后面没有参数,结果是所以不一样的地方都输出.
 repo stage -i [<project>...]//参数-i是必须的,是interactive的意思,类似git add、git revert、git status等功能. 
 
+<<<<<<< HEAD
+repo切换分支
+repo forall -c git checkout --track origin/.../.../ -b [你的本地分支]
+repo init -u xxx.git -b xxx -m xxx.xml
+=======
 【1】修改了.repo/manifest 文件
 问题：error: .repo/manifests/: contains uncommitted changes
 解决：
@@ -49,3 +54,4 @@ repo start mobeeplus01a-s11a_5_1_2156_15 msm_mobeeplus00b_msm8916_64
 
 
 
+>>>>>>> week37

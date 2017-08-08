@@ -48,7 +48,13 @@ adb shell  /data/local/tcpdump -i any -w /sdcard/xxx.pcap
 adb pull /sdcard/xxx.pcap
 =============
 adb shell tcpdump -i wlan0 -w xxx.pcap
+<<<<<<< HEAD
+adb shell tcpdump -i any -w xxx.cap
+adb shell /data/local/tmp/tcpdump -p -vv -s 0 -w /mnt/sdcard/capture.pcap
+tcpdump -i eth0 tcp port 80 -w test.pcap
+=======
 adb shell tcpdump -i any -w xxx.pcap
+>>>>>>> week37
 
 各类在上层的log，需激活对应的文件才能打开log开关(例如CNE-log需要push对应的库文件打开对应log开关)
 
