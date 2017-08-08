@@ -1,4 +1,23 @@
-1.用vim查看“乱码”的文件
+【1】用vim查看“乱码”的文件
 vim -b file
 :%!xxd		//转换为16进制查看
 :%!xxd -r	//转换为2进制查看
+
+【2】去掉文件中的^M
+第一种方法：
+cat -A filename 就可以看到Windows下的断元字符 ^M
+要去除他，最简单用下面的命令：
+dos2unix filename
+
+第二种方法：
+sed -i 's/^M//g' filename
+#注意：^M的输入方式是 Ctrl + v ，然后Ctrl + M
+
+第三种方法：
+#vi filename
+:1,$ s/^M//g
+^M 输入方法： ctrl+V ,ctrl+M
+
+第四种方法：
+#cat filename |tr -d '\r' > newfile
+#^M 可用 \r 代替

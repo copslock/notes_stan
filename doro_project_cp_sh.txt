@@ -1,0 +1,25 @@
+#！/bin/bash
+# editor: xuan.he
+
+#check-list
+cp ~/doro_commit_20161130/custom_nvram_extra.c pcore/custom/modem/common/ps/custom_nvram_extra.c
+cp ~/doro_commit_20161130/custom_nvram_extra.h pcore/custom/modem/common/ps/custom_nvram_extra.h
+cp ~/doro_commit_20161130/customer_at_command.c pcore/custom/modem/common/ps/customer_at_command.c
+cp ~/doro_commit_20161130/custom_nvram_sec.c pcore/custom/service/nvram/custom_nvram_sec.c
+cp ~/doro_commit_20161130/custom_nvram_sec.h pcore/custom/service/nvram/custom_nvram_sec.h
+cp ~/doro_commit_20161130/nvram_data_items.h common/interface/service/nvram/nvram_data_items.h
+cp ~/doro_commit_20161130/nvram_editor_data_item.h common/interface/service/nvram/nvram_editor_data_item.h
+cp ~/doro_commit_20161130/Option.mak make/pcore/Option.mak 
+cp ~/doro_commit_20161130/custom.mak make/pcore/module/driver/custom.mak
+cp ~/doro_commit_20161130/nvram.mak make/pcore/module/service/nvram.mak
+cp ~/doro_commit_20161130/nvram_factory_config.c pcore/service/nvram/src/nvram_factory_config.c
+cp ~/doro_commit_20161130/nvram_io.c pcore/service/nvram/src/nvram_io.c 
+cp ~/doro_commit_20161130/nvram_interface.c pcore/service/nvram/src/nvram_interface.c 
+cp ~/doro_commit_20161130/custom_parse_db.c pcore/service/dhl/database/msglog_db/custom_parse_db.c
+
+#fold
+cp ~/doro_commit_20161130/simlock/ pcore/custom/
+cp ~/doro_commit_20161130/external/ pcore/custom/
+ 
+#ignore(OTP Marco)
+make/projects/CKT6750_65_N\(LWCTG_MP3\).mak

@@ -34,7 +34,7 @@ ril[0],ril[1],ril[3]
 gsdi: generic sim driver interface
 
 ===IMS message===
-0x156E
+0x156E - IMS message
 包含有IMS的注册流程的关键信令
 
 ===QMI link Tx/Rx PDU===

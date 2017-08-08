@@ -100,6 +100,7 @@ sudo smbpasswd -a smbuser -->设置密码
 sudo service smbd restart
 ifconfig --> 在windows端输入linux虚拟机的ip地址即可访问共享文件夹的内容
 
+
 ===利用xml source生成MBN===
 生成MBN的需求条件：perl，python，完整的MPSS镜像，hexagon工具，mircosoft-excel；基本上满足MPSS镜像编译条件的环境，如果是linux下直接使用xml表生成则不需要去操作修改excel表的相关内容。
 
@@ -254,15 +255,44 @@ scons文件是一个Python写的自动化构建工具，类似于GUNmake这种自动编译配置文件。
 3.active SW MBN: *#*#76266344#*#*
 optional --> deactive SW MBN: *#*#33266344#*#*
 
+4.显示carrier的信息
+*#*#2277437234#*#*
+
 ===User-Agent===
 现在只有在L版本上需要手动修改，M版本上高通加入了动态获取3个属性值组合成UA的功能，之后已经不需要每次都手动修改UA值了。
 
 ro.fota.oem + ro.product.model + ro.build.software.version
 e.g. CKT8939_5.0 + LS-5015 + LYF_LS-5015_00_202_12
 
-===关于默认MBN的加载流程===
+===关于默认的两个MBN的加载流程===
 /modem_proc/mcfg/mcfg_gen/build/mcfg_gen.scons
 以上这个文件中包含了如何将默认MBN编译进FSG镜像的流程。
+
+===MBN signed===
+【1】sectool的版本在3.10以后的：
+python sectools.py secimage -s -g mcfg_sw -i <unsigned_mbn_path> -o <signed_mbn_path>
+python sectools.py secimage -s -g mcfg_hw -i <unsigned_mbn_path> -o <signed_mbn_path>
+
+【2】sectool版本在3.10之前的，在对应的xml文件中添加如下代码
+<image sign_id="mcfg_hw" name="mcfg_hw.mbn" image_type="elf_has_ht">
+<general_properties_overrides>
+<sw_id>0x0000000000000002</sw_id>
+</general_properties_overrides>
+</image>
+
+<image sign_id="mcfg_sw" name="mcfg_sw.mbn" image_type="elf_has_ht">
+<general_properties_overrides>
+<sw_id>0x0000000000000002</sw_id>
+</general_properties_overrides>
+</image>
+
+
+
+
+
+
+
+
 
 
 

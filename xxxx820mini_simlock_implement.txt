@@ -1,0 +1,178 @@
+主要是简单归纳一下820/820mini上simlock的实现，这一部分不包含OTP部分。
+
+【1】
+#ckt zhangrui 2014-02-18 for Doro sim lock.//begin
+CUSTOM_OPTION += __CKT_SML_LOCK_TYPE1__
+CUSTOM_OPTION += __MMI_SML_UNLOCK_AFTER_VERIFIED__
+CUSTOM_OPTION += __CKT_SML_WITH_SPECIAL_FLAG__
+#ckt zhangrui 2014-02-18 //end
+
+
+【2】几个关键宏
+#ifdef xxx			//只能预定义一个参数
+#if define (xxx)	//括号内可以进行布尔运算
+
+SML:NVRAM_EF_SML_LID 				MP33	NVRAM_CATEGORY_SECUPACK | NVRAM_CATEGORY_IMPORTANT_L4
+IMEI:NVRAM_EF_IMEI_IMEISV_LID		MP0B	NVRAM_CATEGORY_OTP | NVRAM_CATEGORY_IMPORTANT,
+SN:NVRAM_EF_BARCODE_LID				MP09	NVRAM_CATEGORY_USER | NVRAM_CATEGORY_CALIBRAT,
+UNLOCK CODE: NVRAM_EF_SML_TYPE1_KEY_LID		MT91-3/SML1-3
+
+====================SIMLOCK===========================
+mcu/pcore/custom/modem/common/ps/custom_nvram_extra.c
+mcu/pcore/custom/modem/common/ps/custom_nvram_extra.h
+
+mcu/pcore/custom/modem/common/ps/customer_at_command.c --> ignore
+mcu/pcore/custom/service/nvram/custom_nvram_sec.c
+mcu/pcore/custom/service/nvram/custom_nvram_sec.h
+
+mcu/pcore/custom/simlock/simlock.h
+mcu/pcore/custom/simlock/simlock.c
+
+mcu/common/interface/service/nvram/nvram_data_items.h
+mcu/common/interface/service/nvram/nvram_editor_data_item.h
+
+mcu/make/project/<xxxxxx.mak>  --> OTP 已修改不用处理
+mcu/make/pcore/Option.mak
+mcu/make/pcore/module/driver/custom.mak
+mcu/make/pcore/module/service/nvram.mak
+
+mcu/pcore/service/nvram/src/nvram_factory_config.c	--> fix
+mcu/pcore/service/nvram/src/nvram_interface.c
+mcu/pcore/service/nvram/src/nvram_io.c
+
+mcu/pcore/service/dhl/database/msglog_db/custom_parse_db.c
+
+====================Unlock code in OTP===================
+【1】AP-side
+mcu/make/projects/CKT6750_65_N(LWCTG_MP3).mak --> vendor/mediatek/proprietary/modem/doro8042_ckt6738_65_n/modem_1_ulwctg_n.mak
+
+device/ckt/doro8050_ckt6750T_65_n/ProjectConfig.mk
+vendor/mediatek/proprietary/bootable/bootloader/preloader/custom/doro8050_ckt6750T_65_n/doro8050_ckt6750T_65_n.mk
+kernel-3.18/arch/arm64/configs/doro8050_ckt6750T_65_n_debug_defconfig
+kernel-3.18/arch/arm64/configs/doro8050_ckt6750T_65_n_defconfig
+
+【2】modem-side
+==basic unlock in otp==
+mcu/make/projects/CKT6750_65_N(LWCTG_MP3).mak
+mcu/make/pcore/Option.mak
+mcu/make/pcore/module/driver/custom.mak
+mcu/make/pcore/module/service/nvram.mak
+
+mcu/pcore/custom/service/nvram/custom_nvram_sec.c --> 原生simlock的nvram的mcc/mnc组数改为0？
+mcu/pcore/service/nvram/src/nvram_io.c --> otp里的nvram的写入逻辑添加
+
+mcu/pcore/custom/modem/common/ps/custom_nvram_extra.c --> sml相关客制化的各类api修改在这里！
+
+
+custom/simlock/simlock.h --> 无改动，unlock code最大位数16？“AUX_SML_MAX_KEY_LEN”
+mcu/pcore/custom/service/nvram/custom_nvram_sec.h --> 无改动，unlock code最大位数8？“SML_MAX_SUPPORT_KEY_LEN”
+mcu/common/interface/service/nvram/nvram_data_items.h --> 先保持unlock对应nvram的size为14(默认输入8位即可)，不修改“NVRAM_EF_SML_TYPE1_KEY_SIZE” --> 最新主分支提交已经改为32+1
+mcu/common/interface/service/nvram/nvram_editor_data_item.h --> 无改动，数组名“sml_type1_key[]”和“MULTIPLE_LID”都没有修改，没有去掉原sml的nvram的宏(不显示在nvram_editor中)
+mcu/pcore/service/nvram/src/nvram_factory_config.c --> 之前已经加上otp判断，保持不变
+
+【3】FPC/meta code-change
+mcu/pcore/custom/middleware/common/meta_customize.c --> 需要备份的lid-list(820mini中有很多，8040现在原生是空的)
+mcu/make/pcore/module/middleware/ftc.mak --> ftc编译参数/文件添加
+mcu/pcore/middleware/meta/ftc/ftc_private.h --> ftc的链各个结构体定义 ftc_nvram_req_struct_T / ftc_nvram_read_cnf_struct_T;
+mcu/pcore/middleware/meta/ftc/ftc_main.c --> main part
+
+mcu/make/pcore/module/driver/custom.mak --> 修改为CORE_ROOT，可以不改
+mcu/common/interface/service/nvram/nvram_editor_data_item.h --> 修改原生sml的lid显示
+
+
+
+
+
+
+==============
+
+@@ -4987,9 +4987,9 @@ static kal_uint8 const NVRAM_EF_CLASSMARK_RACAP_DEFAULT[] = {
+                             * bit 1 : SM cap in GPRS =1 */
+ /* Peter 080520: change complie option */
+ #ifdef __NO_SUPPORT_A5_3__
+-                  0xc1, /* GEA1, 2 and SM cap support */
++                  0xd1, /* GEA1, 2 and SM cap support *///bob.zhang 20161125,[Customer requirements]Enable GEA4^M
+ #else // The chip support A5/3(GEA/3)
+-    0xe1, /* GEA1, 2, 3 and SM cap support */
++    0xf1, /* GEA1, 2, 3 and SM cap support *///bob.zhang 20161125,[Customer requirements]Enable GEA4^M
+ #endif
+
+
+============================================================
+unlock code issue:
+
+11/17/16 17:47:59.424 META_DLL[18912][24468]: SendPrimitive(): local_param[14]:
+	00000000: 01 00 0E 00 02 00 18 00 CD 03 01 00 01 00       ; ........?....   (META_utility.h:403)
+11/17/16 17:47:59.424 META_DLL[18912][24468]: SendPrimitive(): record_len(20), peer_msg[28]:
+	00000000: 14 00 01 00 00 00 00 00 31 32 33 00 00 00 00 00 ; ........123.....
+	00000010: FF FF FF FF FF FF FF FF FF FF FF FF             ;      (META_utility.h:411)
+11/17/16 17:47:59.424 META_DLL[18912][24468]: ERROR: CMetaAdaptation::SendMetaMessage: SendMetaMessage through non-existent handle. Communication is not started (META_Adaptation.cpp:741)
+11/17/16 17:47:59.424 META_DLL[18912][24468]: ERROR: <1> META_NVRAM_Write_r(token=2): SendPrimitive(local_size=14, peer_size=28) fail! (META_nvram.cpp:9642)
+
+
+
+==========================================
+AT cmd issue:
+
+[AT_I p99, s34]AT+CKTSMLK
+AUX_SML_Paser_AT_Command
+cmd type ?= AUX_AT_TYPE_EXE
+Paser at cmd failed
+[AT_R p99, s34]OK
+
+[AT_I p99, s34]AT+CKTSMLK="12345678"
+AUX_SML_Paser_AT_Command
+AUX_SML_Check_And_Setkey
+AUX_SML_setkey
+keytempbuffer= ?
+Paser at cmd successful
+[AT_R p99, s34]OK
+
+[AT_I p99, s34]AT+CKTSMLK="12345678"
+AUX_SML_Paser_AT_Command
+AUX_SML_Check_And_Setkey
+keytempbuf != 0xFF
+check and set the key failed
+Paser at cmd failed
+[AT_R p99, s34]OK
+
+
+===========================
+AT cmd input verify:
+
+3678, 0, 15680628, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, [AT_I p99, s34]AT+CKTSMLK="12345678"
+3678, 0, 15680628, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, [AT_I p99, s34]AT+CKTSMLK="12345678"
+3700, 0, 15680631, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, AUX_SML_Paser_AT_Command
+3700, 0, 15680631, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, AUX_SML_Paser_AT_Command
+3704, 0, 15680632, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, AUX_SML_Check_And_Setkey
+3704, 0, 15680632, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, AUX_SML_Check_And_Setkey
+3755, 0, 15680864, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, AUX_SML_setkey
+3755, 0, 15680864, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, AUX_SML_setkey
+3759, 0, 15680865, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, keytempbuffer= ?
+3759, 0, 15680865, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, keytempbuffer= ?
+4007, 0, 15683296, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, Paser at cmd successful
+4007, 0, 15683296, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, Paser at cmd successful
+4012, 0, 15683298, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, [AT_R p99, s34]OK
+4012, 0, 15683298, 10:38:17:144 2016/11/23, MOD_NIL, , TRACE_INFO, [AT_R p99, s34]OK
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

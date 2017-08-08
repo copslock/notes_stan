@@ -59,9 +59,32 @@ register int xx; //指定专用寄存器去存放数据
 在没有函数原型的情况下,char和short类型操作数都会转换成int类型;
 长位数整型向低位数强制转换时,会舍弃掉高位的信息,浮点类向整型转换时舍弃掉小数部分,双精度向单精度转换时会进行四舍五入或截取;
 
-15.
+15.assert()
+函数原型在assert.h中，属于断言操作，当条件返回错误则终止程序执行。视觉判断效果类似于if，但有很大区别。
+//禁止assert断言判断，断言会大大影响程序执行效率。
+#include <stdio.h>
+#define NDEBUG
+#include <assert.h>
 
+16.malloc和free尽量成对使用，malloc分配完内存后一定加一个判断返回指针是否为空。
+int* p = NULL; 
+p = int* malloc(sizeof(int));
+if(p! = NULL){
+...
+}
+free p;
 
+17.selinux权限不足的问题，可以把avc的日志保存起来，然后用"audit2allow -i avclogfile"来看怎么修改
+
+18.ifdefined问题
+
+#ifdef MACRO1
+/* 处理1 */
+#elif defined MACRO2 
+/* 处理2 */
+#else
+/* 处理3 */
+#endif
 
 
 

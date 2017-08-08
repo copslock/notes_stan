@@ -1,0 +1,33 @@
+【1】echo
+使用最多的输出信息的命令
+echo xxxxxxxxxxxxxxxxxxx
+
+【2】rem
+注释命令
+rem xxxxxxxxxxxxxx
+
+【3】call
+在当前脚本中调用其他脚本文件
+call xxx.bat
+
+【4】goto
+跳转到:xxx信息的所在行继续执行接下来的命令
+goto xxx
+--> :xxx
+
+【5】pause
+终止运行
+
+【6】If
+IF [NOT] ERRORLEVEL number command 	上一条命令执行完成后的返回值大于或等于number时继续执行cmd
+IF [NOT] string1==string2 command 	字符串相同则执行cmd
+IF [NOT] EXIST filename command 	filename文件夹存在则执行cmd
+
+【7】for
+FOR [%%c] IN (set) DO [command] [arguments] 
+
+for /L %%F IN (1,1,100) 
+do
+(
+cmd
+)

@@ -59,3 +59,15 @@ git clean -xfd
 git clean -nxfd
 git clean -nf
 git clean -nfd
+
+【8】没有change-id
+curl http://10.120.10.101:9999/tools/hooks/commit-msg > .git/hooks/commit-msg
+chmod +x .git/hooks/commit-msg
+
+【9】
+git clone ssh://username@10.120.10.101:29418/msm8939-la-2-1 -b mobeeplus01a-s11a_5_1_2156_15 
+repo init -u git://10.120.10.101/msm/platform/manifest.git --repo-url=git://10.120.10.101/msm/tools/repo.git -b ckt -m mobeeplus01a-s11a_5_1_2156_15_MSM8939.LA.2.1.xml
+repo init -u git://10.120.10.101/msm/platform/manifest.git --repo-url=git://10.120.10.101/msm/tools/repo.git -b ckt -m mirage01a_s25a_5_1_mp_2156_15_MSM8939.LA.2.1.xml
+============
+mirage01a_s25a_5_1_mp_2156_15_MSM8939.LA.2.1.xml
+mobeeplus01a-s11a_5_1_2156_15_MSM8939.LA.2.1.xml
