@@ -27,7 +27,13 @@ Separate Jira issue created for PC tool also supporting SIM locking / unlocking.
 cd mcu
 ./m "CKT6750_65_N(LWCTG_MP3).mak" new
 
+cd AP代码目录/
 perl ./device/mediatek/build/build/tools/modemRenameCopy.pl ~/software/MT6750_M_modem_Doro-baseline/mcu "CKT6750_65_N(LWCTG_MP3)"
+
+cp ../MT6750_M_modem_Doro-baseline/mcu/temp_modem/md1dsp.img out/target/product/doro8042_ckt6738_65_n/
+cp ../MT6750_M_modem_Doro-baseline/mcu/temp_modem/md1rom.img out/target/product/doro8042_ckt6738_65_n/
+
+./vendor/mediatek/proprietary/scripts/sign-image/sign_image_replace.sh
 
 【1】确保make file中SML_SUPPORT = TRUE --> ok
 /mcu/make/projects/custom_config/CKT6750_65_N(LWCTG_MP3)_EXT.mak
